@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-orange: #E85D04;
+  --secondary-orange: #F77F00;
+  --light-orange: #FCBF49;
+  --white: #FFFFFF;
+  --cream: #FFF8F0;
+  --dark-text: #1A1A1A;
+  --gray-text: #666666;
+}
+
+body {
+  @apply bg-cream text-dark font-sans;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display font-black tracking-tight;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-8 py-3 rounded-2xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply bg-white text-primary border-2 border-primary px-8 py-3 rounded-2xl font-bold transition-all hover:bg-primary hover:text-white hover:scale-105 active:scale-95 flex items-center justify-center gap-2;
+}
