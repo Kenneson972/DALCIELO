@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { NextRequest, NextResponse } from 'next/server'
 import { updateOrderStatus } from '@/lib/ordersStore'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
-import type { OrderStatus } from '@/types/order'
+import type { Order, OrderStatus } from '@/types/order'
 
 const ORDER_STATUSES = [
   'pending_validation', 'waiting_payment', 'paid', 'in_preparation',
@@ -45,7 +45,10 @@ export async function PATCH(
     }
 
     const { status, ...rest } = parsed.data
-    const updated = await updateOrderStatus(id, status as OrderStatus, rest)
+    const sanitized = Object.fromEntries(
+      Object.entries(rest).map(([k, v]) => [k, v === null ? undefined : v])
+    ) as Partial<Order>
+    const updated = await updateOrderStatus(id, status as OrderStatus, sanitized)
 
     if (!updated) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })

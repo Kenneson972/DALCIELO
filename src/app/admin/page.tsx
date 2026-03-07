@@ -108,7 +108,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [pin, setPin] = useState('')
   const [view, setView] = useState<ViewMode>('dashboard')
-  const [mountedViews, setMountedViews] = useState<Set<ViewMode>>(new Set(['dashboard']))
+  const [mountedViews, setMountedViews] = useState<Set<ViewMode>>(new Set<ViewMode>(['dashboard']))
   const [orders, setOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<DashboardStats>(() => computeDashboardStats([]))
   const [ordersError, setOrdersError] = useState<string | null>(null)

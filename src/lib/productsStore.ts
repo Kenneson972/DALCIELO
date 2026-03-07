@@ -196,6 +196,7 @@ export type ProductCreate = {
   image_url?: string | null
   image_urls?: string[] | null
   slider_image_url?: string | null
+  show_in_slider?: boolean
   size?: string | null
   available?: boolean
   popular?: boolean
