@@ -32,7 +32,7 @@ export const Button = ({
   return (
     <button
       className={cn(
-        'font-bold transition-all active:scale-95 flex items-center justify-center gap-2',
+        'font-bold transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]',
         variants[variant],
         sizes[size],
         className

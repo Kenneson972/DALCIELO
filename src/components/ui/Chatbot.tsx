@@ -1,18 +1,43 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, X, Send, Pizza, Loader2 } from 'lucide-react'
+import { X, Send, Loader2, Minimize2, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  quickReplies?: string[]
 }
+
+const URL_REGEX = /(https?:\/\/[^\s]+)/g
+function linkify(text: string) {
+  const parts = text.split(URL_REGEX)
+  return parts.map((part, i) =>
+    part.match(URL_REGEX) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="text-primary font-bold underline break-all hover:opacity-80"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  )
+}
+
+type ChatSize = 'full' | 'reduced'
 
 export const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [chatSize, setChatSize] = useState<ChatSize>('full')
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -35,6 +60,15 @@ export const Chatbot = () => {
     return () => clearTimeout(timer)
   }, [isOpen])
 
+  useEffect(() => {
+    const openChat = () => {
+      setIsOpen(true)
+      setChatSize('reduced')
+    }
+    window.addEventListener('open-chat', openChat)
+    return () => window.removeEventListener('open-chat', openChat)
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -46,13 +80,37 @@ export const Chatbot = () => {
   const MAX_MESSAGES_PER_MINUTE = 5
   const MAX_MESSAGES_PER_SESSION = 20
 
+  const sendToBot = async (messageToSend: string, historyForApi: Message[]) => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: messageToSend, history: historyForApi }),
+      })
+      const data = await response.json()
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.response || "Désolé, je n'ai pas pu traiter votre demande. Réessayez plus tard.",
+        quickReplies: data.quickReplies?.length ? data.quickReplies : undefined,
+      }])
+    } catch (error) {
+      console.error('Chat error:', error)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Oups ! Une erreur est survenue. Veuillez nous contacter par téléphone.",
+      }])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSend = async () => {
     if (!input.trim() || isLoading || rateLimitExceeded) return
 
     if (userMessageCount >= MAX_MESSAGES_PER_SESSION) {
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `Vous avez atteint la limite de messages pour cette session (${MAX_MESSAGES_PER_SESSION}). Merci d'avoir discuté avec moi !` 
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Vous avez atteint la limite de messages pour cette session (${MAX_MESSAGES_PER_SESSION}). Merci d'avoir discuté avec moi !`
       }])
       setInput('')
       return
@@ -74,28 +132,22 @@ export const Chatbot = () => {
     setMessageTimestamps(prev => [...prev, now])
     setUserMessageCount(prev => prev + 1)
     setIsLoading(true)
+    await sendToBot(userMessage, messages)
+  }
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
-      })
-      const data = await response.json()
-      
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.response || "Désolé, je n'ai pas pu traiter votre demande. Réessayez plus tard." 
-      }])
-    } catch (error) {
-      console.error('Chat error:', error)
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "Oups ! Une erreur est survenue. Veuillez nous contacter par téléphone." 
-      }])
-    } finally {
-      setIsLoading(false)
-    }
+  const handleQuickReply = (label: string) => {
+    if (isLoading || rateLimitExceeded) return
+    if (userMessageCount >= MAX_MESSAGES_PER_SESSION) return
+    const last = messages[messages.length - 1]
+    const historyForApi =
+      last?.role === 'assistant' && last.quickReplies
+        ? [...messages.slice(0, -1), { ...last, quickReplies: undefined }]
+        : messages
+    setMessages([...historyForApi, { role: 'user', content: label }])
+    setUserMessageCount(prev => prev + 1)
+    setMessageTimestamps(prev => [...prev, Date.now()])
+    setIsLoading(true)
+    sendToBot(label, historyForApi)
   }
 
   return (
@@ -123,88 +175,148 @@ export const Chatbot = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95",
-          isOpen ? "bg-dark text-white" : "bg-primary text-white"
-        )}
-      >
-        {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
-      </button>
+      {/* Floating Button — masqué quand le chat est ouvert */}
+      {!isOpen && (
+        <button
+          onClick={() => {
+            setIsOpen(true)
+            setChatSize('reduced')
+          }}
+          className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 overflow-hidden border-2 border-white bg-white"
+        >
+          <div className="relative w-full h-full">
+            <Image 
+              src="/images/celiobot.png" 
+              alt="CieloBot" 
+              fill 
+              className="object-cover"
+            />
+          </div>
+        </button>
+      )}
 
-      {/* Chat Window */}
+      {/* Chat Window — plein écran ou réduit */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-40 w-[350px] max-w-[calc(100vw-3rem)] h-[500px] bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden flex flex-col"
+            initial={{ opacity: 0, scale: chatSize === 'reduced' ? 0.95 : 1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              "fixed z-50 bg-white flex flex-col shadow-2xl",
+              chatSize === 'full'
+                ? "inset-0"
+                : "bottom-24 right-6 w-[380px] max-w-[calc(100vw-3rem)] h-[560px] max-h-[85vh] rounded-[2rem] border border-gray-100 overflow-hidden"
+            )}
           >
             {/* Header */}
-            <div className="bg-primary p-6 text-white flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-xl">
-                <Pizza size={20} />
+            <div className="bg-primary p-4 md:p-6 text-white flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 shadow-sm shrink-0">
+                  <Image 
+                    src="/images/celiobot.png" 
+                    alt="CieloBot" 
+                    fill 
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-black text-sm md:text-base uppercase tracking-wider truncate">CieloBot</h3>
+                  <p className="text-[10px] opacity-80 font-bold uppercase tracking-widest">En ligne • Assistant Pizza</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-black text-sm uppercase tracking-wider">CieloBot</h3>
-                <p className="text-[10px] opacity-80 font-bold uppercase tracking-widest">En ligne • Assistant Pizza</p>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setChatSize(chatSize === 'full' ? 'reduced' : 'full')}
+                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors min-w-[44px] min-h-[44px]"
+                  aria-label={chatSize === 'full' ? 'Réduire' : 'Plein écran'}
+                  title={chatSize === 'full' ? 'Réduire' : 'Plein écran'}
+                >
+                  {chatSize === 'full' ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors min-w-[44px] min-h-[44px]"
+                  aria-label="Fermer le chat"
+                >
+                  <X size={22} />
+                </button>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-cream/30">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed",
-                    msg.role === 'user'
-                      ? "bg-primary text-white ml-auto rounded-tr-none"
-                      : "bg-white text-dark shadow-sm rounded-tl-none border border-gray-100"
-                  )}
-                >
-                  {msg.content}
-                </div>
-              ))}
-              {isLoading && (
-                <div className="bg-white text-dark shadow-sm rounded-2xl rounded-tl-none border border-gray-100 p-4 max-w-[85%] flex items-center gap-2">
-                  <Loader2 size={16} className="animate-spin text-primary" />
-                  <span className="text-xs font-bold text-gray-400">CieloBot réfléchit...</span>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+            <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-cream/30">
+              <div className={cn("space-y-5", chatSize === 'full' && "max-w-2xl mx-auto")}>
+                {messages.map((msg, i) => (
+                  <div key={i} className="space-y-2">
+                    <div
+                      className={cn(
+                        "max-w-[88%] px-5 py-4 rounded-2xl text-sm md:text-base leading-[1.6]",
+                        msg.role === 'user'
+                          ? "bg-primary text-white ml-auto rounded-tr-md rounded-bl-2xl rounded-br-2xl rounded-tl-2xl shadow-md"
+                          : "bg-white text-dark shadow-sm rounded-tl-md rounded-br-2xl rounded-bl-2xl rounded-tr-2xl border border-gray-100/80"
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap break-words">
+                        {msg.role === 'assistant' ? linkify(msg.content) : msg.content}
+                      </p>
+                    </div>
+                    {msg.role === 'assistant' && msg.quickReplies?.length && i === messages.length - 1 && !isLoading && (
+                      <div className="flex flex-wrap gap-2 pl-1">
+                        {msg.quickReplies.map((label, j) => (
+                          <button
+                            key={j}
+                            type="button"
+                            onClick={() => handleQuickReply(label)}
+                            className="px-4 py-2 rounded-xl bg-primary/10 text-primary border border-primary/30 text-sm font-bold hover:bg-primary/20 active:scale-[0.98] transition-all"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="bg-white text-dark shadow-sm rounded-2xl rounded-tl-md border border-gray-100/80 px-5 py-4 max-w-[88%] flex items-center gap-3">
+                    <Loader2 size={18} className="animate-spin text-primary shrink-0" />
+                    <span className="text-sm font-bold text-gray-500">CieloBot réfléchit...</span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} className="h-2" />
+              </div>
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-100">
-              {rateLimitExceeded && (
-                <div className="mb-2 text-center text-[10px] font-bold text-red-500 animate-pulse uppercase tracking-widest">
-                  Trop de messages ! Attendez quelques secondes...
+            <div className="p-4 md:p-6 pt-5 bg-white border-t border-gray-100 shrink-0">
+              <div className={cn(chatSize === 'full' && "max-w-2xl mx-auto")}>
+                {rateLimitExceeded && (
+                  <div className="mb-3 text-center text-[10px] font-bold text-red-500 animate-pulse uppercase tracking-widest">
+                    Trop de messages ! Attendez quelques secondes...
+                  </div>
+                )}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Posez votre question..."
+                    className="w-full pl-5 pr-14 py-4 rounded-2xl bg-cream/50 border-2 border-gray-100 focus:border-primary/30 focus:outline-none transition-all text-sm placeholder:text-gray-400"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim() || isLoading}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary-light disabled:opacity-50 disabled:scale-100 transition-all hover:scale-105 active:scale-95"
+                  >
+                    <Send size={18} />
+                  </button>
                 </div>
-              )}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Posez votre question..."
-                  className="w-full pl-6 pr-14 py-4 rounded-2xl bg-cream/50 border-2 border-transparent focus:border-primary/20 focus:outline-none transition-all text-sm"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary-light disabled:opacity-50 disabled:scale-100 transition-all hover:scale-105 active:scale-95"
-                >
-                  <Send size={18} />
-                </button>
+                <p className="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest font-bold">
+                  Propulsé par Pizza dal Cielo
+                </p>
               </div>
-              <p className="text-[10px] text-center text-gray-400 mt-3 uppercase tracking-widest font-bold">
-                Propulsé par Pizza dal Cielo
-              </p>
             </div>
           </motion.div>
         )}

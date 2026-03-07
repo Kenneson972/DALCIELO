@@ -1,127 +1,114 @@
-'use client'
-
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { getProducts } from '@/lib/productsStore'
 import { menuData } from '@/data/menuData'
-import { PizzaCard } from '@/components/menu/PizzaCard'
-import { CategoryFilter } from '@/components/menu/CategoryFilter'
-import { Button } from '@/components/ui/Button'
-import { Pizza, Search } from 'lucide-react'
+import { generateSlug } from '@/lib/utils'
+import { MenuPageClient, type MenuPageItem } from '@/components/menu/MenuPageClient'
+import { getHomepageSettings } from '@/lib/homepageSettingsStore'
 
-export default function MenuPage() {
-  const [activeCategory, setActiveCategory] = useState('Tous')
-  const [searchQuery, setSearchQuery] = useState('')
+export const revalidate = 30 // Les modifs admin apparaissent sous ~30s
 
-  const allItems = [
-    ...menuData.pizzas.map(p => ({ ...p, type: 'Pizza' })),
-    ...menuData.friands.map(f => ({ ...f, type: 'Friand' })),
-    ...menuData.drinks.map(d => ({ ...d, type: 'Drink' })),
+/** IDs des pizzas avec sauce au choix (Variante 2 dans import_articles_source.csv). Utilisé quand Supabase n'a pas sauce_au_choix. */
+const PIZZA_IDS_SAUCE_AU_CHOIX = new Set([201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 213, 214, 215])
+
+/** Construit la liste depuis menuData (fallback statique) */
+function itemsFromStaticData(): MenuPageItem[] {
+  return [
+    ...menuData.pizzas.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      type: 'Pizza',
+      category: (p as any).category,
+      ingredients: (p as any).ingredients,
+      description: (p as any).description,
+      image: (p as any).image,
+      popular: (p as any).popular,
+      vegetarian: (p as any).vegetarian,
+      premium: (p as any).premium,
+      sauceAuChoix: (p as any).sauceAuChoix ?? false,
+      slug: generateSlug(p.name),
+    })),
+    ...menuData.friands.map(f => ({
+      id: f.id,
+      name: f.name,
+      price: f.price,
+      type: 'Friand',
+      category: 'Friands',
+      ingredients: (f as any).ingredients,
+      description: (f as any).description,
+      image: (f as any).image,
+      popular: (f as any).popular,
+      vegetarian: (f as any).vegetarian,
+      slug: generateSlug(f.name + '-friand'),
+    })),
+    ...menuData.drinks.map(d => ({
+      id: d.id,
+      name: d.name,
+      price: d.price,
+      type: 'Drink',
+      category: 'Boissons',
+      description: (d as any).size,
+      slug: generateSlug(d.name + '-boisson'),
+    })),
+    ...menuData.desserts.map(d => ({
+      id: d.id,
+      name: d.name,
+      price: d.price,
+      type: 'Dessert',
+      category: 'Desserts',
+      description: d.description,
+      image: d.image,
+      slug: generateSlug(d.name + '-dessert'),
+    })),
   ]
+}
 
-  const categories = ['Classiques', 'Signatures', 'Végétariennes', 'Friands', 'Boissons']
+export default async function MenuPage() {
+  let items: MenuPageItem[] = []
 
-  const filteredItems = allItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          ((item as any).ingredients && (item as any).ingredients.some((i: string) => i.toLowerCase().includes(searchQuery.toLowerCase())))
+  // Récupère le flag desserts (avec fallback silencieux)
+  let dessertsEnabled = false
+  try {
+    const settings = await getHomepageSettings()
+    dessertsEnabled = settings.dessertsEnabled
+  } catch {
+    // Fallback : desserts masqués si settings indisponibles
+  }
 
-    if (activeCategory === 'Tous') return matchesSearch
-    
-    if (activeCategory === 'Classiques') return matchesSearch && (item as any).category === 'Classique'
-    if (activeCategory === 'Signatures') return matchesSearch && (item as any).category === 'Signature'
-    if (activeCategory === 'Végétariennes') return matchesSearch && (item as any).vegetarian
-    if (activeCategory === 'Friands') return matchesSearch && item.type === 'Friand'
-    if (activeCategory === 'Boissons') return matchesSearch && item.type === 'Drink'
-    
-    return matchesSearch
-  })
+  try {
+    const products = await getProducts()
+    if (products.length > 0) {
+      items = products
+        .filter(p => p.available)
+        .filter(p => p.type !== 'dessert' || dessertsEnabled)
+        .map(p => {
+          const isPizza = p.type === 'pizza'
+          const isDessert = p.type === 'dessert'
+          const sauceAuChoix =
+            (p as any).sauce_au_choix ??
+            (isPizza && PIZZA_IDS_SAUCE_AU_CHOIX.has(p.menu_id))
+          return {
+            id: p.menu_id,
+            name: p.name,
+            price: p.price,
+            type: isPizza ? 'Pizza' : p.type === 'friand' ? 'Friand' : isDessert ? 'Dessert' : 'Drink',
+            category: p.category ?? undefined,
+            ingredients: p.ingredients ?? undefined,
+            description: p.description ?? undefined,
+            image: p.image_url ?? undefined,
+            popular: p.popular,
+            vegetarian: p.vegetarian,
+            premium: p.premium,
+            sauceAuChoix: !!sauceAuChoix,
+            slug: p.slug,
+          }
+        })
+    } else {
+      items = itemsFromStaticData().filter(i => i.type !== 'Dessert' || dessertsEnabled)
+    }
+  } catch {
+    // Supabase indisponible ou table non encore seedée → fallback statique
+    items = itemsFromStaticData().filter(i => i.type !== 'Dessert' || dessertsEnabled)
+  }
 
-  return (
-    <div className="pt-32 pb-24 px-6 min-h-screen bg-cream/30">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-bold text-sm uppercase tracking-widest mb-4"
-          >
-            Fait Maison
-          </motion.div>
-          <h1 className="text-5xl md:text-6xl font-black mb-6">Notre <span className="text-primary">Carte</span></h1>
-          <p className="text-gray-text text-lg max-w-2xl mx-auto">
-            Découvrez notre sélection complète de pizzas artisanales, friands savoureux et boissons fraîches. 
-            Des recettes classiques aux créations signatures du Chef.
-          </p>
-        </div>
-
-        {/* Search & Filters */}
-        <div className="mb-12">
-          <div className="relative max-w-md mx-auto mb-8">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Rechercher une pizza, un ingrédient..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-primary/20 focus:outline-none shadow-sm transition-all"
-            />
-          </div>
-          
-          <CategoryFilter 
-            categories={categories} 
-            activeCategory={activeCategory} 
-            setActiveCategory={setActiveCategory} 
-          />
-        </div>
-
-        {/* Menu Grid */}
-        <motion.div 
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          <AnimatePresence mode='popLayout'>
-            {filteredItems.map((item: any) => (
-              <motion.div
-                key={`${item.type}-${item.id}`}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-              >
-                <PizzaCard pizza={item} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-20">
-            <div className="bg-white inline-flex p-6 rounded-full text-gray-300 mb-6">
-              <Pizza size={48} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-500">Aucun résultat trouvé</h3>
-            <p className="text-gray-400 mt-2">Essayez d&apos;autres mots-clés ou changez de catégorie.</p>
-          </div>
-        )}
-
-        <div className="mt-24 p-12 bg-dark rounded-[3rem] text-white text-center">
-          <h2 className="text-3xl font-black mb-4">Envie de personnaliser ?</h2>
-          <p className="text-white/60 mb-8 max-w-xl mx-auto">
-            Vous pouvez composer votre pizza en choisissant votre base, votre sauce et vos garnitures préférées. 
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/customize">
-              <Button className="w-full sm:w-auto py-4 px-10 text-lg">
-                Créer ma Pizza
-              </Button>
-            </Link>
-            <a href="tel:+596696887270" className="inline-flex items-center justify-center gap-3 bg-white/10 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all">
-              Appeler pour commander
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return <MenuPageClient items={items} />
 }

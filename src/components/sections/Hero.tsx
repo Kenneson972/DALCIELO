@@ -1,36 +1,65 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { ArrowRight, Pizza } from 'lucide-react'
+import { ArrowRight, Star } from 'lucide-react'
 import Link from 'next/link'
+import { contactInfo } from '@/data/menuData'
+import { useQueueEstimate } from '@/hooks/useQueueEstimate'
 
 export const Hero = () => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Tropical Background Elements */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-lighter/10 rounded-full blur-3xl" />
-        
-        {/* Abstract tropical leaves pattern (simulated with SVGs or divs) */}
-        <div className="absolute top-1/4 right-10 opacity-10 rotate-45 hidden lg:block">
-          <Pizza size={200} className="text-primary" />
-        </div>
-      </div>
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const { estimate } = useQueueEstimate(mounted)
 
-      <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+  return (
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-20 px-6">
+      {/* Background decoration - subtle glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="container max-w-4xl mx-auto relative z-10 flex flex-col items-center text-center">
+        
+        {/* Logo DAL CIELO - Géant et flottant */}
         <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={mounted ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.8, y: 20 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative mb-12 group"
+        >
+          {/* Aura lumineuse derrière le logo */}
+          <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-1000 scale-150" />
+          
+          <motion.div
+            animate={{ y: [0, -15, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="relative h-40 w-40 md:h-56 md:w-56 z-10"
+          >
+            <Image
+              src="/images/logo.png"
+              alt="Pizza dal Cielo"
+              fill
+              sizes="(max-width: 768px) 160px, 224px"
+              className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.2)]"
+              priority
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Textes - Centrés */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="flex flex-col items-center"
         >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-bold text-sm uppercase tracking-widest mb-6"
+            initial={{ opacity: 0 }}
+            animate={mounted ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ delay: 0.5 }}
+            className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-md text-primary px-4 py-2 rounded-full font-bold text-xs uppercase tracking-[0.2em] mb-8 shadow-sm border border-white/40"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -39,92 +68,72 @@ export const Hero = () => {
             Une toute nouvelle carte !
           </motion.div>
           
-          <h1 className="text-5xl md:text-7xl font-display font-black text-dark leading-tight mb-8">
+          <h1 className="text-5xl md:text-8xl font-display font-black text-[#3D2418] leading-[0.9] mb-8 drop-shadow-sm tracking-tighter">
             Des pizzas qui <br />
-            <span className="text-transparent bg-clip-text bg-gradient-primary">
+            <span className="text-white drop-shadow-md">
               touchent le ciel
             </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-text max-w-lg mb-10 leading-relaxed">
+          <p className="text-2xl md:text-4xl text-white font-indie leading-tight mb-8 drop-shadow-md max-w-2xl">
+            Bien plus qu&apos;une adresse,<br />
+            un véritable coup de cœur ! 🌟
+          </p>
+
+          <p className="text-lg md:text-xl text-[#3D2418]/70 font-medium max-w-xl mb-12 leading-relaxed">
             Découvrez l&apos;authenticité de la pizza artisanale à Bellevue, Fort-de-France. 
             Des ingrédients frais, une pâte travaillée avec amour et un goût inoubliable.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-5 mb-16">
             <Link href="/menu">
-              <Button size="lg" className="w-full sm:w-auto">
-                Découvrir le menu <ArrowRight size={20} />
+              <Button size="lg" className="w-full sm:w-auto px-10 py-6 text-lg shadow-2xl shadow-primary/20 hover:scale-105 transition-transform duration-300">
+                Découvrir le menu <ArrowRight size={22} className="ml-2" />
               </Button>
             </Link>
             <Link href="/customize">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 py-6 text-lg bg-white/80 backdrop-blur-md border-white/50 hover:bg-white hover:scale-105 transition-all shadow-xl">
                 Personnaliser ma pizza
               </Button>
             </Link>
           </div>
 
-          <div className="mt-12 flex items-center gap-6">
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-cream flex items-center justify-center overflow-hidden">
-                   <img 
-                    src={`https://i.pravatar.cc/100?u=${i}`} 
-                    alt="User avatar" 
-                    className="w-full h-full object-cover"
-                   />
-                </div>
-              ))}
-            </div>
-            <div className="text-sm">
-              <div className="flex text-yellow-500 mb-1">
-                {'★'.repeat(5)}
+          {/* Footer Hero - Timer & TripAdvisor alignés */}
+          <div className="flex flex-col sm:flex-row items-center gap-8 pt-8 border-t border-white/20 w-full justify-center">
+            {mounted && (
+              <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/40 shadow-sm transition-all hover:bg-white/60">
+                <div className={`w-3 h-3 rounded-full ${
+                  !estimate.ovenAvailable
+                    ? 'bg-red-500 animate-pulse'
+                    : estimate.estimatedMinutes <= 20
+                      ? 'bg-green-500 animate-pulse'
+                      : estimate.estimatedMinutes <= 40
+                        ? 'bg-amber-500 animate-pulse'
+                        : 'bg-red-500 animate-pulse'
+                }`} />
+                <span className="text-sm font-black text-[#3D2418]">
+                  {!estimate.ovenAvailable
+                    ? 'Four temporairement indisponible'
+                    : estimate.estimateSource === 'manual'
+                      ? `Prêt en ~${estimate.estimatedMinutes} min`
+                    : estimate.totalItems === 0
+                      ? 'Four disponible'
+                      : `Prêt en ~${estimate.estimatedMinutes} min`}
+                </span>
               </div>
-              <p className="font-bold text-dark">5.0 sur TripAdvisor</p>
-            </div>
-          </div>
-        </motion.div>
+            )}
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="relative"
-        >
-          {/* Main Hero Image Placeholder */}
-          <div className="relative z-10 w-full aspect-square max-w-[500px] mx-auto">
-            <div className="absolute inset-0 bg-gradient-tropical rounded-full opacity-20 blur-3xl" />
-            <div className="relative w-full h-full rounded-full overflow-hidden border-8 border-white shadow-2xl">
-              <img 
-                src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1000&auto=format&fit=crop" 
-                alt="Pizza dal Cielo Signature"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Floating Badges */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-10 -left-10 glass p-4 rounded-2xl shadow-xl flex items-center gap-3"
+            <a
+              href={contactInfo.socials.tripadvisor}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/40 shadow-sm hover:bg-white/60 transition-all"
             >
-              <div className="bg-primary p-2 rounded-lg">
-                <Pizza className="text-white" size={24} />
+              <div className="flex text-yellow-500">
+                {[1, 2, 3, 4, 5].map((_, i) => <Star key={i} size={16} fill="currentColor" className="group-hover:scale-110 transition-transform" style={{ transitionDelay: `${i * 50}ms` }} />)}
               </div>
-              <div>
-                <p className="text-xs text-gray-text font-bold uppercase">Best Seller</p>
-                <p className="text-sm font-black">Pizza du Chef</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-10 -right-10 glass p-4 rounded-2xl shadow-xl"
-            >
-              <p className="text-primary font-black text-2xl">100%</p>
-              <p className="text-xs text-gray-text font-bold uppercase">Artisanal</p>
-            </motion.div>
+              <span className="text-sm font-bold text-[#3D2418]">Avis TripAdvisor</span>
+            </a>
           </div>
         </motion.div>
       </div>

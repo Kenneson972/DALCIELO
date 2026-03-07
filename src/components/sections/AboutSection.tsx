@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle2 } from 'lucide-react'
@@ -25,15 +26,23 @@ export const AboutSection = () => {
               viewport={{ once: true }}
               className="space-y-4"
             >
-              <img 
-                src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=600&auto=format&fit=crop" 
-                alt="Cuisson pizza" 
+              <Image
+                src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=600&auto=format&fit=crop"
+                alt="Cuisson pizza"
+                width={600}
+                height={256}
                 className="rounded-3xl w-full h-64 object-cover shadow-lg"
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              <img 
-                src="https://images.unsplash.com/photo-1593504049359-74330189a345?q=80&w=600&auto=format&fit=crop" 
-                alt="Pizza fraîche" 
+              <Image
+                src="https://images.unsplash.com/photo-1593504049359-74330189a345?q=80&w=600&auto=format&fit=crop"
+                alt="Pizza fraîche"
+                width={600}
+                height={320}
                 className="rounded-3xl w-full h-80 object-cover shadow-lg"
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </motion.div>
             <motion.div 
@@ -43,15 +52,24 @@ export const AboutSection = () => {
               transition={{ delay: 0.2 }}
               className="space-y-4 pt-12"
             >
-              <img 
-                src="https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?q=80&w=600&auto=format&fit=crop" 
-                alt="Ingrédients" 
+              <Image
+                src="https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?q=80&w=600&auto=format&fit=crop"
+                alt="Ingrédients"
+                width={600}
+                height={320}
                 className="rounded-3xl w-full h-80 object-cover shadow-lg"
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              <div className="bg-primary p-8 rounded-3xl text-white shadow-xl">
-                <p className="text-4xl font-black mb-2">5.0</p>
-                <p className="font-bold opacity-80 uppercase text-xs tracking-widest">Avis Clients</p>
-              </div>
+              <a
+                href="https://www.tripadvisor.fr/Restaurant_Review-g147328-d28103311-Reviews-Pizza_Dal_Cielo-Fort_de_France_Arrondissement_of_Fort_de_France_Martinique.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-primary p-8 rounded-3xl text-white shadow-xl hover:opacity-95 transition-opacity"
+              >
+                <p className="text-2xl font-black mb-2">Avis TripAdvisor</p>
+                <p className="font-bold opacity-80 uppercase text-xs tracking-widest">Voir les avis</p>
+              </a>
             </motion.div>
           </div>
           

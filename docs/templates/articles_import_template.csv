@@ -1,0 +1,10 @@
+id,type,name,category,price,description,ingredients,size,popular,vegetarian,premium,is_chef_special
+101,pizza,Margherita,Classique,11,"L'élégance à l'état pur : basilic et mozzarella.","Base au choix|Mozzarella|Emmental|Basilic|Olive",,0,0,0,0
+102,pizza,Jambon Fromage,Classique,13,Réconfort authentique jambon et fromages.,"Base au choix|Mozzarella|Emmental|Jambon fumé|Olive",,0,0,0,0
+106,pizza,Chorizo,Classique,14,Voyage ensoleillé chorizo et oignon rouge.,"Base au choix|Mozzarella|Emmental|Chorizo|Oignon rouge|Olive",,0,0,0,0
+209,pizza,4 Fromages,Classique,16,Classique indémodable pour les passionnés.,"Base au choix|Mozzarella|Emmental|Bleu|Roquefort|Olive",,0,1,0,0
+900,pizza,L'Éphémère du Chef,Du Chef,18,Recette unique qui change tous les 15 jours.,"Base selon inspiration|Produits frais de saison|Création exclusive",,0,0,1,1
+301,friand,Classique,Friands,8,Base au choix et viandes.,"Base au choix|Mozzarella|Emmental|Poulet|Chorizo|Jambon|Merguez|Saucisses",,0,0,0,0
+302,friand,Végétarienne,Friands,8,Base au choix et légumes.,"Base au choix|Mozzarella|Emmental|Champignon|Poivron|Oignon rouge|Oignon frit",,0,1,0,0
+401,drink,Coca Cola,Boissons,2.5,,,50cl,0,0,0,0
+402,drink,Orangina,Boissons,2.5,,,50cl,0,0,0,0

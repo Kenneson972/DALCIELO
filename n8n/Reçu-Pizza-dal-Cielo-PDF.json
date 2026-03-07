@@ -1,0 +1,319 @@
+{
+  "name": "Reçu Pizza dal Cielo - PDF v3",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "🍕 **SETUP REQUIS — Workflow Reçu v3**\n\n1. **URL app** : Remplace `YOUR-APP-URL` dans :\n   - Nœud **GET Commande** (ligne url)\n   - Nœud **Upload PDF to app** (ligne url)\n   → Dev : URL ngrok (ex. `https://xxxx.ngrok-free.app`)\n   → Prod : `https://pizzadalcielo.com`\n\n2. **RECEIPT_UPLOAD_SECRET** : Remplace `VALEUR_RECEIPT_UPLOAD_SECRET` dans **Upload PDF to app** (en-tête x-receipt-secret) — même valeur que dans `.env.local`\n\n3. **Email client** : Nécessite d'abord d'ajouter `client_email` à la DB Supabase (migration 011). Le nœud est présent mais ignoré si l'email est vide.\n\n📧 Emails envoyés via **Gmail OAuth** (KARIBLOOM GMAIL)\n📄 PDF généré via api.html2pdf.app (gratuit, sans clé)\n📄 PDF uploadé dans Supabase Storage → lien sur page suivi client\n🔄 Déclenchement : automatique après paiement Stripe validé\n\n✅ v3 : Suppression Google Docs/Drive — HTML → PDF direct avec tableau structuré",
+        "height": 400,
+        "width": 460
+      },
+      "id": "sticky-setup",
+      "name": "Setup Instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [940, -240],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "⚠️ **Email client désactivé par défaut**\n\nLe nœud **Envoyer email (Client)** a `Continue On Error` activé. Il est ignoré silencieusement tant que `client_email` n'est pas dans la DB.\n\n**Pour activer :**\n1. Exécuter migration `011_add_client_email.sql` dans Supabase\n2. Ajouter le champ email dans le formulaire de commande\n3. Le nœud s'activera automatiquement",
+        "height": 220,
+        "width": 380
+      },
+      "id": "sticky-client-email",
+      "name": "Note client email",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [2944, -220],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "receipt-pizza-dal-cielo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e9b8062a-167d-44b4-ad5b-76f06d8f0a47",
+      "name": "Webhook Reçu",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [1392, 16],
+      "webhookId": "receipt-pizza-dal-cielo"
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://YOUR-APP-URL/api/orders/' + $json.body.token }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Bypass-Tunnel-Reminder",
+              "value": "true"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-webhook-receipt/1.0"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "a62ef3cd-e335-49de-99ab-3e2b4daccdf6",
+      "name": "GET Commande",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1616, 16]
+    },
+    {
+      "parameters": {
+        "jsCode": "const order = $input.first().json.order;\nif (!order) return [];\n\nconst serviceLabel = order.type_service === 'click_collect' ? 'Click & Collect' : 'Livraison';\nconst dateFormatted = order.created_at\n  ? new Date(order.created_at).toLocaleString('fr-FR', {\n      day: '2-digit', month: 'long', year: 'numeric',\n      hour: '2-digit', minute: '2-digit',\n    })\n  : '';\n\nconst rows = (order.items || []).map(function(item) {\n  var qte = Number(item.quantity) || 1;\n  var pu = Number(item.price) || 0;\n  var total = (pu * qte).toFixed(2).replace('.', ',');\n  var puStr = pu.toFixed(2).replace('.', ',');\n  var custom = (item.customizations && item.customizations.length)\n    ? '<br><small style=\"color:#888\">' + item.customizations.join(', ') + '</small>' : '';\n  return '<tr>'\n    + '<td>' + item.name + custom + '</td>'\n    + '<td style=\"text-align:center\">' + qte + '</td>'\n    + '<td style=\"text-align:right\">' + puStr + ' \u20ac</td>'\n    + '<td style=\"text-align:right;font-weight:600\">' + total + ' \u20ac</td>'\n    + '</tr>';\n}).join('');\n\nvar addr = (order.type_service === 'delivery' && order.delivery_address)\n  ? order.delivery_address : '\u2014';\n\nvar notesHtml = order.notes\n  ? '<div style=\"background:#fffbf5;border-left:3px solid #f97316;padding:10px 14px;margin-bottom:24px;font-size:13px\"><strong>Notes :</strong> ' + order.notes + '</div>'\n  : '';\n\nvar css = '* { margin:0; padding:0; box-sizing:border-box; } body { font-family:Arial,sans-serif; color:#333; padding:40px; font-size:14px; } .logo { text-align:center; margin-bottom:12px; } .logo img { width:100px; height:100px; object-fit:contain; } h1 { font-size:26px; font-weight:900; color:#111; text-align:center; margin-bottom:8px; } .sub { text-align:center; color:#666; font-size:13px; margin-bottom:8px; } hr.sep { border:none; border-top:3px solid #f97316; margin:20px 0; } .ttl { text-align:center; background:#f9f9f9; border:1px solid #eee; padding:14px; border-radius:8px; margin-bottom:24px; } .ttl h2 { font-size:18px; font-weight:900; letter-spacing:2px; } .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; } .box { border:1px solid #eee; border-radius:8px; padding:16px; } .box h3 { color:#f97316; font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; font-weight:700; } .row { display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; } .row strong { color:#555; } table { width:100%; border-collapse:collapse; margin-bottom:20px; font-size:13px; } thead tr { border-bottom:2px solid #f97316; } th { padding:10px 8px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } tbody tr { border-bottom:1px solid #f0f0f0; } td { padding:10px 8px; } .tot { text-align:right; margin-bottom:24px; } .tot-box { display:inline-block; border:2px solid #f97316; border-radius:8px; padding:12px 24px; } .tot-lbl { font-size:11px; font-weight:700; color:#f97316; letter-spacing:1px; } .tot-amt { font-size:26px; font-weight:900; color:#111; } .footer { border-top:1px solid #eee; padding-top:16px; text-align:center; color:#999; font-size:11px; }';\n\nvar html = '<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><style>' + css + '</style></head><body>'\n  + '<div class=\"logo\"><img src=\"https://pizzadalcielo.com/images/logo.png\" alt=\"Pizza dal Cielo\"></div>'\n  + '<h1>Pizza dal Cielo</h1>'\n  + '<p class=\"sub\">Fort-de-France, Martinique<br>T\u00e9l\u00a0: +596 696 88 72 70 | contact@pizzadalcielo.com</p>'\n  + '<hr class=\"sep\">'\n  + '<div class=\"ttl\"><h2>RE\u00c7U CLIENT</h2></div>'\n  + '<div class=\"grid\">'\n  + '<div class=\"box\"><h3>D\u00e9tails commande</h3>'\n  + '<div class=\"row\"><strong>N\u00b0\u00a0Cde\u00a0:</strong><span>' + order.id.slice(0,8).toUpperCase() + '</span></div>'\n  + '<div class=\"row\"><strong>Date\u00a0:</strong><span>' + dateFormatted + '</span></div>'\n  + '<div class=\"row\"><strong>Heure\u00a0:</strong><span>' + (order.heure_souhaitee || '\u2014') + '</span></div>'\n  + '<div class=\"row\"><strong>Service\u00a0:</strong><span>' + serviceLabel + '</span></div>'\n  + '<div class=\"row\"><strong>Statut\u00a0:</strong><span>' + order.status + '</span></div>'\n  + '</div>'\n  + '<div class=\"box\"><h3>Client</h3>'\n  + '<div class=\"row\"><strong>Nom\u00a0:</strong><span>' + (order.client_name || '') + '</span></div>'\n  + '<div class=\"row\"><strong>T\u00e9l\u00a0:</strong><span>' + (order.client_phone || '') + '</span></div>'\n  + '<div class=\"row\"><strong>Adresse\u00a0:</strong><span>' + addr + '</span></div>'\n  + '</div>'\n  + '</div>'\n  + '<table><thead><tr>'\n  + '<th>Article</th>'\n  + '<th style=\"text-align:center\">Qt\u00e9</th>'\n  + '<th style=\"text-align:right\">P.U.</th>'\n  + '<th style=\"text-align:right\">Total</th>'\n  + '</tr></thead><tbody>' + rows + '</tbody></table>'\n  + '<div class=\"tot\"><div class=\"tot-box\">'\n  + '<div class=\"tot-lbl\">PAY\u00c9</div>'\n  + '<div class=\"tot-amt\">' + order.total.toFixed(2).replace('.', ',') + '\u00a0\u20ac</div>'\n  + '</div></div>'\n  + notesHtml\n  + '<div class=\"footer\"><p>Merci de votre visite\u00a0! \u00c0 bient\u00f4t chez Pizza dal Cielo.</p></div>'\n  + '</body></html>';\n\nreturn [{\n  json: {\n    CLIENT_NAME: order.client_name || '',\n    CLIENT_EMAIL: order.client_email || '',\n    ORDER_ID: order.id.slice(0, 8).toUpperCase(),\n    DATE: dateFormatted,\n    TOTAL: order.total.toFixed(2).replace('.', ',') + '\u00a0\u20ac',\n    PHONE: order.client_phone || '',\n    SERVICE: serviceLabel,\n    HEURE: order.heure_souhaitee || '\u2014',\n    STATUT: order.status,\n    html: html,\n    order: order,\n  }\n}];\n"
+      },
+      "id": "d71c3134-be7e-4f47-9fb9-3ea06c7717bf",
+      "name": "SET champs reçu",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1824, 16]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "VOTRE_CLE_PDFSHIFT_ICI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "keypairs",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.html }}"
+            },
+            {
+              "name": "margin",
+              "value": "15mm"
+            },
+            {
+              "name": "format",
+              "value": "A4"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "convert-html-to-pdf",
+      "name": "Convert HTML to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2048, 16]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://YOUR-APP-URL/api/orders/' + $('Webhook Reçu').first().json.body.token + '/receipt-pdf' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-receipt-secret",
+              "value": "VALEUR_RECEIPT_UPLOAD_SECRET"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/pdf"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "specifyBody": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "upload-pdf-app",
+      "name": "Upload PDF to app",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2272, 16]
+    },
+    {
+      "parameters": {
+        "sendTo": "karibloom972@gmail.com",
+        "subject": "=Reçu commande #{{ $('SET champs reçu').item.json.ORDER_ID }} - Pizza dal Cielo",
+        "emailType": "html",
+        "message": "=<p>Bonjour Guylian,</p><p>Ci-joint le reçu PDF pour la commande <strong>#{{ $('SET champs reçu').item.json.ORDER_ID }}</strong> de <strong>{{ $('SET champs reçu').item.json.CLIENT_NAME }}</strong>.</p><table style=\"border-collapse:collapse;margin:16px 0\"><tr><td style=\"padding:4px 12px 4px 0\">📅 Date</td><td><strong>{{ $('SET champs reçu').item.json.DATE }}</strong></td></tr><tr><td style=\"padding:4px 12px 4px 0\">💰 Total</td><td><strong>{{ $('SET champs reçu').item.json.TOTAL }}</strong></td></tr><tr><td style=\"padding:4px 12px 4px 0\">🛵 Service</td><td>{{ $('SET champs reçu').item.json.SERVICE }} — {{ $('SET champs reçu').item.json.HEURE }}</td></tr><tr><td style=\"padding:4px 12px 4px 0\">📞 Téléphone</td><td>{{ $('SET champs reçu').item.json.PHONE }}</td></tr></table><p style=\"color:#666;font-size:12px\">Email généré automatiquement par n8n.</p>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "id": "gmail-guylian",
+      "name": "Envoyer email (Guylian)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2496, 16],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AVfnEC1kZArWqGsp",
+          "name": "KARIBLOOM GMAIL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('SET champs reçu').item.json.CLIENT_EMAIL }}",
+        "subject": "=Votre reçu Pizza dal Cielo — Commande #{{ $('SET champs reçu').item.json.ORDER_ID }}",
+        "emailType": "html",
+        "message": "=<p>Bonjour {{ $('SET champs reçu').item.json.CLIENT_NAME }},</p><p>Merci pour votre commande chez <strong>Pizza dal Cielo</strong> 🍕</p><p>Votre reçu officiel est joint à cet email en PDF. Vous pouvez également le télécharger à tout moment depuis votre page de suivi de commande.</p><table style=\"border-collapse:collapse;margin:16px 0\"><tr><td style=\"padding:4px 12px 4px 0\">📅 Date</td><td><strong>{{ $('SET champs reçu').item.json.DATE }}</strong></td></tr><tr><td style=\"padding:4px 12px 4px 0\">🆔 Commande</td><td><strong>#{{ $('SET champs reçu').item.json.ORDER_ID }}</strong></td></tr><tr><td style=\"padding:4px 12px 4px 0\">💰 Total</td><td><strong>{{ $('SET champs reçu').item.json.TOTAL }}</strong></td></tr><tr><td style=\"padding:4px 12px 4px 0\">🛵 Service</td><td>{{ $('SET champs reçu').item.json.SERVICE }} — {{ $('SET champs reçu').item.json.HEURE }}</td></tr></table><br><p>À bientôt chez <em>Pizza dal Cielo</em> ❤️</p>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "id": "gmail-client",
+      "name": "Envoyer email (Client)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2720, 16],
+      "continueOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AVfnEC1kZArWqGsp",
+          "name": "KARIBLOOM GMAIL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "0b14c318-f4ed-43a0-936d-3d418d35d69e",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [2944, 16]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Reçu": {
+      "main": [
+        [
+          {
+            "node": "GET Commande",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Commande": {
+      "main": [
+        [
+          {
+            "node": "SET champs reçu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SET champs reçu": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to app",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF to app": {
+      "main": [
+        [
+          {
+            "node": "Envoyer email (Guylian)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoyer email (Guylian)": {
+      "main": [
+        [
+          {
+            "node": "Envoyer email (Client)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoyer email (Client)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b61d4e9f-2a83-4c17-a7e2-9f3d501c8b44",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "599c124565a8f36fe2fbc8f53114dcc39cdf941dcbdaac98566633b4f8753f55"
+  },
+  "id": "9IXOx7dyRKcRaMbbJLlPg",
+  "tags": []
+}

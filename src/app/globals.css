@@ -2,29 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile responsive - overflow, tap, safe areas (kb-mobile-responsive) */
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 :root {
-  --primary-orange: #E85D04;
-  --secondary-orange: #F77F00;
-  --light-orange: #FCBF49;
-  --white: #FFFFFF;
-  --cream: #FFF8F0;
-  --dark-text: #1A1A1A;
-  --gray-text: #666666;
+  --pdc-coral: #E17B5F;
+  --pdc-burnt-orange: #D4633F;
+  --pdc-peach: #F4A088;
+  --pdc-cream: #FFF8F0;
+  --pdc-white: #FFFFFF;
+  --pdc-green-palm: #8BB174;
+  --pdc-yellow-sun: #F4D06F;
+  --pdc-brown-wood: #8B5A3C;
+  --pdc-text-dark: #3D2418;
+  --pdc-text-light: rgba(61, 36, 24, 0.7);
+  --pdc-shadow: rgba(225, 123, 95, 0.2);
+  --pdc-overlay: rgba(212, 99, 63, 0.9);
 }
 
 body {
   @apply bg-cream text-dark font-sans;
+  background-image: url('/images/site-background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 h1, h2, h3, h4, h5, h6 {
   @apply font-display font-black tracking-tight;
 }
 
+.font-indie {
+  font-family: var(--font-indie);
+}
+
+.slogan {
+  font-family: var(--font-indie);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.4;
+  color: var(--pdc-text-dark);
+}
+
+/* Utilitaires pour la lisibilité sur fond coloré */
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.text-shadow-light {
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.85); /* Opacité augmentée pour lisibilité */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-dark {
+  background: rgba(61, 36, 24, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bento-grid {
@@ -34,9 +90,42 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  @apply bg-primary text-white px-8 py-3 rounded-2xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2;
+  @apply bg-primary text-white px-8 py-3 rounded-2xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 shadow-md border-2 border-white/20;
 }
 
 .btn-secondary {
-  @apply bg-white text-primary border-2 border-primary px-8 py-3 rounded-2xl font-bold transition-all hover:bg-primary hover:text-white hover:scale-105 active:scale-95 flex items-center justify-center gap-2;
+  @apply bg-white text-primary border-2 border-white px-8 py-3 rounded-2xl font-bold transition-all hover:bg-cream hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-md;
+}
+
+/* Page d'attente premium - animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 50%;
+    margin-left: 25%;
+  }
+  100% {
+    width: 0%;
+    margin-left: 100%;
+  }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 2s ease-in-out infinite;
 }
