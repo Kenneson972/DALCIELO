@@ -279,20 +279,20 @@ function AnimatedTimeline({ status }: { status: OrderStatus }) {
   )
 }
 
-export const OrderTrackingClient = () => {
+export const OrderTrackingClient = ({ initialOrder }: { initialOrder?: Order | null }) => {
   const params = useParams()
   const pathname = usePathname()
   const token = useMemo(() => {
+    if (initialOrder?.token) return initialOrder.token
     const value = params?.token
     const fromParams = Array.isArray(value) ? value[0] : value
     if (fromParams) return fromParams
-    // Fallback: token depuis l'URL (cas useParams non prêt sur Vercel/preview)
     const match = pathname?.match(/\/order\/([a-f0-9-]+)/i)
     return match?.[1] ?? null
-  }, [params, pathname])
+  }, [params, pathname, initialOrder?.token])
 
-  const [order, setOrder] = useState<Order | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [order, setOrder] = useState<Order | null>(initialOrder ?? null)
+  const [loading, setLoading] = useState(!initialOrder)
   const [notFound, setNotFound] = useState(false)
   const [fetchError, setFetchError] = useState(false)
   const hadWaitingPaymentRef = useRef(false)
