@@ -299,6 +299,15 @@ export const OrderTrackingClient = () => {
     return pathToken
   }, [params, pathname, pathToken])
 
+  useEffect(() => {
+    console.error('[order-debug][H_TOKEN]', {
+      token,
+      pathname,
+      paramsToken: Array.isArray(params?.token) ? params?.token[0] : params?.token,
+      pathToken,
+    })
+  }, [token, pathname, params, pathToken])
+
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -371,6 +380,7 @@ export const OrderTrackingClient = () => {
 
   const load = useCallback(async () => {
     if (!token) return
+    console.error('[order-debug][H_FETCH] load start', { token })
     setFetchError(false)
     const base = typeof window !== 'undefined' ? window.location.origin : ''
     const allowLocalFallback =
@@ -396,6 +406,14 @@ export const OrderTrackingClient = () => {
         res = await doFetch()
       }
       const data = await res.json().catch(() => ({}))
+      console.error('[order-debug][H_FETCH] load response', {
+        token,
+        status: res.status,
+        ok: res.ok,
+        hasOrder: Boolean((data as { order?: unknown })?.order),
+        orderStatus: (data as { order?: { status?: string } })?.order?.status ?? null,
+        hasPaymentLink: Boolean((data as { order?: { payment_link?: string } })?.order?.payment_link),
+      })
       if (res.ok && data?.order) {
         setOrder(data.order)
         setNotFound(false)
@@ -425,6 +443,7 @@ export const OrderTrackingClient = () => {
         setNotFound(false)
       }
     } catch {
+      console.error('[order-debug][H_FETCH] load error', { token })
       setFetchError(true)
       const localOrder =
         allowLocalFallback && typeof getOrderByTokenLocal === 'function'
@@ -437,6 +456,7 @@ export const OrderTrackingClient = () => {
         setOrder(null)
       }
     } finally {
+      console.error('[order-debug][H_UI] load finally', { token })
       setLoading(false)
     }
   }, [token])
