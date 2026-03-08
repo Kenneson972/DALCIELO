@@ -302,36 +302,16 @@ export const OrderTrackingClient = () => {
   const [elapsedMin, setElapsedMin] = useState(0)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const runIdRef = useRef(`run-${Date.now()}`)
-
-  // #region agent log
-  const debugLog = useCallback((hypothesisId: string, message: string, data: Record<string, unknown> = {}) => {
-    fetch('http://127.0.0.1:7849/ingest/2842ecba-697b-4ffb-96d4-5f23dffb6cbb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f613ab'},body:JSON.stringify({sessionId:'f613ab',runId:runIdRef.current,hypothesisId,location:'OrderTrackingClient.tsx',message,data,timestamp:Date.now()})}).catch(()=>{});
-  }, [])
-  // #endregion
 
   useEffect(() => {
     orderRef.current = order
-    if (order) {
-      debugLog('H_UI_STATE', 'order state updated', {
-        token: order.token,
-        status: order.status,
-        hasPaymentLink: Boolean(order.payment_link),
-      })
-    }
   }, [order])
 
   // Si pas de token (params pas prêt), arrêter le loading après 1s pour afficher notFound
   useEffect(() => {
-    debugLog('H_TOKEN', 'token resolved', {
-      token,
-      pathname: pathname ?? null,
-      hasParamToken: Boolean(Array.isArray(params?.token) ? params?.token[0] : params?.token),
-    })
     if (!token && pathname) {
       const t = setTimeout(() => {
         if (!orderRef.current) {
-          debugLog('H_TOKEN', 'token missing fallback triggered', {})
           setLoading(false)
           setNotFound(true)
         }
@@ -382,7 +362,6 @@ export const OrderTrackingClient = () => {
 
   const load = useCallback(async () => {
     if (!token) return
-    debugLog('H_FETCH', 'load start', { token })
     setFetchError(false)
     const base = typeof window !== 'undefined' ? window.location.origin : ''
     const doFetch = async (): Promise<Response> => {
@@ -405,13 +384,6 @@ export const OrderTrackingClient = () => {
         res = await doFetch()
       }
       const data = await res.json().catch(() => ({}))
-      debugLog('H_FETCH', 'load response', {
-        status: res.status,
-        ok: res.ok,
-        hasOrder: Boolean((data as { order?: unknown })?.order),
-        responseStatus: (data as { order?: { status?: string } })?.order?.status ?? null,
-        responseHasPaymentLink: Boolean((data as { order?: { payment_link?: string } })?.order?.payment_link),
-      })
       if (res.ok && data?.order) {
         setOrder(data.order)
         setNotFound(false)
@@ -435,7 +407,6 @@ export const OrderTrackingClient = () => {
         setNotFound(false)
       }
     } catch {
-      debugLog('H_FETCH', 'load threw error', { token })
       setFetchError(true)
       const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
       if (localOrder) {
@@ -445,7 +416,6 @@ export const OrderTrackingClient = () => {
         setOrder(null)
       }
     } finally {
-      debugLog('H_UI_STATE', 'setLoading false in load finally', { token })
       setLoading(false)
     }
   }, [token])
