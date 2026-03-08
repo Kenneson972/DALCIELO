@@ -92,7 +92,8 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
     setValidateError(null)
     setValidating(true)
     try {
-      const res = await fetch('/api/admin/validate', {
+      const base = typeof window !== 'undefined' ? window.location.origin : ''
+      const res = await fetch(`${base}/api/admin/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,13 +103,14 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setValidateError(data?.error || `Erreur ${res.status}`)
+        const msg = data?.error || `Erreur ${res.status}`
+        setValidateError(msg + (msg.includes('STRIPE') ? ' — Vérifiez STRIPE_SECRET_KEY sur Vercel' : ''))
         return
       }
       const paymentLinkUrl = data.paymentLink
       onStatusChange('waiting_payment', paymentLinkUrl ? { payment_link: paymentLinkUrl } : undefined)
-    } catch {
-      setValidateError('Erreur réseau')
+    } catch (e) {
+      setValidateError('Erreur réseau — vérifiez la console (F12)')
     } finally {
       setValidating(false)
     }
@@ -166,7 +168,9 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
       {order.status === 'pending_validation' && (
         <div className="space-y-2">
           {validateError && (
-            <p className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">{validateError}</p>
+            <p className="text-sm text-red-700 bg-red-100 border border-red-300 p-3 rounded-lg font-medium">
+              {validateError}
+            </p>
           )}
           <button
             onClick={handleValidate}

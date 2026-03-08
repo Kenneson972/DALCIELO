@@ -367,7 +367,9 @@ export const OrderTrackingClient = ({ initialOrder }: { initialOrder?: Order | n
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000)
-      const res = await fetch(`/api/orders/${encodeURIComponent(token)}`, {
+      const base = typeof window !== 'undefined' ? window.location.origin : ''
+      const url = `${base}/api/orders/${encodeURIComponent(token)}?_=${Date.now()}`
+      const res = await fetch(url, {
         cache: 'no-store',
         headers: { Pragma: 'no-cache', 'Cache-Control': 'no-cache' },
         signal: controller.signal,
@@ -436,7 +438,7 @@ export const OrderTrackingClient = ({ initialOrder }: { initialOrder?: Order | n
     if (!token) return
     load()
     const isPending = order && ['pending_validation', 'waiting_payment'].includes(order.status)
-    const pollMs = isPending ? 2000 : 5000
+    const pollMs = isPending ? 1000 : 5000
     const interval = window.setInterval(() => {
       const curr = orderRef.current
       if (curr && FINAL_STATUSES.includes(curr.status)) return

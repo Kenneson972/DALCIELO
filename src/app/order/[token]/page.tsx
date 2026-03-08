@@ -6,12 +6,16 @@ export const dynamic = 'force-dynamic'
 export default async function OrderTrackingPage({
   params,
 }: {
-  params: { token: string } | Promise<{ token: string }>
+  params: { token: string }
 }) {
-  const { token } = await Promise.resolve(params)
-  if (!token?.trim()) {
-    return <OrderTrackingClient initialOrder={null} />
+  let order = null
+  try {
+    const token = params?.token?.trim()
+    if (token) {
+      order = await getOrderByToken(token)
+    }
+  } catch {
+    // Erreur serveur (Supabase, etc.) : initialOrder null, le client fera un fetch
   }
-  const order = await getOrderByToken(token.trim())
   return <OrderTrackingClient initialOrder={order} />
 }

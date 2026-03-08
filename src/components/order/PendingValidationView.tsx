@@ -34,7 +34,7 @@ export function PendingValidationView({
         <div className="bg-white/95 rounded-full px-4 py-2 shadow-lg flex items-center gap-2 border border-gray-100">
           <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden />
           <span className="text-xs text-gray-600">En direct</span>
-          <span className="text-xs text-gray-400 hidden sm:inline">· Mise à jour auto 2s</span>
+          <span className="text-xs text-gray-400 hidden sm:inline">· Mise à jour auto 1s</span>
           {onRetry && (
             <button
               type="button"
