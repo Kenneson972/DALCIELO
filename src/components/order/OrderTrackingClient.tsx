@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence, type TargetAndTransition } from 'framer-motion'
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { contactInfo } from '@/data/menuData'
 import { getOrderByToken as getOrderByTokenLocal } from '@/lib/localStore'
@@ -281,10 +281,15 @@ function AnimatedTimeline({ status }: { status: OrderStatus }) {
 
 export const OrderTrackingClient = () => {
   const params = useParams()
+  const pathname = usePathname()
   const token = useMemo(() => {
     const value = params?.token
-    return Array.isArray(value) ? value[0] : value
-  }, [params])
+    const fromParams = Array.isArray(value) ? value[0] : value
+    if (fromParams) return fromParams
+    // Fallback: token depuis l'URL (cas useParams non prêt sur Vercel/preview)
+    const match = pathname?.match(/\/order\/([a-f0-9-]+)/i)
+    return match?.[1] ?? null
+  }, [params, pathname])
 
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
@@ -302,6 +307,30 @@ export const OrderTrackingClient = () => {
   useEffect(() => {
     orderRef.current = order
   }, [order])
+
+  // Si pas de token (params pas prêt), arrêter le loading après 1s pour afficher notFound
+  useEffect(() => {
+    if (!token && pathname) {
+      const t = setTimeout(() => {
+        if (!orderRef.current) {
+          setLoading(false)
+          setNotFound(true)
+        }
+      }, 1000)
+      return () => clearTimeout(t)
+    }
+  }, [token, pathname])
+
+  // Timeout de secours : si chargement > 12s sans order, afficher l'écran d'erreur pour éviter blocage infini
+  useEffect(() => {
+    if (!token) return
+    const t = setTimeout(() => {
+      if (orderRef.current) return
+      setFetchError(true)
+      setLoading(false)
+    }, 12000)
+    return () => clearTimeout(t)
+  }, [token])
 
   // Toast on status change (skip initial load)
   useEffect(() => {
@@ -336,10 +365,14 @@ export const OrderTrackingClient = () => {
     if (!token) return
     setFetchError(false)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
       const res = await fetch(`/api/orders/${encodeURIComponent(token)}`, {
         cache: 'no-store',
         headers: { Pragma: 'no-cache', 'Cache-Control': 'no-cache' },
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
       const data = await res.json().catch(() => ({}))
       if (res.ok && data?.order) {
         setOrder(data.order)
