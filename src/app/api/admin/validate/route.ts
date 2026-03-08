@@ -7,17 +7,8 @@ export async function POST(req: NextRequest) {
   const authError = requireAdminWithRateLimit(req)
   if (authError) return authError
 
-  // #region agent log
-  const _log = (msg: string, data?: Record<string, unknown>) => {
-    const payload = { sessionId: 'f613ab', location: 'validate/route.ts', message: msg, data: data ?? {}, timestamp: Date.now(), hypothesisId: 'H1' }
-    console.error('[DEBUG f613ab]', JSON.stringify(payload))
-    fetch('http://127.0.0.1:7849/ingest/2842ecba-697b-4ffb-96d4-5f23dffb6cbb', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f613ab' }, body: JSON.stringify(payload) }).catch(() => {})
-  }
-  // #endregion
-
   try {
     if (!process.env.STRIPE_SECRET_KEY) {
-      _log('STRIPE_SECRET_KEY missing', {})
       return NextResponse.json(
         { error: 'STRIPE_SECRET_KEY is not defined' },
         { status: 500 }
@@ -30,10 +21,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid order payload: order.id required' }, { status: 400 })
     }
 
-    _log('validate start', { orderId })
     const orderFromDb = await getOrderById(orderId)
     if (!orderFromDb) {
-      _log('Order not found in Supabase', { orderId })
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
     if (orderFromDb.status !== 'pending_validation' && orderFromDb.status !== 'waiting_payment') {
@@ -102,16 +91,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
     }
 
-    _log('Updating order with payment_link', { orderId: orderFromDb.id, hasUrl: !!session.url })
     await updateOrderStatus(orderFromDb.id, 'waiting_payment', {
       payment_link: session.url,
     })
-
-    _log('validate success', { orderId: orderFromDb.id })
     return NextResponse.json({ paymentLink: session.url })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
-    try { _log('validate error', { message }) } catch {}
     console.error('Validate error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
