@@ -335,6 +335,11 @@ export const OrderTrackingClient = () => {
   const load = useCallback(async () => {
     if (!token) return
     setFetchError(false)
+    // #region agent log
+    const _log = (msg: string, data?: Record<string, unknown>) => {
+      fetch('http://127.0.0.1:7849/ingest/2842ecba-697b-4ffb-96d4-5f23dffb6cbb', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f613ab' }, body: JSON.stringify({ sessionId: 'f613ab', location: 'OrderTrackingClient.tsx', message: msg, data: data ?? {}, timestamp: Date.now(), hypothesisId: 'H3' }) }).catch(() => {})
+    }
+    // #endregion
     try {
       const res = await fetch(`/api/orders/${encodeURIComponent(token)}`, {
         cache: 'no-store',
@@ -342,12 +347,14 @@ export const OrderTrackingClient = () => {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data?.order) {
+        _log('load from API ok', { status: data.order.status, hasPaymentLink: !!data.order.payment_link })
         setOrder(data.order)
         setNotFound(false)
         return
       }
       if (res.status === 404) {
         const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+        _log('load 404, fallback local', { hasLocal: !!localOrder, localStatus: localOrder?.status, localHasPaymentLink: !!localOrder?.payment_link })
         if (localOrder) {
           setOrder(localOrder)
           setNotFound(false)
@@ -359,13 +366,15 @@ export const OrderTrackingClient = () => {
       }
       setFetchError(true)
       const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+      _log('load !ok, fallback local', { resStatus: res.status, hasLocal: !!localOrder, localStatus: localOrder?.status })
       if (localOrder) {
         setOrder(localOrder)
         setNotFound(false)
       }
-    } catch {
+    } catch (e) {
       setFetchError(true)
       const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+      _log('load catch', { hasLocal: !!localOrder })
       if (localOrder) {
         setOrder(localOrder)
         setNotFound(false)
@@ -402,13 +411,15 @@ export const OrderTrackingClient = () => {
   useEffect(() => {
     if (!token) return
     load()
+    const isPending = order && ['pending_validation', 'waiting_payment'].includes(order.status)
+    const pollMs = isPending ? 2000 : 5000
     const interval = window.setInterval(() => {
-      const current = orderRef.current
-      if (current && FINAL_STATUSES.includes(current.status)) return
+      const curr = orderRef.current
+      if (curr && FINAL_STATUSES.includes(curr.status)) return
       load()
-    }, 5000)
+    }, pollMs)
     return () => window.clearInterval(interval)
-  }, [token, load])
+  }, [token, load, order?.status])
 
   useEffect(() => {
     if (!token) return
