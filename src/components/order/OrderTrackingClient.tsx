@@ -282,13 +282,22 @@ function AnimatedTimeline({ status }: { status: OrderStatus }) {
 export const OrderTrackingClient = () => {
   const params = useParams()
   const pathname = usePathname()
+  const [pathToken, setPathToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const match = window.location.pathname.match(/\/order\/([a-f0-9-]+)/i)
+    setPathToken(match?.[1] ?? null)
+  }, [])
+
   const token = useMemo(() => {
     const value = params?.token
     const fromParams = Array.isArray(value) ? value[0] : value
     if (fromParams) return fromParams
     const match = pathname?.match(/\/order\/([a-f0-9-]+)/i)
-    return match?.[1] ?? null
-  }, [params, pathname])
+    if (match?.[1]) return match[1]
+    return pathToken
+  }, [params, pathname, pathToken])
 
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
@@ -309,7 +318,7 @@ export const OrderTrackingClient = () => {
 
   // Si pas de token (params pas prêt), arrêter le loading après 1s pour afficher notFound
   useEffect(() => {
-    if (!token && pathname) {
+    if (!token) {
       const t = setTimeout(() => {
         if (!orderRef.current) {
           setLoading(false)
