@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getOrderByToken } from '@/lib/ordersStore'
 
+// IMPORTANT: éviter tout cache stale sur le suivi commande client
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(
   _req: Request,
   ctx: { params: { token: string } | Promise<{ token: string }> }
@@ -14,6 +18,8 @@ export async function GET(
 
   const noStoreHeaders = {
     'Cache-Control': 'no-store',
+    'CDN-Cache-Control': 'no-store',
+    'Vercel-CDN-Cache-Control': 'no-store',
   }
 
   try {
