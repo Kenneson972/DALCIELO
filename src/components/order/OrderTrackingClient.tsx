@@ -364,10 +364,10 @@ export const OrderTrackingClient = ({ initialOrder }: { initialOrder?: Order | n
   const load = useCallback(async () => {
     if (!token) return
     setFetchError(false)
-    try {
+    const base = typeof window !== 'undefined' ? window.location.origin : ''
+    const doFetch = async (): Promise<Response> => {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000)
-      const base = typeof window !== 'undefined' ? window.location.origin : ''
       const url = `${base}/api/orders/${encodeURIComponent(token)}?_=${Date.now()}`
       const res = await fetch(url, {
         cache: 'no-store',
@@ -375,6 +375,15 @@ export const OrderTrackingClient = ({ initialOrder }: { initialOrder?: Order | n
         signal: controller.signal,
       })
       clearTimeout(timeoutId)
+      return res
+    }
+    try {
+      let res = await doFetch()
+      // Retry 2x en cas de 500 (cold start Vercel, erreurs intermittentes)
+      for (let i = 0; i < 2 && res.status === 500; i++) {
+        await new Promise((r) => setTimeout(r, 1000))
+        res = await doFetch()
+      }
       const data = await res.json().catch(() => ({}))
       if (res.ok && data?.order) {
         setOrder(data.order)
