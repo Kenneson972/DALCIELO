@@ -364,6 +364,9 @@ export const OrderTrackingClient = () => {
     if (!token) return
     setFetchError(false)
     const base = typeof window !== 'undefined' ? window.location.origin : ''
+    const allowLocalFallback =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     const doFetch = async (): Promise<Response> => {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000)
@@ -390,7 +393,10 @@ export const OrderTrackingClient = () => {
         return
       }
       if (res.status === 404) {
-        const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+        const localOrder =
+          allowLocalFallback && typeof getOrderByTokenLocal === 'function'
+            ? getOrderByTokenLocal(token)
+            : null
         if (localOrder) {
           setOrder(localOrder)
           setNotFound(false)
@@ -401,14 +407,20 @@ export const OrderTrackingClient = () => {
         return
       }
       setFetchError(true)
-      const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+      const localOrder =
+        allowLocalFallback && typeof getOrderByTokenLocal === 'function'
+          ? getOrderByTokenLocal(token)
+          : null
       if (localOrder) {
         setOrder(localOrder)
         setNotFound(false)
       }
     } catch {
       setFetchError(true)
-      const localOrder = typeof getOrderByTokenLocal === 'function' ? getOrderByTokenLocal(token) : null
+      const localOrder =
+        allowLocalFallback && typeof getOrderByTokenLocal === 'function'
+          ? getOrderByTokenLocal(token)
+          : null
       if (localOrder) {
         setOrder(localOrder)
         setNotFound(false)
