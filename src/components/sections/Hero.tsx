@@ -32,12 +32,7 @@ export const Hero = () => {
           {/* Aura lumineuse derrière le logo */}
           <div className="hidden sm:block absolute inset-0 bg-white/20 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-1000 scale-150" />
 
-          <motion.div
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative h-40 w-40 md:h-56 md:w-56 z-10"
-            style={{ willChange: 'transform' }}
-          >
+          <div className="relative h-40 w-40 md:h-56 md:w-56 z-10">
             <Image
               src="/images/logo.png"
               alt="Pizza dal Cielo"
@@ -46,7 +41,7 @@ export const Hero = () => {
               className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.2)]"
               priority
             />
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Textes - Centrés */}

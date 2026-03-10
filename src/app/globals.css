@@ -34,19 +34,24 @@ a,
 body {
   @apply bg-cream text-dark font-sans;
   background-color: #FFF8F0;
-  background-image: url('/images/site-background.webp');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile : image portrait 9:16 dédiée, scroll au lieu de fixed */
+/* Fond fixe géré par le div #site-bg dans layout.tsx (évite le repaint blanc sur Chrome mobile) */
+#site-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/images/site-background.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 @media (max-width: 768px) {
-  body {
+  #site-bg {
     background-image: url('/images/site-background-mobile.webp');
-    background-attachment: scroll;
     background-position: center top;
   }
 }

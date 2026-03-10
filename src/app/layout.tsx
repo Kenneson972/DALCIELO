@@ -90,6 +90,7 @@ export default function RootLayout({
       className={`${inter.variable} ${poppins.variable} ${montserrat.variable} ${indieFlower.variable} ${playfair.variable}`}
     >
       <body className={`${poppins.className} antialiased min-h-screen flex flex-col`}>
+        <div id="site-bg" aria-hidden="true" />
         <JsonLd />
         <LayoutSwitch>{children}</LayoutSwitch>
       </body>
