@@ -33,6 +33,7 @@ a,
 
 body {
   @apply bg-cream text-dark font-sans;
+  background-color: #FFF8F0;
   background-image: url('/images/site-background.png');
   background-size: cover;
   background-position: center;
@@ -41,9 +42,10 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile : background-attachment: fixed tue les perfs sur Chrome Android */
+/* Mobile : pas d'image de fond, fond uni = perf max */
 @media (max-width: 768px) {
   body {
+    background-image: none;
     background-attachment: scroll;
   }
 }
