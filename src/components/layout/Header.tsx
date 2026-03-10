@@ -200,9 +200,11 @@ export const Header = () => {
                     )
                   })}
                   <div className="h-px bg-gray-100 my-2 mx-2" />
-                  <Button className="w-full justify-center" icon={<Phone className="w-4 h-4" />}>
-                    Appeler pour commander
-                  </Button>
+                  <Link href="/commander" onClick={() => setIsOpen(false)}>
+                    <Button className="w-full justify-center" icon={<Phone className="w-4 h-4" />}>
+                      Commander
+                    </Button>
+                  </Link>
                 </div>
               </motion.div>
             </>
