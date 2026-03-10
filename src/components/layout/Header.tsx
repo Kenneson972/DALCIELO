@@ -170,14 +170,14 @@ export const Header = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsOpen(false)}
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+                className="fixed inset-0 bg-black/30 z-40 md:hidden"
               />
               <motion.div
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-[80px] left-4 right-4 md:hidden bg-white/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl overflow-hidden z-50 p-2"
+                className="absolute top-[80px] left-4 right-4 md:hidden bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50 p-2"
               >
                 <div className="flex flex-col gap-1">
                   {navLinks.map((link) => {

@@ -41,6 +41,22 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Mobile : background-attachment: fixed tue les perfs sur Chrome Android */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+/* Mobile : désactiver backdrop-filter globalement (42 occurrences = perf killer) */
+@media (max-width: 768px) {
+  .glass,
+  .glass-dark {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   @apply font-display font-black tracking-tight;
 }
