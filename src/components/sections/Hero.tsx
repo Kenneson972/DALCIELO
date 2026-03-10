@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight, Star } from 'lucide-react'
 import Link from 'next/link'
@@ -11,13 +11,7 @@ import { useQueueEstimate } from '@/hooks/useQueueEstimate'
 
 export const Hero = () => {
   const [mounted, setMounted] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  useEffect(() => {
-    setMounted(true)
-    setIsMobile(window.innerWidth <= 768)
-  }, [])
-  const disableAnimations = isMobile || prefersReducedMotion
+  useEffect(() => setMounted(true), [])
   const { estimate } = useQueueEstimate(mounted)
 
   return (
@@ -30,8 +24,8 @@ export const Hero = () => {
         
         {/* Logo DAL CIELO - Géant et flottant */}
         <motion.div
-          initial={disableAnimations ? false : { opacity: 0, scale: 0.8, y: 20 }}
-          animate={disableAnimations ? {} : (mounted ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.8, y: 20 })}
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={mounted ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.8, y: 20 }}
           transition={{ duration: 1, ease: "easeOut" }}
           className="relative mb-12 group"
         >
@@ -39,10 +33,10 @@ export const Hero = () => {
           <div className="hidden sm:block absolute inset-0 bg-white/20 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-1000 scale-150" />
 
           <motion.div
-            animate={disableAnimations ? {} : { y: [0, -15, 0] }}
+            animate={{ y: [0, -15, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             className="relative h-40 w-40 md:h-56 md:w-56 z-10"
-            style={disableAnimations ? {} : { willChange: 'transform' }}
+            style={{ willChange: 'transform' }}
           >
             <Image
               src="/images/logo.png"
@@ -57,14 +51,14 @@ export const Hero = () => {
 
         {/* Textes - Centrés */}
         <motion.div
-          initial={disableAnimations ? false : { opacity: 0, y: 20 }}
-          animate={disableAnimations ? {} : (mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 })}
+          initial={{ opacity: 0, y: 20 }}
+          animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.3, duration: 0.8 }}
           className="flex flex-col items-center"
         >
           <motion.div
-            initial={disableAnimations ? false : { opacity: 0 }}
-            animate={disableAnimations ? {} : (mounted ? { opacity: 1 } : { opacity: 0 })}
+            initial={{ opacity: 0 }}
+            animate={mounted ? { opacity: 1 } : { opacity: 0 }}
             transition={{ delay: 0.5 }}
             className="inline-flex items-center gap-2 bg-white/80 text-primary px-4 py-2 rounded-full font-bold text-xs uppercase tracking-[0.2em] mb-8 shadow-sm border border-white/40"
           >

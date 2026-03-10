@@ -42,10 +42,9 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile : pas d'image de fond, fond uni = perf max */
+/* Mobile : scroll au lieu de fixed (fixed = repaint à chaque scroll sur Chrome) */
 @media (max-width: 768px) {
   body {
-    background-image: none;
     background-attachment: scroll;
   }
 }
