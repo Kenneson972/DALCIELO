@@ -42,10 +42,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile : scroll au lieu de fixed (fixed = repaint à chaque scroll sur Chrome) */
+/* Mobile : scroll + repositionner à gauche pour voir les palmiers */
 @media (max-width: 768px) {
   body {
     background-attachment: scroll;
+    background-position: left center;
   }
 }
 
