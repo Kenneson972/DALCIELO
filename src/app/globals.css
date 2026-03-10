@@ -42,11 +42,12 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile : scroll + repositionner à gauche pour voir les palmiers */
+/* Mobile : image portrait 9:16 dédiée, scroll au lieu de fixed */
 @media (max-width: 768px) {
   body {
+    background-image: url('/images/site-background-mobile.webp');
     background-attachment: scroll;
-    background-position: left center;
+    background-position: center top;
   }
 }
 
