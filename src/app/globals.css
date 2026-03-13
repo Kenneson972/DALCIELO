@@ -58,6 +58,17 @@ body {
   }
 }
 
+#site-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 248, 240, 0.28);
+  pointer-events: none;
+}
+@media (max-width: 768px) {
+  #site-bg::after { background: rgba(255, 248, 240, 0.32); }
+}
+
 /* Mobile : désactiver backdrop-filter globalement (42 occurrences = perf killer) */
 @media (max-width: 768px) {
   .glass,

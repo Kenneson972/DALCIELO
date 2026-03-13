@@ -49,7 +49,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse la réponse de l'AI pour détecter le JSON de commande\nconst aiResponse = $input.first().json.output || $input.first().json.message?.content || $input.first().json.text || '';\n\nlet action = 'reply';\nlet orderData = null;\nlet message = aiResponse;\n\n// ─── Fonction de traitement d'une commande extraite ───────────────────────────\nfunction processOrderData(parsed) {\n  if (parsed.action !== 'create_order' || !parsed.data) return false;\n\n  orderData = parsed.data;\n\n  // Normalisation du numéro de téléphone → +596XXXXXXXXX\n  if (orderData.client_phone) {\n    const cleaned = orderData.client_phone.replace(/[\\s\\-\\.]/g, '');\n    if (!cleaned.startsWith('+596')) {\n      const digits = cleaned.replace(/^\\+?596/, '').replace(/^0/, '');\n      orderData.client_phone = '+596' + digits;\n    } else {\n      orderData.client_phone = cleaned;\n    }\n  }\n\n  // Normalisation de l'heure → HH:MM\n  if (orderData.heure_souhaitee) {\n    let h = String(orderData.heure_souhaitee).trim();\n    // Convertir \"19h30\" → \"19:30\"\n    h = h.replace(/h/i, ':');\n    // Si pas de minutes, ajouter :00\n    if (!h.includes(':')) h = h + ':00';\n    // Padding : 9:30 → 09:30\n    const parts = h.split(':');\n    if (parts[0] && parts[0].length === 1) h = '0' + h;\n    orderData.heure_souhaitee = h;\n  }\n\n  // Recalcul sécurisé du total (arrondi au centime)\n  let calculatedTotal = 0;\n  if (Array.isArray(orderData.items)) {\n    orderData.items.forEach(item => {\n      calculatedTotal += (Number(item.price) || 0) * (Number(item.quantity) || 1);\n    });\n  }\n  if (orderData.type_service === 'delivery') {\n    calculatedTotal += 3; // Frais de livraison\n  }\n  orderData.total = Math.round(calculatedTotal * 100) / 100;\n\n  // delivery_address : null si click_collect\n  if (orderData.type_service === 'click_collect') {\n    orderData.delivery_address = null;\n  }\n\n  // Champs obligatoires\n  orderData.notes = orderData.notes || 'Commande via CieloBot';\n  orderData.status = 'pending_validation';\n\n  action = 'create_order';\n  message = '🎉 Commande envoyée ! Guylian va la valider très rapidement. Surveillez votre page de suivi : votre lien de paiement Stripe y apparaîtra automatiquement. À très vite chez Pizza dal Cielo ! 🍕';\n  return true;\n}\n\n// ─── Extraction du JSON dans la réponse AI ────────────────────────────────────\nconst jsonPatterns = [\n  /```json\\s*\\n?([\\s\\S]*?)\\n?```/,\n  /```\\s*\\n?([\\s\\S]*?)\\n?```/,\n  /(\\{[\\s\\S]*\"action\"\\s*:\\s*\"create_order\"[\\s\\S]*\\})/\n];\n\nfor (const pattern of jsonPatterns) {\n  const match = aiResponse.match(pattern);\n  if (match) {\n    try {\n      const parsed = JSON.parse(match[1] || match[0]);\n      if (processOrderData(parsed)) break;\n    } catch (e) {\n      // JSON invalide, continuer\n    }\n  }\n}\n\n// Tenter de parser la réponse entière si pas de bloc détecté\nif (action === 'reply') {\n  try {\n    const parsed = JSON.parse(aiResponse.trim());\n    processOrderData(parsed);\n  } catch (e) {\n    // Réponse texte normale, pas un JSON\n  }\n}\n\nreturn {\n  json: {\n    action,\n    message,\n    orderData\n  }\n};"
+        "jsCode": "// Parse la réponse de l'AI pour détecter le JSON de commande\nconst aiResponse = $input.first().json.output || $input.first().json.message?.content || $input.first().json.text || '';\n\nlet action = 'reply';\nlet orderData = null;\nlet message = aiResponse;\n\n// ─── Fonction de traitement d'une commande extraite ───────────────────────────\nfunction processOrderData(parsed) {\n  if (parsed.action !== 'create_order' || !parsed.data) return false;\n\n  orderData = parsed.data;\n\n  // Normalisation du numéro de téléphone → +596XXXXXXXXX\n  if (orderData.client_phone) {\n    const cleaned = orderData.client_phone.replace(/[\\s\\-\\.]/g, '');\n    if (!cleaned.startsWith('+596')) {\n      const digits = cleaned.replace(/^\\+?596/, '').replace(/^0/, '');\n      orderData.client_phone = '+596' + digits;\n    } else {\n      orderData.client_phone = cleaned;\n    }\n  }\n\n  // Normalisation de l'heure → HH:MM\n  if (orderData.heure_souhaitee) {\n    let h = String(orderData.heure_souhaitee).trim();\n    // Convertir \"19h30\" → \"19:30\"\n    h = h.replace(/h/i, ':');\n    // Si pas de minutes, ajouter :00\n    if (!h.includes(':')) h = h + ':00';\n    // Padding : 9:30 → 09:30\n    const parts = h.split(':');\n    if (parts[0] && parts[0].length === 1) h = '0' + h;\n    orderData.heure_souhaitee = h;\n  }\n\n  // Recalcul sécurisé du total (arrondi au centime)\n  let calculatedTotal = 0;\n  if (Array.isArray(orderData.items)) {\n    orderData.items.forEach(item => {\n      calculatedTotal += (Number(item.price) || 0) * (Number(item.quantity) || 1);\n    });\n  }\n  if (orderData.type_service === 'delivery') {\n    const deliveryFee = Number(orderData.delivery_fee) || 3;\n    calculatedTotal += deliveryFee;\n  }\n  orderData.total = Math.round(calculatedTotal * 100) / 100;\n\n  // delivery_address : null si click_collect\n  if (orderData.type_service === 'click_collect') {\n    orderData.delivery_address = null;\n  }\n\n  // Champs obligatoires\n  orderData.notes = orderData.notes || 'Commande via CieloBot';\n  orderData.status = 'pending_validation';\n\n  action = 'create_order';\n  message = '🎉 Commande envoyée ! Guylian va la valider très rapidement. Surveillez votre page de suivi : votre lien de paiement Stripe y apparaîtra automatiquement. À très vite chez Pizza dal Cielo ! 🍕';\n  return true;\n}\n\n// ─── Extraction du JSON dans la réponse AI ────────────────────────────────────\nconst jsonPatterns = [\n  /```json\\s*\\n?([\\s\\S]*?)\\n?```/,\n  /```\\s*\\n?([\\s\\S]*?)\\n?```/,\n  /(\\{[\\s\\S]*\"action\"\\s*:\\s*\"create_order\"[\\s\\S]*\\})/\n];\n\nfor (const pattern of jsonPatterns) {\n  const match = aiResponse.match(pattern);\n  if (match) {\n    try {\n      const parsed = JSON.parse(match[1] || match[0]);\n      if (processOrderData(parsed)) break;\n    } catch (e) {\n      // JSON invalide, continuer\n    }\n  }\n}\n\n// Tenter de parser la réponse entière si pas de bloc détecté\nif (action === 'reply') {\n  try {\n    const parsed = JSON.parse(aiResponse.trim());\n    processOrderData(parsed);\n  } catch (e) {\n    // Réponse texte normale, pas un JSON\n  }\n}\n\nreturn {\n  json: {\n    action,\n    message,\n    orderData\n  }\n};"
       },
       "id": "cd3265d1-850b-4095-9490-f42be514bf4d",
       "name": "Parse Response",
@@ -94,14 +94,14 @@
     },
     {
       "parameters": {
-        "jsCode": "// Prépare la ligne à insérer dans Supabase\n// Génère id, token et created_at ici (côté n8n, sans passer par l'API Next.js)\nconst input = $input.first().json;\nconst orderData = input.orderData;\nconst { randomUUID } = require('crypto');\n\nreturn {\n  json: {\n    id: randomUUID(),\n    token: randomUUID(),\n    created_at: new Date().toISOString(),\n    client_name: orderData.client_name,\n    client_phone: orderData.client_phone,\n    type_service: orderData.type_service,\n    heure_souhaitee: orderData.heure_souhaitee,\n    items: orderData.items,\n    total: orderData.total,\n    status: 'pending_validation',\n    notes: orderData.notes || 'Commande via CieloBot',\n    delivery_address: orderData.delivery_address ?? null,\n    refusal_reason: null,\n    payment_link: null,\n    estimated_ready_time: null,\n    actual_ready_time: null,\n    preparation_started_at: null,\n    completed_at: null,\n  }\n};"
+        "jsCode": "// Prépare la ligne à insérer dans Supabase\nconst input = $input.first().json;\nconst orderData = input.orderData;\nconst { randomUUID } = require('crypto');\n\n// ── Calcul du delivery fee via l'API ──────────────────────────────────────\nlet deliveryFee = 0;\nif (orderData.type_service === 'delivery') {\n  let apiResult = null;\n  try {\n    apiResult = $('Calculate Delivery Fee').first()?.json;\n  } catch(e) {}\n\n  const apiFee = apiResult?.fee;\n\n  // fee === null signifie explicitement hors zone (pas une erreur réseau)\n  if (apiResult && !apiResult.error && apiFee === null) {\n    const dist = apiResult.distanceKm ? ` (${apiResult.distanceKm} km)` : '';\n    return [{ json: {\n      action: 'error',\n      message: `Désolé, votre adresse est en dehors de notre zone de livraison (7 km max autour de Bellevue)${dist}. Nous proposons le Click & Collect gratuit si vous préférez venir récupérer votre commande !`\n    }}];\n  }\n\n  // Utiliser le fee API si disponible, sinon fallback sur l'estimation du bot\n  deliveryFee = (apiFee !== undefined && apiFee !== null)\n    ? Number(apiFee)\n    : Number(orderData.delivery_fee) || 3;\n}\n\n// Recalcul du total avec le delivery fee réel\nlet calculatedTotal = 0;\nif (Array.isArray(orderData.items)) {\n  orderData.items.forEach(item => {\n    calculatedTotal += (Number(item.price) || 0) * (Number(item.quantity) || 1);\n  });\n}\ncalculatedTotal += deliveryFee;\norderData.total = Math.round(calculatedTotal * 100) / 100;\n\nreturn [{ json: {\n  id: randomUUID(),\n  token: randomUUID(),\n  created_at: new Date().toISOString(),\n  client_name: orderData.client_name,\n  client_phone: orderData.client_phone,\n  type_service: orderData.type_service,\n  heure_souhaitee: orderData.heure_souhaitee,\n  items: orderData.items,\n  total: orderData.total,\n  status: 'pending_validation',\n  notes: orderData.notes || 'Commande via CieloBot',\n  delivery_address: orderData.delivery_address ?? null,\n  delivery_fee: deliveryFee > 0 ? deliveryFee : null,\n  refusal_reason: null,\n  payment_link: null,\n  estimated_ready_time: null,\n  actual_ready_time: null,\n  preparation_started_at: null,\n  completed_at: null,\n}}];"
       },
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "name": "Prepare Order Row",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -560,
+        -340,
         48
       ]
     },
@@ -117,7 +117,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -368,
+        40,
         48
       ],
       "continueOnFail": true,
@@ -130,14 +130,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const orderResponse = $input.first().json;\nconst previousData = $('Parse Response').first().json;\nconst APP_URL = 'https://dalcielo.fr';\n\n// Le node Supabase natif retourne l'objet directement : { id, token, ... }\nlet orderRow = null;\nif (orderResponse && orderResponse.token) {\n  orderRow = orderResponse;\n}\n\nif (orderRow && orderRow.token) {\n  const trackingUrl = `${APP_URL}/order/${orderRow.token}`;\n  return {\n    json: {\n      action: 'create_order',\n      message: `${previousData.message}\\n\\n🔗 Suivre votre commande : ${trackingUrl}`,\n      token: orderRow.token,\n      orderId: orderRow.id,\n      trackingUrl,\n      success: true\n    }\n  };\n} else {\n  return {\n    json: {\n      action: 'reply',\n      message: '😔 Notre système est momentanément indisponible. Vous pouvez nous appeler directement au +596 696 88 72 70 ou passer commande sur dalcielo.fr. Toutes nos excuses !',\n      success: false\n    }\n  };\n}"
+        "jsCode": "const orderResponse = $input.first().json;\nconst previousData = $('Parse Response').first().json;\nconst APP_URL = 'https://pizzadalcielo.com';\n\n// Le node Supabase natif retourne l'objet directement : { id, token, ... }\nlet orderRow = null;\nif (orderResponse && orderResponse.token) {\n  orderRow = orderResponse;\n}\n\nif (orderRow && orderRow.token) {\n  const trackingUrl = `${APP_URL}/order/${orderRow.token}`;\n  return {\n    json: {\n      action: 'create_order',\n      message: `${previousData.message}\\n\\n🔗 Suivre votre commande : ${trackingUrl}`,\n      token: orderRow.token,\n      orderId: orderRow.id,\n      trackingUrl,\n      success: true\n    }\n  };\n} else {\n  return {\n    json: {\n      action: 'reply',\n      message: '😔 Notre système est momentanément indisponible. Vous pouvez nous appeler directement au +596 696 88 72 70 ou passer commande sur pizzadalcielo.com. Toutes nos excuses !',\n      success: false\n    }\n  };\n}"
       },
       "id": "9c75c327-1e92-48fa-b215-5163b2cadd01",
       "name": "Format Order Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -192,
+        230,
         48
       ]
     },
@@ -154,7 +154,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        80,
+        430,
         80
       ]
     },
@@ -206,13 +206,13 @@
         "promptType": "define",
         "text": "={{ $json.chatInput }}",
         "options": {
-          "systemMessage": "Tu es CieloBot, l'assistant virtuel de Pizza dal Cielo, pizzeria artisanale à Bellevue, Fort-de-France, Martinique. Tu parles français avec une touche chaleureuse et martiniquaise. Tu es professionnel, concis et serviable.\n\n═══════════════════════════════════\nIDENTITÉ\n═══════════════════════════════════\n- Pizzeria : Pizza dal Cielo\n- Fondateur : Guylian Grangenois (ouverture juin 2024)\n- Adresse : 146 Bd De La Pointes Des Nègres, Quartier Bellevue, Fort-de-France, Martinique 97200\n- Téléphone : +596 696 88 72 70\n- WhatsApp : +596696887270\n- Email : pizzadalcielo@gmail.com\n- Instagram : @pizza_dal_cielo\n- Facebook : Pizza dal Cielo\n- Note TripAdvisor : 5.0/5\n- Horaires : Mardi → Samedi, 18h–22h. Fermé Dimanche et Lundi.\n\n═══════════════════════════════════\nMENU COMPLET (PRIX ET IDs OBLIGATOIRES)\n═══════════════════════════════════\n\nPIZZAS CLASSIQUES — category: \"Classique\"\n- Margherita : 11€ (id: 101) — Base au choix, Mozzarella, Emmental, Basilic, Olive\n- Jambon Fromage : 13€ (id: 102) — Base au choix, Mozzarella, Emmental, Jambon fumé, Olive\n- Calzone : 15€ (id: 103) — Base au choix, Mozzarella, Emmental, Jambon fumé, Œuf, Olive\n- Hawaïenne : 15€ (id: 104) — Base au choix, Mozzarella, Emmental, Jambon fumé, Ananas, Olive\n- Reine : 15€ (id: 105) — Base au choix, Mozzarella, Emmental, Jambon fumé, Champignon frais, Olive\n- Chorizo : 14€ (id: 106) — Base au choix, Mozzarella, Emmental, Chorizo, Oignon rouge, Olive\n- Orientale : 16€ (id: 107) — Base au choix, Mozzarella, Emmental, Merguez, Poivron, Œuf, Olive\n- Savoyarde : 16€ (id: 108) — Base au choix, Mozzarella, Emmental, Bacon fumé, Pomme de terre, Oignon rouge, Olive\n- Carbonara : 16€ (id: 109) — Base au choix, Mozzarella, Emmental, Bacon fumé, Œuf, Parmesan, Olive\n\n- Crispy : 15€ (id: 201) ⭐ populaire — Poulet cuisiné, Oignon frit, sauce\n- Colombo : 16€ (id: 202) — Poulet colombo, Oignon rouge, sauce\n- Saucisse fumée : 16€ (id: 203) — Saucisse fumée, Oignon rouge, sauce\n- Bouchère : 17€ (id: 204) — Bœuf cuisiné, Bacon fumé, Oignon rouge, sauce\n- Burger : 18€ (id: 205) — Bœuf cuisiné, Bacon fumé, Oignon frit, sauce\n- Suprême : 20€ (id: 206) 🌟 premium — Bœuf, Bacon, Chorizo, Jambon, Merguez, Poulet, sauce\n- Duchesse : 20€ (id: 207) 🌟 premium — Roquette, Jambon cru, Tomate cerise, Parmesan, sauce\n- Bergère : 15€ (id: 208) — Oignon, Chèvre, Olive, sauce\n- 4 Fromages : 15€ (id: 209) 🌱 végétarienne — Mozzarella, Emmental, Bleu, Roquefort, Olive\n- Végétarienne : 15€ (id: 210) 🌱 végétarienne — Champignon, Poivron, Oignon rouge, sauce\n- Veggie : 15€ (id: 211) 🌱 végétarienne — Roquette, Tomate cerise, Parmesan, sauce\n- Anchois : 13€ (id: 212) — Anchois, Olive\n- Thon : 16€ (id: 213) — Thon cuisiné, Oignon rouge, sauce\n- Crevettes : 20€ (id: 214) 🌟 premium — Crevette, Oignon rouge, sauce\n- Saumon : 21€ (id: 215) ⭐ populaire 🌟 premium — Saumon fumé, Roquette, Parmesan, sauce\n\nPIZZA DU CHEF — category: \"Du Chef\"\n- L'Éphémère du Chef : 18€ (id: 900) 🌟 premium — Création exclusive, change tous les 15 jours\n\nFRIANDS — category: \"Friands\"\n- Friand Carnivore : 8€ (id: 301) — Poulet, Chorizo, Jambon, Merguez, Saucisses\n- Friand Végétarien : 8€ (id: 302) 🌱 — Champignon, Poivron, Oignon rouge, Oignon frit\n- Friand Super Carnivore : 10€ (id: 303) ⭐ populaire — Fromage ×2, Bœuf, Chorizo, Jambon, Merguez, Poulet, Saucisses\n\nBOISSONS — category: \"Boissons\"\n- Coca-Cola 50cl : 2.50€ (id: 401)\n- Orangina 50cl : 2.50€ (id: 402)\n- Mont pelé 50cl : 3€ (id: 403)\n- Didier 50cl : 2.50€ (id: 404)\n- Didier Citron 50cl : 2.50€ (id: 405)\n- Chanflor 50cl : 2.50€ (id: 406)\n- Sprite 50cl : 2.50€ (id: 407)\n- Ordinaire 50cl : 2.50€ (id: 408)\n- Royal soda 50cl : 2.50€ (id: 409)\n\nBASES (incluses dans le prix) : Tomate, Crème, Verte\nSUPPLÉMENTS (uniquement via personnalisation sur le site, pas via CieloBot) :\n  Fromages +2€ | Salades +2€ | Condiments +2€ | Viandes +3€ | Produits de la mer +4€\nSAUCES SUPPLÉMENTAIRES (site uniquement, uniquement pour les pizzas avec « sauce » dans les ingrédients ci‑dessus : Crispy, Colombo, Saucisse fumée, Bouchère, Burger, Suprême, Duchesse, Bergère, Végétarienne, Veggie, Thon, Crevettes, Saumon) : Ketchup 1€, Barbecue 1€, Burger 1€, Miel 1€, Pesto maison 1.50€\n\n═══════════════════════════════════\nTUNNEL DE PAIEMENT — FLOW ACTUEL (IMPORTANT)\n═══════════════════════════════════\n⚠️ NE JAMAIS mentionner WhatsApp pour le paiement. Le tunnel est 100% automatique sur le site :\n1. Client confirme → commande créée → Guylian notifié\n2. Client reçoit un lien de suivi : dalcielo.fr/order/[token]\n3. Cette page se met à jour automatiquement toutes les 10 secondes (pas besoin de rafraîchir)\n4. Quand Guylian valide → bouton \"💳 Payer maintenant (Stripe)\" apparaît automatiquement\n5. Si Guylian refuse → motif du refus s'affiche sur la page + bouton \"Commander à nouveau\"\n6. Après paiement → statut passe à \"Payée\" puis \"En préparation\" → le four de Guylian tourne (4 pizzas max simultanément, ~15 min par fournée)\n\nMESSAGE À DONNER au client après confirmation : \"Surveillez votre page de suivi, le lien de paiement y apparaîtra automatiquement dès que Guylian valide.\"\n\n═══════════════════════════════════\nTON RÔLE\n═══════════════════════════════════\n1. Accueillir chaleureusement et aider le client (conseils, horaires, adresse, commande).\n2. Pour une COMMANDE, collecter dans l'ordre ou au fil de la conversation :\n   a. Nom du client\n   b. Téléphone (format +596 obligatoire : convertir 0696… en +596696…, et 696… en +596696…)\n   c. Produits commandés (nom + quantité, avec les IDs et prix exacts du menu ci-dessus)\n   d. Type de service : \"Click & Collect\" (gratuit, à venir récupérer au 146 Bd De La Pointes Des Nègres) ou \"Livraison\" (+3€)\n   e. Si Livraison → demander l'adresse de livraison complète (rue + quartier)\n   f. Heure souhaitée entre 18h00 et 22h00 uniquement (créneaux de 30 min : 18:00, 18:30, 19:00, 19:30, 20:00, 20:30, 21:00, 21:30, 22:00)\n   RÉPONSES RAPIDES : Pour faciliter la saisie, ajoute sur une nouvelle ligne à la fin de ton message (sans rien après) : quand tu demandes le type de service : [REPONSES_RAPIDES]: Click & Collect | Livraison ; quand tu demandes l'heure souhaitée : [REPONSES_RAPIDES]: 18:00 | 18:30 | 19:00 | 19:30 | 20:00 | 20:30 | 21:00 | 21:30 | 22:00.\n3. Toujours faire un récapitulatif complet avant confirmation :\n   → Articles, quantités, prix unitaires, total, heure, type de service (+ adresse si livraison)\n4. Quand le client CONFIRME explicitement (\"oui\", \"c'est bon\", \"parfait\", \"je confirme\", \"valide\", \"ok\"), répondre UNIQUEMENT par le JSON de commande ci-dessous, sans aucun texte avant ou après.\n\n═══════════════════════════════════\nFORMAT DE SORTIE POUR CRÉER UNE COMMANDE\n═══════════════════════════════════\nTu ne dois retourner que ce JSON (rien d'autre) quand toutes les infos sont collectées et que le client confirme :\n\n{\"action\":\"create_order\",\"data\":{\"client_name\":\"Prénom Nom\",\"client_phone\":\"+596696XXXXXX\",\"type_service\":\"click_collect\",\"heure_souhaitee\":\"19:30\",\"delivery_address\":null,\"items\":[{\"id\":101,\"name\":\"Margherita\",\"price\":11,\"quantity\":1,\"category\":\"Classique\"},{\"id\":401,\"name\":\"Coca-Cola\",\"price\":2.5,\"quantity\":1,\"category\":\"Boissons\"}],\"total\":13.5,\"notes\":\"Commande via CieloBot\"}}\n\nRègles strictes pour le JSON :\n- client_phone : TOUJOURS commencer par +596, sans espaces ni tirets. Convertir 0696XXXXXX → +596696XXXXXX. Convertir 696XXXXXX → +596696XXXXXX.\n- type_service : uniquement \"click_collect\" ou \"delivery\"\n- heure_souhaitee : format HH:MM (ex. 19:30). Uniquement entre 18:00 et 22:00. Créneaux de 30 min seulement.\n- delivery_address : null pour click_collect, chaîne de texte complète (rue + quartier) pour delivery\n- items : tableau d'objets avec id (nombre exact du menu), name (nom exact), price (nombre), quantity (nombre >= 1), category (valeur exacte : \"Classique\" ou \"Du Chef\" pour les pizzas, \"Friands\" ou \"Boissons\" pour le reste)\n- total : somme de (price × quantity) pour chaque item ; si delivery, ajouter 3€ pour les frais de livraison. Arrondi à 2 décimales.\n- notes : \"Commande via CieloBot\" ou une note courte du client si besoin\n\nExemple pour une livraison :\n{\"action\":\"create_order\",\"data\":{\"client_name\":\"Marie Dupont\",\"client_phone\":\"+596696123456\",\"type_service\":\"delivery\",\"heure_souhaitee\":\"20:00\",\"delivery_address\":\"12 rue des Flamboyants, Dillon\",\"items\":[{\"id\":201,\"name\":\"Crispy\",\"price\":15,\"quantity\":2,\"category\":\"Classique\"}],\"total\":33,\"notes\":\"Commande via CieloBot - Sonner 2 fois\"}}\n\n═══════════════════════════════════\nCOMPORTEMENT\n═══════════════════════════════════\n- Réponses courtes et naturelles. Emojis avec parcimonie (🍕 😊 🎉 ✨).\n- Tutoiement ou vouvoiement selon le ton du client.\n- Horaires : Mardi-Samedi 18h-22h uniquement. Si commande hors horaires → prévenir gentiment.\n- Si client commande à une heure non valide (ex. 17h, 22h30) → lui proposer le créneau le plus proche.\n- Pas de réservation de table via le bot → \"Appelez le +596 696 88 72 70\".\n- Produit hors menu → proposer gentiment une alternative du menu existant.\n- Recommandations si le client hésite : Crispy (15€), Saumon (21€), Friand Super Carnivore (10€ - le best-seller des friands).\n- Ne jamais inventer de prix ni de produits : se tenir strictement au menu ci-dessus.\n- Si client demande les délais de préparation : four de 4 pizzas max, ~15 min par fournée. En soirée chargée, prévoir 20-30 min.\n- Si client veut recommander la même commande : lui dire que sur sa page de suivi un bouton \"Commander à nouveau\" pré-remplit automatiquement son panier.\n- Pour toute question technique (paiement, page de suivi, lien Stripe) : orienter vers dalcielo.fr ou le téléphone +596 696 88 72 70.\n- WhatsApp est disponible pour du contact général, mais le paiement se fait UNIQUEMENT sur la page de suivi du site."
+          "systemMessage": "Tu es CieloBot, l'assistant virtuel de Pizza dal Cielo, pizzeria artisanale à Bellevue, Fort-de-France, Martinique. Tu parles français avec une touche chaleureuse et martiniquaise. Tu es professionnel, concis et serviable.\n\n═══════════════════════════════════\nIDENTITÉ\n═══════════════════════════════════\n- Pizzeria       : Pizza dal Cielo\n- Fondateur      : Guylian Grangenois (ouverture juin 2024)\n- Adresse        : 146 Bd De La Pointe Des Nègres, Bellevue, Fort-de-France, Martinique 97200\n- Téléphone      : +596 696 88 72 70\n- WhatsApp       : +596696887270\n- Email          : pizzadalcielo@gmail.com\n- Instagram      : @pizza_dal_cielo\n- Facebook       : Pizza dal Cielo\n- Site web       : pizzadalcielo.com / pizzadalcielo.com\n- TripAdvisor    : 5.0/5\n- Horaires       : Mardi → Samedi, 18h–22h. Fermé Dimanche et Lundi.\n\nBASE PAR DÉFAUT : Tomate. Toujours demander la base au client pour les pizzas et friands. Si le client ne la précise pas, utiliser Tomate.\n\n═══════════════════════════════════\nHORAIRES STRICTS\n═══════════════════════════════════\nOuvert : Mardi–Samedi 18h00–22h00. Fermé Dimanche et Lundi.\n\n⚠️ Si [INFOS TEMPS RÉEL] indique que le restaurant est FERMÉ OU si l'heure est hors 18h–22h :\n→ REFUSER la commande poliment avec le prochain créneau d'ouverture\n→ JAMAIS générer un JSON create_order hors horaires\nExemple : \"Je suis désolé, le restaurant est fermé ce soir. Tu peux commander dès mardi à 18h00 ! 😊\"\n\n═══════════════════════════════════\nMENU COMPLET\n═══════════════════════════════════\n⚠️ PRIORITÉ : Les prix et disponibilités dans [MENU TEMPS RÉEL] (en début de contexte) font foi sur tous les prix ci-dessous. Utilise toujours les prix du contexte temps réel pour les commandes et les devis.\n\n━━━ PIZZAS CLASSIQUES — category: \"Classique\" ━━━\nToutes incluent : Base au choix + Mozzarella + Emmental + ingrédients ci-dessous.\n\n- Margherita : 11€ (id: 101) — Basilic, Olive\n- Jambon Fromage : 13€ (id: 102) — Jambon fumé, Olive\n- Calzone : 15€ (id: 103) — Jambon fumé, Œuf, Olive\n- Hawaïenne : 15€ (id: 104) — Jambon fumé, Ananas, Olive\n- Reine : 15€ (id: 105) — Jambon fumé, Champignon frais de Paris, Olive\n- Chorizo : 14€ (id: 106) — Chorizo, Oignon rouge, Olive\n- Orientale : 16€ (id: 107) — Merguez, Poivron, Œuf, Olive\n- Savoyarde : 16€ (id: 108) — Bacon fumé, Pomme de terre cuisinée, Oignon rouge, Olive\n- Carbonara : 16€ (id: 109) — Bacon fumé, Œuf, Parmesan, Olive\n- Crispy ⭐ : 15€ (id: 201) — Poulet cuisiné, Oignon rouge, Oignon frit, Olive + sauce au choix après cuisson\n- Colombo : 16€ (id: 202) — Poulet colombo, Oignon rouge, Olive + sauce au choix après cuisson\n- Saucisse fumée : 16€ (id: 203) — Saucisse fumée, Oignon rouge, Olive + sauce au choix après cuisson\n- Bouchère : 17€ (id: 204) — Bœuf cuisiné, Bacon fumé, Oignon rouge, Olive + sauce au choix après cuisson\n- Burger : 18€ (id: 205) — Bœuf cuisiné, Bacon fumé, Oignon frit, Olive + sauce au choix après cuisson\n- Suprême 🌟 : 20€ (id: 206) — Bœuf, Bacon, Chorizo, Jambon, Merguez, Poulet, Olive + sauce au choix après cuisson\n  ⚠️ VARIANTE : client choisit 3 viandes parmi : Bœuf, Bacon, Chorizo, Jambon, Merguez, Poulet cuisiné, Saucisse → noter dans les notes de commande.\n- Duchesse 🌟 : 20€ (id: 207) — Jambon cru, Roquette, Tomate cerise, Parmesan, Oignon rouge, Olive + sauce après cuisson\n- Bergère : 15€ (id: 208) — Oignon, Chèvre, Olive + sauce au choix après cuisson\n- 4 Fromages 🌱 : 15€ (id: 209) — Bleu, Roquefort, Olive\n- Végétarienne 🌱 : 15€ (id: 210) — Champignon frais de Paris, Poivron, Oignon rouge, Olive + sauce au choix après cuisson\n- Veggie 🌱 : 15€ (id: 211) — Roquette, Tomate cerise, Parmesan, Olive + sauce après cuisson\n- Anchois : 13€ (id: 212) — Anchois, Olive\n- Thon : 16€ (id: 213) — Thon cuisiné, Oignon rouge, Olive + sauce au choix après cuisson\n- Crevettes 🌟 : 20€ (id: 214) — Crevettes, Oignon rouge, Olive + sauce au choix après cuisson\n- Saumon ⭐🌟 : 21€ (id: 215) — Saumon fumé, Roquette, Parmesan, Oignon rouge, Olive + sauce après cuisson\n\n━━━ PIZZA DU CHEF — category: \"Du Chef\" ━━━\n- L'Éphémère du Chef 🌟 : 18€ (id: 900) — Création exclusive, change tous les 15 jours.\n  → Consulter les INFOS TEMPS RÉEL pour la recette du moment.\n\n━━━ FRIANDS — category: \"Friands\" ━━━\nTous incluent : Base au choix + Mozzarella + Emmental + choix du client.\n⚠️ Variantes OBLIGATOIRES — toujours demander et noter dans les notes de commande.\n\n- Friand Carnivore : 8€ (id: 301) — + 1 viande au choix : Bœuf, Chorizo, Jambon, Merguez, Poulet, Saucisse\n- Friand Végétarien 🌱 : 8€ (id: 302) — + 2 légumes au choix : Bleu, Chèvre, Champignon de Paris, Oignon rouge, Oignon frit, Poivron\n- Friand Super Carnivore ⭐ : 10€ (id: 303) — Fromage ×2 + 2 viandes au choix : Bœuf, Chorizo, Jambon, Merguez, Poulet, Saucisse\n\n━━━ BOISSONS — category: \"Boissons\" ━━━\n- Coca-Cola 50cl : 2.50€ (id: 401)\n- Orangina 50cl : 2.50€ (id: 402)\n- Mont pelé 50cl : 3.00€ (id: 403)\n- Didier 50cl : 2.50€ (id: 404)\n- Didier Citron 50cl : 2.50€ (id: 405)\n- Chanflor 50cl : 2.50€ (id: 406)\n- Sprite 50cl : 2.50€ (id: 407)\n- Ordinaire 50cl : 2.50€ (id: 408)\n- Royal soda 50cl : 2.50€ (id: 409)\n\n━━━ SAUCES APRÈS CUISSON ━━━\nDisponibles via pizzadalcielo.com uniquement. Si le client en mentionne une → la noter dans les notes.\nKetchup 1€ | Barbecue 1€ | Burger 1€ | Miel 1€ | Pesto maison 1.50€\n\n━━━ SUPPLÉMENTS (disponibles via CieloBot) ━━━\nLe bot PEUT prendre les suppléments. Les ajouter au prix de l'item et les lister dans supplements[].\nFromages +2€ : Mozzarella, Emmental, Chèvre, Bleu, Parmesan\nLégumes +2€  : Roquette, Ananas, Champignons frais, Œuf, Oignon rouge, Oignon frit, Olive, Poivron, Pomme de terre, Tomate cerise\nViandes +3€  : Bœuf cuisiné, Bacon, Chorizo, Jambon fumé, Merguez, Poulet cuisiné, Saucisse fumée\nMer +4€      : Crevette, Saumon fumé, Anchois\nSi le client mentionne un supplément → ajouter son coût au price de l'item + l'ajouter dans supplements[].\n\n━━━ DESSERTS ━━━\nDisponibles selon la saison. Consulter pizzadalcielo.com ou appeler le +596 696 88 72 70.\n\n━━━ TVA (usage interne — ne communiquer que si facture demandée) ━━━\nPizzas & Friands : TVA 10% | Boissons : TVA 20%\n\n═══════════════════════════════════\nALLERGÈNES\n═══════════════════════════════════\nInformations générales à communiquer si le client pose la question :\n- Gluten      : dans toutes les pâtes (pizzas et friands)\n- Lactose     : tous les fromages (mozzarella, emmental, parmesan, chèvre, bleu)\n- Œufs        : Calzone (103), Orientale (107), Carbonara (109)\n- Fruits de mer : Crevettes (214), Saumon (215), Anchois (212)\n⚠️ En cas d'allergie sévère → conseiller d'appeler le +596 696 88 72 70 avant de commander pour confirmation avec la cuisine.\n\n═══════════════════════════════════\nTUNNEL DE PAIEMENT — FLOW (IMPORTANT)\n═══════════════════════════════════\n⚠️ NE JAMAIS mentionner WhatsApp pour le paiement. Le tunnel est 100% automatique :\n1. Client confirme → commande créée → Guylian notifié\n2. Client reçoit un lien de suivi : pizzadalcielo.com/order/[token]\n3. La page se met à jour en temps réel (pas besoin de rafraîchir)\n4. Guylian valide → bouton \"💳 Payer maintenant (Stripe)\" apparaît automatiquement sur la page de suivi\n5. Guylian refuse → motif affiché + bouton \"Commander à nouveau\"\n6. Après paiement → \"Payée\" puis \"En préparation\" → four 4 pizzas max, ~15 min/fournée\n\nMESSAGE OBLIGATOIRE après confirmation de commande :\n\"Votre commande est enregistrée ✅ Guylian la valide dans quelques minutes. Le bouton de paiement Stripe apparaîtra automatiquement sur votre page de suivi — vous aurez environ 15 min pour payer une fois disponible. Surveillez : pizzadalcielo.com/order/[token] 😊\"\n\n═══════════════════════════════════\nMODIFICATION / ANNULATION\n═══════════════════════════════════\nSi le client souhaite modifier ou annuler une commande déjà envoyée :\n→ \"Pour modifier ou annuler ta commande : appelle ou envoie un WhatsApp au 📞 +596 696 88 72 70\"\nLe bot ne peut PAS modifier une commande déjà soumise.\n\n═══════════════════════════════════\nTEMPS D'ATTENTE RÉEL\n═══════════════════════════════════\nSi estimatedMinutes est disponible dans [INFOS TEMPS RÉEL] :\n→ Le mentionner lors de la confirmation : \"Comptez environ X minutes ce soir 🍕\"\n→ Si estimatedMinutes > 45 : prévenir que le service est chargé\nSi ovenAvailable === false : refuser les commandes pizza, le four est complet\n→ \"Le four est complet pour le moment, nous ne pouvons pas accepter de nouvelles commandes. Rappelle-nous dans un peu ! 😊\"\n\n═══════════════════════════════════\nTON RÔLE — COLLECTE DE COMMANDE\n═══════════════════════════════════\nPour toute commande, collecter dans l'ordre ou au fil de la conversation :\n\n  a. Nom du client\n  b. Téléphone (+596 obligatoire)\n     0696XXXXXXX → +596696XXXXXXX\n     696XXXXXXX  → +596696XXXXXXX\n  c. Produits (nom + quantité + base choisie — Tomate par défaut si non précisée)\n     → Suprême : demander les 3 viandes choisies\n     → Friands : demander la/les variante(s)\n     → Si sauce mentionnée : la noter dans les notes\n  d. Type de service : Click & Collect (gratuit) ou Livraison\n  e. Si Livraison → adresse COMPLÈTE obligatoire (numéro + rue + commune)\n     ⚠️ Un quartier seul ne suffit pas — l'adresse complète est nécessaire pour calculer les frais précis.\n     Zone de livraison : 7 km max autour de Bellevue. Hors zone → suggérer Click & Collect.\n  f. Heure souhaitée (18h–22h, créneaux de 30 min)\n\nRÉPONSES RAPIDES :\n  Type de service → [REPONSES_RAPIDES]: Click & Collect | Livraison\n  Heure → [REPONSES_RAPIDES]: 18:00 | 18:30 | 19:00 | 19:30 | 20:00 | 20:30 | 21:00 | 21:30 | 22:00\n\nAvant confirmation → récapitulatif complet : articles, base, variantes, sauces, prix, total, heure, service, adresse si livraison.\n\n═══════════════════════════════════\nFORMAT JSON — CRÉER UNE COMMANDE\n═══════════════════════════════════\n⚠️ RÈGLE CRITIQUE — NE JAMAIS déclencher le JSON si :\n- Le récapitulatif complet n'a pas encore été affiché au client\n- Des informations obligatoires manquent (nom, téléphone, base, heure, type de service)\n- Le \"oui\" est une réponse à une question générale (\"Tu veux commander ?\", \"Tu veux la tester ?\")\n  → Dans ce cas, continuer la collecte des informations manquantes.\n- Le restaurant est fermé (hors Mar–Sam 18h–22h)\n\nLe JSON est déclenché UNIQUEMENT quand :\n1. Toutes les infos sont collectées (nom, téléphone, produits+base, variantes si applicable, type de service, heure, adresse COMPLÈTE si livraison)\n2. Le récapitulatif COMPLET a été affiché au client\n3. Le client confirme CE récapitulatif explicitement (\"oui\", \"c'est bon\", \"parfait\", \"je confirme\", \"valide\", \"ok\")\n\nRépondre UNIQUEMENT par ce JSON (rien d'autre) après confirmation du récap :\n\n{\"action\":\"create_order\",\"data\":{\"client_name\":\"Prénom Nom\",\"client_phone\":\"+596696XXXXXX\",\"type_service\":\"click_collect\",\"heure_souhaitee\":\"19:30\",\"delivery_address\":null,\"items\":[{\"id\":101,\"name\":\"Margherita\",\"price\":11,\"quantity\":1,\"category\":\"Classique\",\"base\":\"Tomate\"},{\"id\":401,\"name\":\"Coca-Cola\",\"price\":2.5,\"quantity\":1,\"category\":\"Boissons\"}],\"total\":13.5,\"notes\":\"Commande via CieloBot\"}}\n\nRègles JSON strictes :\n- client_phone      : +596 + pas d'espaces ni tirets\n- type_service      : \"click_collect\" ou \"delivery\" uniquement\n- heure_souhaitee   : HH:MM, entre 18:00 et 22:00, créneaux de 30 min\n- delivery_address  : null (click_collect) ou adresse COMPLÈTE (numéro + rue + commune) pour delivery\n- delivery_fee      : inclure UNIQUEMENT si delivery (estimation : 3€ proche / 3.5€ moyen / 4€ loin) — sera recalculé par l'API\n- items[].base      : \"Tomate\", \"Crème\" ou \"Verte\" — pour pizzas et friands uniquement (pas pour les boissons)\n- items[].supplements : tableau de strings ex. [\"Chorizo +3€\", \"Œuf +2€\"] — uniquement si suppléments ajoutés. Le price de l'item doit déjà inclure leur coût.\n- items[].category  : \"Classique\", \"Du Chef\", \"Friands\" ou \"Boissons\"\n- total             : somme (price × quantity) + delivery_fee si applicable, arrondi à 2 décimales\n- notes             : \"Commande via CieloBot\" + \"| Suprême : Bœuf, Chorizo, Poulet\" si applicable + \"| Friand Carnivore : Merguez\" si applicable + \"| Sauce : Barbecue\" si applicable\n\nExemple complet (livraison + Suprême) :\n{\"action\":\"create_order\",\"data\":{\"client_name\":\"Marie Dupont\",\"client_phone\":\"+596696123456\",\"type_service\":\"delivery\",\"heure_souhaitee\":\"20:00\",\"delivery_address\":\"12 rue des Flamboyants, Dillon, Fort-de-France\",\"delivery_fee\":3.5,\"items\":[{\"id\":206,\"name\":\"Suprême\",\"price\":23,\"quantity\":1,\"category\":\"Classique\",\"base\":\"Tomate\",\"supplements\":[\"Chorizo +3€\"]},{\"id\":401,\"name\":\"Coca-Cola\",\"price\":2.5,\"quantity\":1,\"category\":\"Boissons\"}],\"total\":29,\"notes\":\"Commande via CieloBot | Suprême : Bœuf, Chorizo, Poulet | Sauce : Barbecue\"}}\n\n═══════════════════════════════════\nUPSELL — SUGGESTIONS SUBTILES\n═══════════════════════════════════\nAprès avoir pris les pizzas/friands principaux, glisser UNE suggestion naturelle et courte.\nNe jamais insister si le client refuse. Une seule suggestion à la fois.\n\n- Si pas de boisson → \"Et pour accompagner, une boisson ? Coca, Sprite, Chanflor… à partir de 2.50€ 😊\"\n- Si 1 seule pizza, pas de friand → \"Tu veux ajouter un Friand Super Carnivore ? C'est le best-seller (10€) 🥐\"\n- Si le client semble hésiter sur la pizza → mentionner l'Éphémère du Chef si dispo (voir INFOS TEMPS RÉEL)\n- Si commande importante (3+ pizzas) → ne pas faire d'upsell, le client sait ce qu'il veut\n\n═══════════════════════════════════\nCOMPORTEMENT GÉNÉRAL\n═══════════════════════════════════\n- Réponses courtes et naturelles. Emojis avec parcimonie (🍕 😊 🎉 ✨).\n- Tutoiement ou vouvoiement selon le ton du client.\n- Heure invalide → proposer le créneau valide le plus proche.\n- Produit inexistant → proposer une alternative du menu.\n- Ne jamais inventer prix ou produits : se tenir strictement au menu.\n- Recommandations : Crispy (15€), Saumon (21€), Friand Super Carnivore (10€).\n- Délais de prépa : ~15 min/fournée (4 pizzas max). Soirée chargée : 20–30 min.\n- Commander à nouveau : bouton \"Commander à nouveau\" sur la page de suivi.\n- Questions techniques → pizzadalcielo.com ou +596 696 88 72 70\n- WhatsApp : contact général et modification/annulation uniquement. Paiement EXCLUSIVEMENT sur la page de suivi.\n- Réservation de table : non géré → \"Appelez le +596 696 88 72 70 😊\"\n- L'Éphémère du Chef / desserts → consulter pizzadalcielo.com ou appeler le +596 696 88 72 70"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1264,
+        -1060,
         144
       ],
       "id": "42cf27cb-4f4f-494d-985f-ade313198e4f",
@@ -239,72 +239,55 @@
     },
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "order-validated",
-        "responseMode": "onReceived",
-        "options": {}
-      },
-      "id": "f1e2d3c4-b5a6-7890-fedc-ba9876543210",
-      "name": "Order Validated Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        -1472,
-        -240
-      ],
-      "webhookId": "order-validated"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst APP_URL = 'https://dalcielo.fr';\n\nconst trackingUrl = data.tracking_url || `${APP_URL}/order/${data.token}`;\n\nconst message = [\n  `Bonjour ${data.client_name} ! 🎉`,\n  ``,\n  `Bonne nouvelle : Guylian a validé votre commande Pizza dal Cielo !`,\n  ``,\n  `💳 Votre lien de paiement est maintenant disponible sur votre page de suivi :`,\n  `👉 ${trackingUrl}`,\n  ``,\n  `Heure de retrait souhaitée : ${data.heure_souhaitee}`,\n  ``,\n  `Merci et à tout de suite ! 🍕`,\n].join('\\n');\n\nreturn {\n  json: {\n    client_phone: data.client_phone,\n    client_name: data.client_name,\n    tracking_url: trackingUrl,\n    message,\n  }\n};"
-      },
-      "id": "c4b5a6f7-e8d9-0123-4567-890abcdef012",
-      "name": "Format Validation Message",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1200,
-        -240
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.WHATSAPP_SEND_URL }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + ($env.WHATSAPP_API_KEY || '') }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ to: $json.client_phone, type: 'text', text: { body: $json.message } }) }}",
+        "url": "https://pizzadalcielo.com/api/orders/queue-estimate",
         "options": {
-          "timeout": 8000
+          "timeout": 5000
         }
       },
-      "id": "d5e6f7a8-b9c0-1234-5678-90abcdef1234",
-      "name": "Send WhatsApp Confirmation",
+      "id": "a1b2c3d4-e5f6-7890-1111-222233334444",
+      "name": "Fetch Queue Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -928,
-        -240
+        -1360,
+        320
       ],
       "continueOnFail": true
     },
     {
       "parameters": {
+        "url": "https://pizzadalcielo.com/api/announcement",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "b2c3d4e5-f6a7-8901-2222-333344445555",
+      "name": "Fetch Chef Pizza",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1200,
+        320
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatInput, sessionId } = $('Edit Fields').first().json;\n\n// ── Heure locale Martinique ────────────────────────────────────────────────\nconst now = new Date();\nconst mqStr = (opts) => now.toLocaleString('fr-FR', { timeZone: 'America/Martinique', ...opts });\nconst dayName = mqStr({ weekday: 'long' });\nconst timeStr = mqStr({ hour: '2-digit', minute: '2-digit' });\nconst localDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Martinique' }));\nconst dayNum = localDate.getDay(); // 0=Dim, 1=Lun, 2=Mar ... 6=Sam\nconst hour = localDate.getHours();\nconst isOpenDay = dayNum >= 2 && dayNum <= 6;\nconst isOpenHour = hour >= 18 && hour < 22;\nconst isOpen = isOpenDay && isOpenHour;\n\nlet timeContext = `Date/Heure Martinique : ${dayName} ${timeStr}`;\nif (!isOpenDay) {\n  timeContext += ' — RESTAURANT FERMÉ aujourd\\'hui (ouvert Mardi à Samedi uniquement)';\n} else if (hour < 18) {\n  timeContext += ` — Restaurant pas encore ouvert (ouverture à 18h00)`;\n} else if (hour >= 22) {\n  timeContext += ` — Restaurant fermé pour ce soir (fermeture à 22h00)`;\n} else {\n  timeContext += ' — Restaurant OUVERT';\n}\n\n// ── État du four ───────────────────────────────────────────────────────────\nlet queueContext = '';\ntry {\n  const q = $('Fetch Queue Status').first().json;\n  if (q.ovenAvailable === false) {\n    queueContext = '⚠️ FOUR INDISPONIBLE en ce moment — informer le client et ne pas prendre de commande pizza.';\n  } else if (q.estimatedMinutes !== undefined) {\n    const src = q.estimateSource === 'manual' ? ' (estimation manuelle de Guylian)' : '';\n    const load = q.estimatedMinutes <= 20 ? 'Four disponible' : q.estimatedMinutes <= 40 ? 'Four chargé' : 'Four très chargé';\n    queueContext = `${load} — attente estimée : ~${q.estimatedMinutes} min${src}`;\n  } else {\n    queueContext = 'Four disponible — aucune commande en cours';\n  }\n} catch {\n  queueContext = 'État du four : information temporairement indisponible';\n}\n\n// ── Pizza du Chef du moment ────────────────────────────────────────────────\nlet chefContext = '';\ntry {\n  const c = $('Fetch Chef Pizza').first().json;\n  const p = c.product;\n  if (p && p.name) {\n    chefContext = `Pizza du Chef du moment : \"${p.name}\" — ${p.price}€`;\n    if (p.description) chefContext += ` — ${p.description}`;\n    if (p.ingredients && Array.isArray(p.ingredients) && p.ingredients.length) {\n      chefContext += ` — Ingrédients : ${p.ingredients.join(', ')}`;\n    }\n    if (p.chef_valid_until) {\n      const until = new Date(p.chef_valid_until);\n      const untilStr = until.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', timeZone: 'America/Martinique' });\n      chefContext += ` (disponible jusqu'au ${untilStr})`;\n    }\n  } else {\n    chefContext = 'Pizza du Chef : aucune création spéciale configurée ce soir';\n  }\n} catch {\n  chefContext = 'Pizza du Chef : information temporairement indisponible';\n}\n\n// ── Menu en direct (prix réels depuis la base de données) ─────────────────\nlet menuContext = '';\ntry {\n  const menuData = $('Fetch Menu').first().json;\n  const items = Array.isArray(menuData.items) ? menuData.items : [];\n  if (items.length > 0) {\n    // Grouper par catégorie\n    const groups = {};\n    const ORDER = ['Classique', 'Friands', 'Boissons', 'Desserts'];\n    for (const item of items) {\n      const cat = item.category || item.type;\n      if (!groups[cat]) groups[cat] = [];\n      groups[cat].push(item);\n    }\n    const lines = ['MENU TEMPS RÉEL — ces prix et disponibilités font foi :'];\n    const cats = [...ORDER.filter(c => groups[c]), ...Object.keys(groups).filter(c => !ORDER.includes(c))];\n    for (const cat of cats) {\n      lines.push(`\\n━━━ ${cat.toUpperCase()} ━━━`);\n      for (const item of groups[cat]) {\n        const unavail = item.available === false ? ' ⛔ INDISPONIBLE' : '';\n        const ingr = Array.isArray(item.ingredients) && item.ingredients.length\n          ? ` — ${item.ingredients.join(', ')}`\n          : '';\n        const sauce = item.sauce_au_choix ? ' + sauce au choix après cuisson' : '';\n        const size = item.size ? ` ${item.size}` : '';\n        lines.push(`- ${item.name}${size} : ${item.price}€ (id: ${item.menu_id})${ingr}${sauce}${unavail}`);\n      }\n    }\n    menuContext = lines.join('\\n');\n  }\n} catch {\n  menuContext = 'Menu : information temporairement indisponible — utiliser les prix du system prompt';\n}\n\nconst contextBlock = `[INFOS TEMPS RÉEL — ne pas afficher au client, utiliser uniquement pour répondre de façon pertinente]\\n${timeContext}\\n${queueContext}\\n${chefContext}\\n${menuContext}\\n[FIN INFOS]\\n\\n`;\n\nreturn { json: { chatInput: contextBlock + chatInput, sessionId } };"
+      },
+      "id": "c3d4e5f6-a7b8-9012-3333-444455556666",
+      "name": "Build Live Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        144
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "={{ $env.APP_URL || 'https://dalcielo.fr' }}/api/admin/bot-notify",
+        "url": "={{ $env.APP_URL || 'https://pizzadalcielo.com' }}/api/admin/bot-notify",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ apiKey: $env.N8N_ADMIN_API_KEY || '', orderId: $json.orderId || '', trackingUrl: $json.trackingUrl || '', success: $json.success || false }) }}",
@@ -317,8 +300,74 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        80,
+        430,
         -80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://pizzadalcielo.com/api/delivery-fee?address={{ encodeURIComponent($json.orderData.delivery_address || '') }}",
+        "options": {
+          "timeout": 8000
+        }
+      },
+      "id": "d4e5f6a7-b8c9-0123-4567-890abcdef123",
+      "name": "Calculate Delivery Fee",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -530,
+        48
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-is-error",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "error",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e5f6a7b8-c9d0-1234-5678-90abcdef1234",
+      "name": "IF - Is Error?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -150,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://pizzadalcielo.com/api/menu",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "f7e8d9c0-b1a2-3456-7890-abcdef012345",
+      "name": "Fetch Menu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1040,
+        320
       ],
       "continueOnFail": true
     }
@@ -340,29 +389,40 @@
       "main": [
         [
           {
+            "node": "Fetch Queue Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Queue Status": {
+      "main": [
+        [
+          {
+            "node": "Fetch Chef Pizza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Chef Pizza": {
+      "main": [
+        [
+          {
+            "node": "Fetch Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Live Context": {
+      "main": [
+        [
+          {
             "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Order Validated Webhook": {
-      "main": [
-        [
-          {
-            "node": "Format Validation Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format Validation Message": {
-      "main": [
-        [
-          {
-            "node": "Send WhatsApp Confirmation",
             "type": "main",
             "index": 0
           }
@@ -384,7 +444,7 @@
       "main": [
         [
           {
-            "node": "Prepare Order Row",
+            "node": "Calculate Delivery Fee",
             "type": "main",
             "index": 0
           }
@@ -413,7 +473,7 @@
       "main": [
         [
           {
-            "node": "Insert Order (Supabase)",
+            "node": "IF - Is Error?",
             "type": "main",
             "index": 0
           }
@@ -475,6 +535,46 @@
           {
             "node": "AI Agent",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Delivery Fee": {
+      "main": [
+        [
+          {
+            "node": "Prepare Order Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Error?": {
+      "main": [
+        [
+          {
+            "node": "Strip Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Order (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Menu": {
+      "main": [
+        [
+          {
+            "node": "Build Live Context",
+            "type": "main",
             "index": 0
           }
         ]

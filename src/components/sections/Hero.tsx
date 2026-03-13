@@ -76,7 +76,7 @@ export const Hero = () => {
             un véritable coup de cœur ! 🌟
           </p>
 
-          <p className="text-lg md:text-xl text-[#3D2418]/70 font-medium max-w-xl mb-12 leading-relaxed">
+          <p className="text-lg md:text-xl text-[#3D2418] font-medium max-w-xl mb-12 leading-relaxed text-shadow-sm">
             Découvrez l&apos;authenticité de la pizza artisanale à Bellevue, Fort-de-France. 
             Des ingrédients frais, une pâte travaillée avec amour et un goût inoubliable.
           </p>

@@ -29,7 +29,7 @@ export const ContactSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/30 backdrop-blur-sm shadow-lg">
+            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm shadow-lg">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                 <MapPin size={32} />
               </div>
@@ -79,7 +79,7 @@ export const ContactSection = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/30 backdrop-blur-sm shadow-lg">
+            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm shadow-lg">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                 <Clock size={32} />
               </div>
@@ -109,7 +109,7 @@ export const ContactSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="mt-16 rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white/30 h-[450px]"
+          className="mt-16 rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white/30 h-[300px] md:h-[450px]"
         >
           <iframe
             src={`https://www.google.com/maps?q=${encodeURIComponent(

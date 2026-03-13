@@ -57,7 +57,7 @@ export async function PATCH(
     // Notifier le bot n8n quand une commande est validée (waiting_payment)
     // Fire-and-forget : on ne bloque pas la réponse sur cette requête
     if (status === 'waiting_payment' && process.env.N8N_ORDER_NOTIFY_WEBHOOK_URL) {
-      const trackingUrl = `${process.env.APP_URL || 'https://dalcielo.fr'}/order/${updated.token}`
+      const trackingUrl = `${process.env.APP_URL || 'https://pizzadalcielo.com'}/order/${updated.token}`
       fetch(process.env.N8N_ORDER_NOTIFY_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

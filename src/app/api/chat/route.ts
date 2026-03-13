@@ -36,12 +36,36 @@ export async function POST(req: Request) {
       ? history.slice(-10)
       : []
 
-    const historyText = recentHistory
+    // Détecter si une commande a déjà été créée dans cette session
+    // On vérifie à la fois les phrases de confirmation ET la présence du JSON brut (fallback)
+    const orderAlreadyPlaced = recentHistory.some(
+      (m) => m.role === 'assistant' && (
+        m.content.includes('"action":"create_order"') ||
+        m.content.includes('Commande envoyée') ||
+        m.content.includes('Suivre votre commande') ||
+        m.content.includes('lien de paiement y apparaîtra') ||
+        m.content.includes('[Commande créée et envoyée avec succès]')
+      )
+    )
+
+    // Nettoyer l'historique : remplacer tout JSON create_order résiduel par un marqueur neutre
+    const cleanHistory = recentHistory.map((m) => {
+      if (m.role === 'assistant' && m.content.includes('"action":"create_order"')) {
+        return { ...m, content: '[Commande créée et envoyée avec succès]' }
+      }
+      return m
+    })
+
+    const historyText = cleanHistory
       .map((m) => `${m.role === 'user' ? 'Client' : 'CieloBot'}: ${m.content}`)
       .join('\n')
 
+    const systemNote = orderAlreadyPlaced
+      ? '[SYSTÈME CRITIQUE: Une commande a déjà été créée et enregistrée dans cette conversation. Il est ABSOLUMENT INTERDIT de générer un nouveau JSON create_order ou tout objet ressemblant à une commande. Tu es en mode post-commande uniquement : réponds aux questions de suivi, remercie le client, guide-le. Tu ne peux générer un nouveau create_order QUE si le client dit explicitement "je veux passer une nouvelle commande" ou "je veux commander autre chose".]\n\n'
+      : ''
+
     const chatInput = historyText
-      ? `${historyText}\nClient: ${message.trim()}`
+      ? `${systemNote}${historyText}\nClient: ${message.trim()}`
       : message.trim()
 
     const n8nRes = await fetch(N8N_CHATBOT_URL, {

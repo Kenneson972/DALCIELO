@@ -1,57 +1,83 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/Card'
-import { Pizza, Heart, MapPin, Star, History, Target } from 'lucide-react'
+import { Wheat, Flame, Leaf, Clock, Sparkles, ChefHat } from 'lucide-react'
+
+const steps = [
+  {
+    number: '01',
+    icon: <Wheat className="text-primary" size={28} />,
+    title: 'La pâte, pétrie chaque jour',
+    description:
+      'Rien n\'est préparé à l\'avance. La pâte est pétrie chaque soir avant le service, laissée à lever lentement pour développer ses arômes. Légère, croustillante en dessous, moelleuse à l\'intérieur — c\'est la base de tout.',
+  },
+  {
+    number: '02',
+    icon: <Leaf className="text-primary" size={28} />,
+    title: 'Des ingrédients choisis avec soin',
+    description:
+      'Mozzarella fondante, tomates goûteuses, viandes de qualité, herbes fraîches. Pas de compromis sur les ingrédients — chaque produit est sélectionné pour ce qu\'il apporte au goût final.',
+  },
+  {
+    number: '03',
+    icon: <Flame className="text-primary" size={28} />,
+    title: 'La cuisson, une question de précision',
+    description:
+      'Le four tourne à haute température pour saisir la pâte en quelques minutes. Le résultat : une croûte bien dorée, des garnitures fondantes, et ce petit croustillant en fin de bouchée qu\'on ne retrouve nulle part ailleurs.',
+  },
+  {
+    number: '04',
+    icon: <Clock className="text-primary" size={28} />,
+    title: 'Préparée à la commande, jamais à l\'avance',
+    description:
+      'Chaque pizza est assemblée au moment où vous commandez. Pas de pizza réchauffée, pas de stock. Ce que vous recevez sort du four directement pour vous.',
+  },
+  {
+    number: '05',
+    icon: <Sparkles className="text-primary" size={28} />,
+    title: 'La pizza du chef, une créa tous les 15 jours',
+    description:
+      'Tous les 15 jours, une nouvelle recette exclusive sort du four. C\'est l\'occasion de tenter des associations inédites, de surprendre, et de montrer que la pizza n\'a pas de limites.',
+  },
+  {
+    number: '06',
+    icon: <ChefHat className="text-primary" size={28} />,
+    title: 'Un seul maître à bord',
+    description:
+      'Guylian fait tout lui-même — la pâte, les garnitures, la cuisson. Ce n\'est pas une chaîne, c\'est une pizzeria artisanale. Ça se voit dans chaque pizza.',
+  },
+]
 
 export default function AboutPage() {
-  const values = [
-    {
-      icon: <Pizza className="text-primary" size={32} />,
-      title: "Qualité",
-      description: "Des ingrédients frais, locaux quand possible, et une pâte pétrie chaque jour."
-    },
-    {
-      icon: <Heart className="text-primary" size={32} />,
-      title: "Passion",
-      description: "Chaque pizza est une création faite avec amour et attention aux détails."
-    },
-    {
-      icon: <Star className="text-primary" size={32} />,
-      title: "Excellence",
-      description: "Un service irréprochable et un goût authentique qui nous vaut 5 étoiles."
-    }
-  ]
-
   return (
     <div className="pt-32 pb-24 px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Main content container for readability */}
         <div className="bg-white/90 backdrop-blur-sm rounded-[3rem] p-8 md:p-16 shadow-2xl">
-          {/* Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-32">
+
+          {/* Hero */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
+              <p className="text-primary font-bold uppercase tracking-[0.2em] text-sm mb-4">Notre savoir-faire</p>
               <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight text-[#3D2418]">
-                L&apos;histoire de <br />
-                <span className="text-primary">Pizza dal Cielo</span>
+                Comment on fait <br />
+                <span className="text-primary">nos pizzas</span>
               </h1>
               <p className="text-lg text-[#3D2418]/80 leading-relaxed mb-6">
-                Tout commence par une vision simple : apporter un peu de &quot;ciel&quot; dans l&apos;assiette des Martiniquais. 
-                Fondée en juin 2024 par Guylian Grangenois, Pizza dal Cielo est le fruit d&apos;une passion 
-                dévorante pour la gastronomie italienne revisitée avec une touche tropicale.
+                Chez Pizza dal Cielo, il n&apos;y a pas de secret industriel ni de recette achetée.
+                Juste du travail, de bons produits, et une vraie passion pour la pizza artisanale.
               </p>
               <p className="text-lg text-[#3D2418]/80 leading-relaxed">
-                À seulement 23 ans, Guylian a décidé de lancer sa propre pizzeria artisanale à Bellevue, 
-                mettant l&apos;accent sur la qualité des produits et le savoir-faire traditionnel. 
-                Aujourd&apos;hui, Pizza dal Cielo est devenue une référence pour les amateurs de vraies pizzas.
+                Voici exactement comment chaque pizza qui sort de notre four est préparée —
+                de la pâte pétrie le soir même jusqu&apos;à la garniture posée à la commande.
               </p>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -59,77 +85,58 @@ export default function AboutPage() {
               className="relative"
             >
               <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
-                <img 
-                  src="https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?q=80&w=1000&auto=format&fit=crop" 
-                  alt="Guylian Grangenois - Fondateur" 
-                  className="w-full h-[600px] object-cover"
+                <Image
+                  src="/images/about-team.jpg"
+                  alt="Pizza dal Cielo — artisanat et passion"
+                  width={700}
+                  height={900}
+                  className="w-full h-auto"
+                  priority
                 />
               </div>
-              <div className="absolute -bottom-10 -left-10 bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-xl hidden md:block border border-gray-100">
-                <p className="text-primary font-black text-4xl mb-1">2024</p>
-                <p className="text-sm font-bold uppercase tracking-widest text-gray-500">Année de création</p>
+              <div className="absolute -bottom-8 -left-8 bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl shadow-xl hidden md:block border border-gray-100">
+                <p className="text-primary font-black text-3xl mb-1">5.0 ★</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-gray-500">TripAdvisor</p>
               </div>
             </motion.div>
           </div>
 
-          {/* Values Section */}
-          <div className="mb-32">
+          {/* Steps */}
+          <div>
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-black mb-4 text-[#3D2418]">Nos <span className="text-primary">Valeurs</span></h2>
-              <p className="text-[#3D2418]/70 max-w-xl mx-auto">Ce qui nous définit et nous motive chaque jour à allumer le four.</p>
+              <h2 className="text-4xl font-black mb-4 text-[#3D2418]">
+                De la farine à <span className="text-primary">votre table</span>
+              </h2>
+              <p className="text-[#3D2418]/70 max-w-xl mx-auto">
+                6 étapes qui font la différence entre une pizza ordinaire et une pizza dal Cielo.
+              </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {values.map((value, index) => (
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {steps.map((step, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.08 }}
+                  className="flex gap-6 p-8 rounded-3xl border-2 border-transparent hover:border-primary/15 hover:bg-primary/5 transition-all group"
                 >
-                  <Card className="p-10 h-full text-center hover:border-primary/20 border-2 border-transparent transition-all shadow-lg">
-                    <div className="bg-primary/10 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                      {value.icon}
+                  <div className="shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      {step.icon}
                     </div>
-                    <h3 className="text-2xl font-black mb-4 text-[#3D2418]">{value.title}</h3>
-                    <p className="text-gray-500 leading-relaxed">
-                      {value.description}
-                    </p>
-                  </Card>
+                  </div>
+                  <div>
+                    <p className="text-primary/50 font-black text-xs uppercase tracking-widest mb-1">{step.number}</p>
+                    <h3 className="text-xl font-black text-[#3D2418] mb-3">{step.title}</h3>
+                    <p className="text-[#3D2418]/70 leading-relaxed">{step.description}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Mission/Vision Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="p-12 bg-dark text-white overflow-hidden relative group">
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Target size={120} />
-              </div>
-              <h3 className="text-3xl font-black mb-6 flex items-center gap-3">
-                <Target className="text-primary" /> Notre Mission
-              </h3>
-              <p className="text-white/60 text-lg leading-relaxed">
-                Offrir une expérience culinaire premium accessible à tous, en célébrant l&apos;art de la pizza 
-                artisanale avec des produits d&apos;exception et un service chaleureux.
-              </p>
-            </Card>
-            
-            <Card className="p-12 border-2 border-dark overflow-hidden relative group bg-white">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <History size={120} />
-              </div>
-              <h3 className="text-3xl font-black mb-6 flex items-center gap-3 text-dark">
-                <History className="text-primary" /> Notre Vision
-              </h3>
-              <p className="text-gray-500 text-lg leading-relaxed">
-                Devenir la pizzeria de référence en Martinique, reconnue pour son innovation constante 
-                et son respect des traditions, tout en restant une entreprise jeune et dynamique.
-              </p>
-            </Card>
-          </div>
         </div>
       </div>
     </div>

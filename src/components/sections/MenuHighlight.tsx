@@ -102,7 +102,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-white/10 backdrop-blur-2xl rounded-[3rem] p-6 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.08)] border border-white/40 overflow-hidden relative group"
+            className="bg-white/45 backdrop-blur-2xl rounded-[3rem] p-6 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.08)] border border-white/40 overflow-hidden relative group"
           >
             {/* Top Shine Effect */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />

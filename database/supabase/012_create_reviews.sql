@@ -1,33 +1,29 @@
--- 012_create_reviews.sql
--- Table des avis clients sur les produits
+-- Migration 012: Create reviews table
+-- Stores customer reviews/ratings for Pizza dal Cielo
 
 CREATE TABLE IF NOT EXISTS reviews (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  menu_id     integer NOT NULL,            -- correspond à MenuItem.id / product.menu_id
-  author_name text    NOT NULL CHECK (char_length(author_name) BETWEEN 1 AND 80),
-  rating      smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  comment     text CHECK (char_length(comment) <= 1000),
-  status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  ip_hash     text,                        -- SHA-256 de l'IP pour déduplication silencieuse
-  created_at  timestamptz NOT NULL DEFAULT now()
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  client_name TEXT NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- Index pour les requêtes fréquentes
-CREATE INDEX IF NOT EXISTS reviews_menu_id_status_idx ON reviews (menu_id, status);
-CREATE INDEX IF NOT EXISTS reviews_created_at_idx     ON reviews (created_at DESC);
+CREATE INDEX IF NOT EXISTS reviews_order_id_idx ON reviews(order_id);
+CREATE INDEX IF NOT EXISTS reviews_created_at_idx ON reviews(created_at DESC);
 
 -- RLS
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- Lecture publique : uniquement les avis approuvés
-CREATE POLICY "reviews_select_approved" ON reviews
-  FOR SELECT USING (status = 'approved');
-
--- Insertion publique (sans authentification)
-CREATE POLICY "reviews_insert_public" ON reviews
+-- Anyone can insert a review (linked to an order)
+CREATE POLICY "reviews_insert" ON reviews
   FOR INSERT WITH CHECK (true);
 
--- Toutes opérations pour le service role (admin via supabaseAdmin)
--- Le service role bypasse RLS automatiquement.
+-- Only authenticated admin can read all reviews
+CREATE POLICY "reviews_select_admin" ON reviews
+  FOR SELECT USING (auth.role() = 'authenticated');
 
-COMMENT ON TABLE reviews IS 'Avis clients sur les produits. Modération manuelle via le panneau admin.';
+-- Public can read reviews (for display on site)
+CREATE POLICY "reviews_select_public" ON reviews
+  FOR SELECT USING (true);

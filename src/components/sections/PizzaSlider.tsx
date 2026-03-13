@@ -130,7 +130,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-6xl font-display font-black text-[#3D2418] mb-3">
+          <h2 className="text-4xl md:text-6xl font-display font-black text-[#3D2418] mb-3 text-shadow-sm">
             Des pizzas qui <span className="text-primary">touchent le ciel</span>
           </h2>
           <p className="text-lg text-[#3D2418]/70 max-w-2xl mx-auto mb-6">

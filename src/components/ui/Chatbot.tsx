@@ -33,18 +33,45 @@ function linkify(text: string) {
   )
 }
 
+const STORAGE_KEY = 'celiobot_session'
+const TTL_MS = 24 * 60 * 60 * 1000
+
+const WELCOME: Message = {
+  role: 'assistant',
+  content: "Bonjour ! 👋 Je suis CieloBot, l'assistant de Pizza dal Cielo. Comment puis-je vous aider aujourd'hui ?"
+}
+
+function sanitizeMessages(messages: Message[]): Message[] {
+  return messages.map((m) => {
+    if (m.role === 'assistant' && m.content.includes('"action":"create_order"')) {
+      return { ...m, content: '[Commande créée et envoyée avec succès]', quickReplies: undefined }
+    }
+    return m
+  })
+}
+
+function loadSession(): { messages: Message[]; userMessageCount: number; messageTimestamps: number[] } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (Date.now() > parsed.expiresAt) {
+      localStorage.removeItem(STORAGE_KEY)
+      return null
+    }
+    return { ...parsed, messages: sanitizeMessages(parsed.messages ?? []) }
+  } catch {
+    return null
+  }
+}
+
 type ChatSize = 'full' | 'reduced'
 
 export const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [chatSize, setChatSize] = useState<ChatSize>('full')
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "Bonjour ! 👋 Je suis CieloBot, l'assistant de Pizza dal Cielo. Comment puis-je vous aider aujourd'hui ?"
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([WELCOME])
   const [isLoading, setIsLoading] = useState(false)
   const [userMessageCount, setUserMessageCount] = useState(0)
   const [rateLimitExceeded, setRateLimitExceeded] = useState(false)
@@ -52,8 +79,31 @@ export const Chatbot = () => {
   const [showTooltip, setShowTooltip] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // Restore session from localStorage on mount
   useEffect(() => {
-    // Show tooltip after 5 seconds
+    const session = loadSession()
+    if (session) {
+      setMessages(session.messages)
+      setUserMessageCount(session.userMessageCount)
+      setMessageTimestamps(session.messageTimestamps)
+    }
+  }, [])
+
+  // Persist session to localStorage on every message change (JSON brut nettoyé avant stockage)
+  useEffect(() => {
+    if (messages.length <= 1) return
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        messages: sanitizeMessages(messages),
+        userMessageCount,
+        messageTimestamps,
+        expiresAt: Date.now() + TTL_MS,
+      }))
+    } catch {}
+  }, [messages, userMessageCount, messageTimestamps])
+
+  // Show tooltip after 5 seconds
+  useEffect(() => {
     const timer = setTimeout(() => {
       if (!isOpen) setShowTooltip(true)
     }, 5000)
@@ -303,7 +353,7 @@ export const Chatbot = () => {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Posez votre question..."
-                    className="w-full pl-5 pr-14 py-4 rounded-2xl bg-cream/50 border-2 border-gray-100 focus:border-primary/30 focus:outline-none transition-all text-sm placeholder:text-gray-400"
+                    className="w-full pl-5 pr-14 py-4 rounded-2xl bg-cream/50 border-2 border-gray-100 focus:border-primary/30 focus:outline-none transition-all text-base placeholder:text-gray-400"
                   />
                   <button
                     onClick={handleSend}

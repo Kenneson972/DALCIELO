@@ -63,6 +63,7 @@ export const Header = () => {
                 alt="Pizza dal Cielo Logo"
                 width={48}
                 height={48}
+                sizes="48px"
                 className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-md"
               />
             </Link>
@@ -70,7 +71,7 @@ export const Header = () => {
 
           {/* Colonne centre (1/3) — Nav + cart, centré dans le viewport */}
           <nav className="flex-1 hidden md:flex items-center justify-center gap-4 min-w-0">
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/10 shadow-sm">
+              <div className="flex items-center bg-white/30 backdrop-blur-sm rounded-full p-1 border border-white/25 shadow-sm">
                 {navLinks.map((link) => {
                 const isActive = pathname === link.href
                 return (
