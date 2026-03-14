@@ -148,7 +148,8 @@ export function QueueEstimateProvider({ children }: { children: React.ReactNode 
       }
     }
 
-    const channel = supabase
+    // ── Channel 1 : queue_settings — statut four on/off, mode, minutes manuelles ──
+    const settingsChannel = supabase
       .channel('dalcielo_queue_settings')
       .on(
         'postgres_changes',
@@ -187,17 +188,45 @@ export function QueueEstimateProvider({ children }: { children: React.ReactNode 
       )
       .subscribe((status) => {
         const st: RealtimeStatus =
-          status === 'SUBSCRIBED'                                              ? 'connected'    :
-          status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED' ? 'disconnected' :
+          status === 'SUBSCRIBED'                                                       ? 'connected'    :
+          status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'  ? 'disconnected' :
           'connecting'
-
         setRealtimeStatus(st)
         realtimeStatusRef.current = st
-        startPolling() // adapter la fréquence selon l'état Realtime
+        startPolling()
       })
 
+    // ── Channel 2 : orders — recalcul immédiat quand un statut de commande change ──
+    // (annulée, livrée, en préparation, préparation démarrée, etc.)
+    const ordersChannel = supabase
+      .channel('dalcielo_orders_status')
+      .on(
+        'postgres_changes',
+        {
+          event:  'UPDATE',
+          schema: 'public',
+          table:  'orders',
+        },
+        () => {
+          // On ne lit pas le payload (trop complexe à recalculer ici) —
+          // on déclenche simplement un refresh immédiat de l'API
+          load()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event:  'INSERT',
+          schema: 'public',
+          table:  'orders',
+        },
+        () => { load() }
+      )
+      .subscribe()
+
     return () => {
-      supabase!.removeChannel(channel)
+      supabase!.removeChannel(settingsChannel)
+      supabase!.removeChannel(ordersChannel)
       if (intervalRef.current)  clearInterval(intervalRef.current)
       if (staleTimerRef.current) clearTimeout(staleTimerRef.current)
     }
