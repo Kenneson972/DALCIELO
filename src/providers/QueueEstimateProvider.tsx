@@ -222,6 +222,15 @@ export function QueueEstimateProvider({ children }: { children: React.ReactNode 
         },
         () => { load() }
       )
+      .on(
+        'postgres_changes',
+        {
+          event:  'DELETE',
+          schema: 'public',
+          table:  'orders',
+        },
+        () => { load() }
+      )
       .subscribe()
 
     return () => {
