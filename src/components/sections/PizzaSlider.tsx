@@ -102,9 +102,6 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
       customizations,
     })
     setOptionsItem(null)
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('open-cart'))
-    }
   }
 
   if (!items.length) return null

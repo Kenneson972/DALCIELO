@@ -35,6 +35,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { estimate } = useQueueEstimate(isOpen && items.length > 0)
+  const [notes, setNotes] = useState('')
   const [form, setForm] = useState({
     client_firstname: '',
     client_lastname: '',
@@ -157,6 +158,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
       client_phone: form.client_phone.trim(),
       type_service: form.type_service,
       heure_souhaitee: form.heure_souhaitee.trim(),
+      notes: notes.trim() || undefined,
       delivery_address: form.type_service === 'delivery' ? deliveryAddress.trim() : undefined,
       items: items.map((item) => ({
         id: item.id,
@@ -585,6 +587,21 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* ── Notes ── */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Notes (optionnel)
+                    </label>
+                    <textarea
+                      placeholder="Allergies, instructions particulières, sonnette…"
+                      rows={2}
+                      className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:border-primary/30 resize-none text-sm touch-manipulation"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      maxLength={300}
+                    />
                   </div>
                 </div>
 
