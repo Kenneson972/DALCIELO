@@ -34,7 +34,10 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   >('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { estimate, loading: ovenLoading } = useQueueEstimate(isOpen && items.length > 0)
+  const { estimate, loading: ovenLoading, isStale, realtimeStatus, refresh } = useQueueEstimate(
+    isOpen && items.length > 0,
+    { cartOpen: isOpen }
+  )
   const [notes, setNotes] = useState('')
   const [form, setForm] = useState({
     client_firstname: '',
@@ -604,6 +607,27 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         />
                       </div>
                     </div>
+
+                    {/* Bannière données obsolètes */}
+                    {isStale && !ovenLoading && (
+                      <div className="flex items-center justify-between gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                        <span>Statut four non actualisé</span>
+                        <button
+                          onClick={refresh}
+                          className="font-bold underline underline-offset-2 hover:text-amber-900 transition-colors"
+                        >
+                          Actualiser
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Indicateur Realtime hors ligne (discret) */}
+                    {realtimeStatus === 'disconnected' && !ovenLoading && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 px-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                        <span>Sync temps réel indisponible — actualisation auto toutes les 3s</span>
+                      </div>
+                    )}
 
                     {/* Temps d'attente / statut four */}
                     {ovenLoading ? (

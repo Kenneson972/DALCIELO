@@ -1,56 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import {
+  useQueueEstimateContext,
+  type QueueEstimate,
+  type RealtimeStatus,
+} from '@/providers/QueueEstimateProvider'
 
-export interface QueueEstimate {
-  totalItems: number
-  activeOrders: number
-  estimatedMinutes: number
-  ovenAvailable: boolean
-  estimateSource: 'auto' | 'manual'
-  manualEstimatedMinutes: number | null
-}
-
-const DEFAULT: QueueEstimate = {
-  totalItems: 0,
-  activeOrders: 0,
-  estimatedMinutes: 15,
-  ovenAvailable: true,
-  estimateSource: 'auto',
-  manualEstimatedMinutes: null,
-}
+export type { QueueEstimate, RealtimeStatus }
 
 /**
- * Récupère l'estimation dynamique du temps d'attente basée
- * sur les pizzas actuellement en file chez Guylian.
- * Rafraîchissement toutes les 30 secondes.
+ * Consomme l'état du four / file d'attente depuis le provider singleton.
+ *
+ * @param enabled   - Si false, le composant ne signale pas sa priorité mais
+ *                    reçoit quand même les données live du provider.
+ * @param options   - cartOpen : signale que le panier est ouvert (polling accéléré).
  */
-export function useQueueEstimate(enabled = true) {
-  const [estimate, setEstimate] = useState<QueueEstimate>(DEFAULT)
-  const [loading, setLoading]   = useState(true)
+export function useQueueEstimate(
+  enabled = true,
+  options?: { cartOpen?: boolean }
+) {
+  const ctx = useQueueEstimateContext()
 
+  // Signale au provider l'état "panier ouvert" pour activer le polling accéléré
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !options?.cartOpen) return
+    ctx.notifyCartOpen(true)
+    return () => ctx.notifyCartOpen(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, options?.cartOpen])
 
-    const load = async () => {
-      try {
-        const res  = await fetch('/api/orders/queue-estimate', {
-          cache: 'no-store',
-          headers: { Pragma: 'no-cache', 'Cache-Control': 'no-cache' },
-        })
-        const data = await res.json().catch(() => null)
-        if (data && typeof data.estimatedMinutes === 'number') {
-          setEstimate(data)
-        }
-      } catch {
-        // garde la valeur précédente
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    load()
-    const interval = setInterval(load, 10_000)
-    return () => clearInterval(interval)
-  }, [enabled])
-
-  return { estimate, loading }
+  return {
+    estimate:       ctx.estimate,
+    loading:        ctx.loading,
+    isStale:        ctx.isStale,
+    realtimeStatus: ctx.realtimeStatus,
+    refresh:        ctx.refresh,
+  }
 }

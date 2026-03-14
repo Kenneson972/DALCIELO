@@ -24,6 +24,7 @@ import {
   Power,
   FileText,
   Home,
+  Loader2,
 } from 'lucide-react'
 import {
   BarChart,
@@ -633,6 +634,7 @@ function DashboardView({
   const [queueMode, setQueueMode] = useState<'auto' | 'manual'>('auto')
   const [manualMinutes, setManualMinutes] = useState(estimate.estimatedMinutes)
   const [ovenAvailable, setOvenAvailable] = useState(true)
+  const [savingOven, setSavingOven] = useState(false)
   const [loadingQueueSettings, setLoadingQueueSettings] = useState(true)
   const [savingQueueSettings, setSavingQueueSettings] = useState(false)
   const [queueSettingsNotice, setQueueSettingsNotice] = useState<string | null>(null)
@@ -740,6 +742,26 @@ function DashboardView({
       setHomepageSettingsNotice('Erreur réseau, réessayez.')
     } finally {
       setSavingDesserts(false)
+    }
+  }
+
+  // Toggle four avec sauvegarde immédiate (sans attendre "Enregistrer")
+  const autoSaveOven = async () => {
+    const next = !ovenAvailable
+    setOvenAvailable(next) // optimiste
+    setSavingOven(true)
+    try {
+      const res = await fetch('/api/admin/queue-settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+        body: JSON.stringify({ ovenAvailable: next }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
+      setOvenAvailable(!next) // rollback si erreur
+      setQueueSettingsNotice('Erreur lors de la sauvegarde du statut du four.')
+    } finally {
+      setSavingOven(false)
     }
   }
 
@@ -898,17 +920,20 @@ function DashboardView({
             </p>
             <button
               type="button"
-              onClick={() => setOvenAvailable((v) => !v)}
-              disabled={loadingQueueSettings || savingQueueSettings}
+              onClick={autoSaveOven}
+              disabled={loadingQueueSettings || savingOven}
               className={`w-full h-11 rounded-lg font-semibold text-sm border transition-colors ${
                 ovenAvailable
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : 'bg-red-50 text-red-700 border-red-200'
-              }`}
+              } disabled:opacity-60`}
             >
               <span className="inline-flex items-center gap-2">
-                <Power size={14} />
-                {ovenAvailable ? 'Four disponible' : 'Four indisponible'}
+                {savingOven
+                  ? <Loader2 size={14} className="animate-spin" />
+                  : <Power size={14} />
+                }
+                {savingOven ? 'Enregistrement...' : ovenAvailable ? 'Four disponible' : 'Four indisponible'}
               </span>
             </button>
           </div>

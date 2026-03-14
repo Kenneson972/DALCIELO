@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { QueueEstimateProvider } from '@/providers/QueueEstimateProvider'
 
 // Lazy load des widgets non-critiques (kb-performance) — chargés après le contenu principal
 const Chatbot = dynamic(() => import('@/components/ui/Chatbot').then((m) => m.Chatbot), { ssr: false })
@@ -23,11 +24,11 @@ export function LayoutSwitch({ children }: { children: React.ReactNode }) {
   const isReceipt = pathname?.endsWith('/receipt')
 
   if (isAdmin || isReceipt) {
-    return <>{children}</>
+    return <QueueEstimateProvider>{children}</QueueEstimateProvider>
   }
 
   return (
-    <>
+    <QueueEstimateProvider>
       <Header />
       <main className="flex-grow">
         {children}
@@ -38,6 +39,6 @@ export function LayoutSwitch({ children }: { children: React.ReactNode }) {
         <AnnouncementPopup />
         <StickyCartBar />
       </Suspense>
-    </>
+    </QueueEstimateProvider>
   )
 }
