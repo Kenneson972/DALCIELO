@@ -349,8 +349,8 @@ export const contactInfo = {
     state: "Martinique",
     postalCode: "97200",
   },
-  phone: "+596 696 88 72 70",
-  whatsapp: "+596696887270",
+  phone: "+596 596 88 72 70",
+  whatsapp: "+596596887270",
   email: "pizzadalcielo@gmail.com",
   socials: {
     instagram: "https://www.instagram.com/pizza_dal_cielo/",

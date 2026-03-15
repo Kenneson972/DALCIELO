@@ -67,8 +67,8 @@ export async function POST(req: Request) {
         {
           error: 'Le four est temporairement indisponible. Merci de contacter la pizzeria.',
           code: 'OVEN_UNAVAILABLE',
-          contactPhone: '+596696887270',
-          contactWhatsapp: 'https://wa.me/596696887270',
+          contactPhone: '+596596887270',
+          contactWhatsapp: 'https://wa.me/596596887270',
         },
         { status: 503 }
       )

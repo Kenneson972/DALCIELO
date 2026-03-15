@@ -11,7 +11,7 @@ interface HistoryMessage {
 export async function POST(req: Request) {
   if (!N8N_CHATBOT_URL) {
     return NextResponse.json({
-      response: 'Le chatbot est momentanément indisponible. Contactez-nous par téléphone au +596 696 88 72 70.',
+      response: 'Le chatbot est momentanément indisponible. Contactez-nous par téléphone au +596 596 88 72 70.',
     })
   }
 
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     console.error('[POST /api/chat] Error:', error)
     return NextResponse.json({
       response:
-        'Oups ! Une erreur est survenue. Veuillez nous contacter par téléphone au +596 696 88 72 70.',
+        'Oups ! Une erreur est survenue. Veuillez nous contacter par téléphone au +596 596 88 72 70.',
     })
   }
 }
