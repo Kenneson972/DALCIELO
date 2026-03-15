@@ -365,13 +365,15 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                             </button>
                           </div>
                           {item.customizations && item.customizations.length > 0 && (
-                            <div className="mb-1 space-y-0.5">
+                            <div className="mb-2 flex flex-wrap gap-1">
                               {item.customizations.map((c, i) => (
-                                <p key={i} className="text-xs text-gray-500 leading-snug">{c}</p>
+                                <span key={i} className="inline-block text-[11px] font-medium bg-cream border border-[#e8d0c0] text-[#7a5540] rounded-lg px-2 py-0.5 leading-snug">
+                                  {c}
+                                </span>
                               ))}
                             </div>
                           )}
-                          <p className="text-primary font-bold mb-3">{item.price}€</p>
+                          <p className="text-primary font-bold mb-3">{item.price.toFixed(2)}€</p>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity - 1, item.customizations)}
