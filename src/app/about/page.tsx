@@ -46,7 +46,7 @@ const steps = [
     icon: <ChefHat className="text-primary" size={28} />,
     title: 'Un seul maître à bord',
     description:
-      'Guylian fait tout lui-même — la pâte, les garnitures, la cuisson. Ce n\'est pas une chaîne, c\'est une pizzeria artisanale. Ça se voit dans chaque pizza.',
+      'Guylian et son équipe font tout — la pâte, les garnitures, la cuisson. Ce n\'est pas une chaîne, c\'est une pizzeria artisanale. Ça se voit dans chaque pizza.',
   },
 ]
 
