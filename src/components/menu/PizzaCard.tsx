@@ -59,17 +59,19 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
   }
 
   const handleOptionsAdd = ({ customizations, totalPrice, supplements }: { customizations: string[]; totalPrice: number; supplements: Array<{ id: number; name: string; price: number }> }) => {
+    const suppTotal = supplements.reduce((sum, s) => sum + s.price, 0)
+    const allCustomizations = [...customizations]
+    if (supplements.length > 0) {
+      allCustomizations.push(`Suppléments: ${supplements.map(s => s.name).join(', ')}`)
+    }
     addItem({
       id: pizza.id,
       name: pizza.name,
-      price: totalPrice,
+      price: totalPrice + suppTotal,
       image: pizza.image,
       category: itemCategory,
-      customizations,
+      customizations: allCustomizations,
     })
-    for (const sup of supplements) {
-      addItem({ id: sup.id, name: sup.name, price: sup.price, category: 'Suppléments' })
-    }
   }
 
   return (
