@@ -197,8 +197,12 @@ export default function ReceiptPage() {
                   <td className="py-2.5 text-gray-800 font-medium">
                     {item.name}
                     {item.customizations && item.customizations.length > 0 && (
-                      <span className="block text-[10px] text-gray-400 font-normal mt-0.5">
-                        {item.customizations.join(', ')}
+                      <span className="block mt-0.5 space-y-0.5">
+                        {item.customizations.map((c: string, ci: number) => (
+                          <span key={ci} className={`block text-[10px] font-normal ${c.startsWith('Suppléments') ? 'text-[#E17B5F]' : 'text-gray-400'}`}>
+                            {c.startsWith('Suppléments') ? `+ ${c.replace('Suppléments: ', '')}` : c}
+                          </span>
+                        ))}
                       </span>
                     )}
                   </td>
