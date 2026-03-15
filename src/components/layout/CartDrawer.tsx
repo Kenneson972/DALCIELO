@@ -365,7 +365,11 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                             </button>
                           </div>
                           {item.customizations && item.customizations.length > 0 && (
-                            <p className="text-xs text-gray-500 mb-1">{item.customizations.join(' · ')}</p>
+                            <div className="mb-1 space-y-0.5">
+                              {item.customizations.map((c, i) => (
+                                <p key={i} className="text-xs text-gray-500 leading-snug">{c}</p>
+                              ))}
+                            </div>
                           )}
                           <p className="text-primary font-bold mb-3">{item.price}€</p>
                           <div className="flex items-center gap-2">

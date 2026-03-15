@@ -47,17 +47,19 @@ export function AddToCartButton({ item, size = 'lg', className }: AddToCartButto
     totalPrice: number
     supplements: Array<{ id: number; name: string; price: number }>
   }) => {
+    const suppTotal = supplements.reduce((sum, s) => sum + s.price, 0)
+    const allCustomizations = [...customizations]
+    if (supplements.length > 0) {
+      allCustomizations.push(`Suppléments: ${supplements.map(s => s.name).join(', ')}`)
+    }
     addItem({
       id: item.id,
       name: item.name,
-      price: totalPrice,
+      price: totalPrice + suppTotal,
       image: item.image,
       category,
-      customizations,
+      customizations: allCustomizations,
     })
-    for (const sup of supplements) {
-      addItem({ id: sup.id, name: sup.name, price: sup.price, category: 'Suppléments' })
-    }
     setOptionsOpen(false)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
