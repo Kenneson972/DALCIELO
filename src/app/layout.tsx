@@ -41,8 +41,8 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'Pizza dal Cielo - Pizzeria Artisanale à Fort-de-France, Martinique',
-    template: '%s | Pizza dal Cielo',
+    default: 'Pizza Dal Cielo - Pizzeria Artisanale à Fort-de-France, Martinique',
+    template: '%s | Pizza Dal Cielo',
   },
   description: 'Découvrez nos pizzas artisanales authentiques à Fort-de-France, Martinique. Ingrédients frais, passion et savoir-faire traditionnel. Commander en ligne ou sur place.',
   keywords: 'pizza, pizzeria, Fort-de-France, Martinique, Bellevue, artisanale, restaurant, Pizza dal Cielo, commander pizza, livraison Martinique',
@@ -52,11 +52,11 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
   openGraph: {
-    title: 'Pizza dal Cielo - Des pizzas qui touchent le ciel',
+    title: 'Pizza Dal Cielo - Des pizzas qui touchent le ciel',
     description: 'Pizzeria artisanale à Fort-de-France, Martinique. Pizzas faites main, ingrédients frais.',
     type: 'website',
     url: BASE_URL,
-    siteName: 'Pizza dal Cielo',
+    siteName: 'Pizza Dal Cielo',
     locale: 'fr_FR',
     images: [
       {
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pizza dal Cielo - Pizzeria Artisanale Martinique',
+    title: 'Pizza Dal Cielo - Pizzeria Artisanale Martinique',
     description: 'Pizzas faites main à Fort-de-France. Commander en ligne.',
   },
   robots: {
