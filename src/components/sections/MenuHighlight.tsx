@@ -66,8 +66,13 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const ingredients = (chefPizza as any).ingredients ?? []
   const image = (chefPizza as any).image_url ?? (chefPizza as any).image ?? "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop"
 
-  const handleOptionsAdd = ({ customizations, totalPrice }: { customizations: string[]; totalPrice: number }) => {
-    addItem({ id, name, price: totalPrice, image, category: 'Du Chef', customizations })
+  const handleOptionsAdd = ({ customizations, totalPrice, supplements }: { customizations: string[]; totalPrice: number; supplements: Array<{ id: number; name: string; price: number }> }) => {
+    const suppTotal = supplements.reduce((sum, s) => sum + s.price, 0)
+    const allCustomizations = [...customizations]
+    if (supplements.length > 0) {
+      allCustomizations.push(`Suppléments: ${supplements.map(s => s.name).join(', ')}`)
+    }
+    addItem({ id, name, price: totalPrice + suppTotal, image, category: 'Du Chef', customizations: allCustomizations })
     setOptionsOpen(false)
   }
 
