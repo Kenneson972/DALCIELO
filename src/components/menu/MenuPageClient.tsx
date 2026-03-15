@@ -246,7 +246,7 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
               <Button className="w-full sm:w-auto py-4 px-10 text-lg">Créer ma Pizza</Button>
             </Link>
             <a
-              href="tel:+596596887270"
+              href="tel:+596696887270"
               className="inline-flex items-center justify-center gap-3 bg-white/10 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all"
             >
               Appeler pour commander

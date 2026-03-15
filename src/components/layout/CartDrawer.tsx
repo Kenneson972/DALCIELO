@@ -277,7 +277,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       </p>
                       <div className="space-y-3 w-full mb-6">
                         <a
-                          href="https://wa.me/596596887270"
+                          href="https://wa.me/596696887270"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-2xl font-bold transition-colors"
@@ -286,7 +286,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                           Envoyer par WhatsApp
                         </a>
                         <a
-                          href="tel:+596596887270"
+                          href="tel:+596696887270"
                           className="flex items-center justify-center gap-2 w-full border-2 border-primary text-primary py-3 px-4 rounded-2xl font-bold hover:bg-primary hover:text-white transition-colors"
                         >
                           <Phone size={20} />
@@ -556,7 +556,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                               </p>
                               <div className="flex gap-2">
                                 <a
-                                  href="tel:+596596887270"
+                                  href="tel:+596696887270"
                                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white border border-red-200 text-red-700 text-sm font-bold hover:bg-red-50 transition-colors min-h-[44px]"
                                 >
                                   <Phone size={14} />
