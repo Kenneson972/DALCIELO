@@ -293,9 +293,13 @@ function OrderCard({
                               <span className="font-medium text-slate-800">{item.name}</span>
                             </div>
                             {item.customizations && item.customizations.length > 0 && (
-                              <p className="text-xs text-slate-500 mt-1 ml-9">
-                                {item.customizations.join(', ')}
-                              </p>
+                              <div className="mt-1 ml-9 space-y-0.5">
+                                {item.customizations.map((c: string, ci: number) => (
+                                  <p key={ci} className={`text-xs font-medium ${c.startsWith('Suppléments') ? 'text-coral' : 'text-slate-500'}`}>
+                                    {c.startsWith('Suppléments') ? `+ ${c.replace('Suppléments: ', '')}` : c}
+                                  </p>
+                                ))}
+                              </div>
                             )}
                             {supplements.length > 0 && (
                               <div className="ml-9 mt-1.5 space-y-0.5">
