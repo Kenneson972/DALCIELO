@@ -17,6 +17,16 @@ interface CartDrawerProps {
   onClose: () => void
 }
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  Boissons: 'https://images.unsplash.com/photo-1544145945-f904253d0c7b?q=80&w=200&auto=format&fit=crop',
+  Friands: 'https://images.unsplash.com/photo-1601050690597-df056fbec7ad?q=80&w=200&auto=format&fit=crop',
+  Desserts: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?q=80&w=200&auto=format&fit=crop',
+  Pizzas: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=200&auto=format&fit=crop',
+}
+
+const getCartItemFallback = (category?: string) =>
+  FALLBACK_IMAGES[category ?? ''] ?? FALLBACK_IMAGES.Pizzas
+
 export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const { items, addItem, removeItem, updateQuantity, getTotal, getItemCount, clearCart } = useCart()
   const [sending, setSending] = useState(false)
@@ -349,7 +359,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       <div key={`${item.id}-${(item.customizations ?? []).join('|')}-${index}`} className="flex gap-4 group">
                         <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
                           <img
-                            src={item.image || "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=200&auto=format&fit=crop"}
+                            src={item.image || getCartItemFallback(item.category)}
                             alt={item.name}
                             className="w-full h-full object-cover"
                           />
