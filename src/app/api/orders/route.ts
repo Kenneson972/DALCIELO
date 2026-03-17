@@ -14,8 +14,10 @@ for (const d of menuData.drinks)      CATALOG_PRICE.set(d.id, d.price)
 for (const d of menuData.desserts)    CATALOG_PRICE.set(d.id, d.price)
 for (const s of menuData.supplements) CATALOG_PRICE.set(s.id, s.price)
 
-// Maximum price a pizza can be above its base price (most expensive sauce = 1.5€)
-const MAX_SUPPLEMENT = Math.max(...menuData.sauces.map(s => s.price)) // 1.5
+// Maximum price above base: max sauce + total of all possible supplements
+const MAX_SUPPLEMENT =
+  Math.max(...menuData.sauces.map(s => s.price)) +
+  menuData.supplements.reduce((sum, s) => sum + s.price, 0)
 
 // Limites anti-abus (AUDIT_SECURITE_PROJET / AUDIT_PRE_PROD)
 const MAX_ITEMS = 50
