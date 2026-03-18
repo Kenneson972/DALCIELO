@@ -7,6 +7,8 @@ import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react
 import { Button } from '@/components/ui/Button'
 import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
+import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal'
+import { ORDERING_ENABLED } from '@/lib/ordering'
 import { generateSlug } from '@/lib/utils'
 
 export interface PizzaSliderItem {
@@ -32,6 +34,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { addItem } = useCart()
   const [optionsItem, setOptionsItem] = useState<PizzaSliderItem | null>(null)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   // Responsive visible count
   useEffect(() => {
@@ -89,6 +92,10 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
   const handleCommander = (item: PizzaSliderItem) => (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!ORDERING_ENABLED) {
+      setShowComingSoon(true)
+      return
+    }
     setOptionsItem(item)
   }
 
@@ -115,6 +122,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
 
   return (
     <>
+      {showComingSoon && <OrderingComingSoonModal onClose={() => setShowComingSoon(false)} />}
       {optionsItem && (
         <PizzaOptionsModal
           open

@@ -7,6 +7,7 @@ import { getChefProduct, getProducts } from "@/lib/productsStore";
 import { getHomepageSettings } from "@/lib/homepageSettingsStore";
 import { menuData } from "@/data/menuData";
 import { generateSlug } from "@/lib/utils";
+import { ORDERING_ENABLED } from "@/lib/ordering";
 
 export const revalidate = 0; // Pizza du Chef toujours à jour (pas de cache page)
 
@@ -58,6 +59,14 @@ export default async function Home() {
 
   return (
     <>
+      {!ORDERING_ENABLED && (
+        <div className="bg-amber-500 text-white text-center text-sm font-bold py-2.5 px-4">
+          🚧 Commande en ligne bientôt disponible — Appelez le +596 696 88 72 70 ou{' '}
+          <a href="https://wa.me/596696887270" className="underline" target="_blank" rel="noopener noreferrer">
+            WhatsApp
+          </a>
+        </div>
+      )}
       <Hero />
       <MenuHighlight chefPizza={chefPizza} />
       {sliderEnabled && <PizzaSlider items={pizzaSliderItems} />}

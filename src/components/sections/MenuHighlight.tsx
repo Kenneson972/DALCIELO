@@ -8,6 +8,8 @@ import { Pizza, ArrowRight, ShoppingBag, Sparkles, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
+import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal'
+import { ORDERING_ENABLED } from '@/lib/ordering'
 import { ChefValidUntilTimer } from '@/components/ui/ChefValidUntilTimer'
 
 /** Pizza du Chef : vient de products (Supabase) si dispo, sinon menuData. Mise à jour auto via API. */
@@ -32,6 +34,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   // Rafraîchir la Pizza du Chef depuis l’API au montage (pas de cache) pour refléter les modifs admin
   useEffect(() => {
@@ -91,6 +94,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
 
   return (
     <>
+      {showComingSoon && <OrderingComingSoonModal onClose={() => setShowComingSoon(false)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
@@ -190,8 +194,12 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <Button 
-                    onClick={() => price > 0 && setOptionsOpen(true)}
+                  <Button
+                    onClick={() => {
+                      if (!price) return
+                      if (!ORDERING_ENABLED) { setShowComingSoon(true); return }
+                      setOptionsOpen(true)
+                    }}
                     className="flex-grow py-4 text-base shadow-xl shadow-primary/20"
                     size="md"
                     icon={<ShoppingBag size={20} />}

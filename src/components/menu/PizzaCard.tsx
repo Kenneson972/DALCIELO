@@ -8,6 +8,8 @@ import { Pizza, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
+import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal'
+import { ORDERING_ENABLED } from '@/lib/ordering'
 import { cn, generateSlug } from '@/lib/utils'
 
 interface PizzaCardProps {
@@ -34,6 +36,7 @@ interface PizzaCardProps {
 export const PizzaCard = ({ pizza }: PizzaCardProps) => {
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   const isPizza = !pizza.type || pizza.type === 'Pizza' || pizza.type === 'Chef'
   const itemCategory =
@@ -45,6 +48,10 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
     e.preventDefault()
     e.stopPropagation()
     if (!pizza.price) return
+    if (!ORDERING_ENABLED) {
+      setShowComingSoon(true)
+      return
+    }
     if (isPizza || pizza.varianteChoix) {
       setOptionsOpen(true)
     } else {
@@ -76,6 +83,7 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
 
   return (
     <>
+      {showComingSoon && <OrderingComingSoonModal onClose={() => setShowComingSoon(false)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
