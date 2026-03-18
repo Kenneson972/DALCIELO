@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
 import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal'
-import { ORDERING_ENABLED } from '@/lib/ordering'
+import { orderingBlockReason } from '@/lib/ordering'
 import { ChefValidUntilTimer } from '@/components/ui/ChefValidUntilTimer'
 
 /** Pizza du Chef : vient de products (Supabase) si dispo, sinon menuData. Mise à jour auto via API. */
@@ -34,7 +34,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [showComingSoon, setShowComingSoon] = useState(false)
+  const [blockReason, setBlockReason] = useState<'monday' | 'coming_soon' | null>(null)
 
   // Rafraîchir la Pizza du Chef depuis l’API au montage (pas de cache) pour refléter les modifs admin
   useEffect(() => {
@@ -94,7 +94,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
 
   return (
     <>
-      {showComingSoon && <OrderingComingSoonModal onClose={() => setShowComingSoon(false)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
@@ -197,7 +197,8 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                   <Button
                     onClick={() => {
                       if (!price) return
-                      if (!ORDERING_ENABLED) { setShowComingSoon(true); return }
+                      const reason = orderingBlockReason()
+                      if (reason) { setBlockReason(reason); return }
                       setOptionsOpen(true)
                     }}
                     className="flex-grow py-4 text-base shadow-xl shadow-primary/20"

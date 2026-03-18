@@ -7,9 +7,29 @@ import { getChefProduct, getProducts } from "@/lib/productsStore";
 import { getHomepageSettings } from "@/lib/homepageSettingsStore";
 import { menuData } from "@/data/menuData";
 import { generateSlug } from "@/lib/utils";
-import { ORDERING_ENABLED } from "@/lib/ordering";
+import { orderingBlockReason } from "@/lib/ordering";
+import type { Metadata } from "next";
+import { absoluteUrl, getDefaultOgImageUrl } from "@/lib/seo";
 
 export const revalidate = 0; // Pizza du Chef toujours à jour (pas de cache page)
+
+export const metadata: Metadata = {
+  title: "Pizza dal Cielo — Pizzeria artisanale à Fort-de-France (Bellevue)",
+  description:
+    "Pizza dal Cielo à Bellevue (Fort-de-France) : pizzas artisanales faites main, ingrédients frais. Consultez le menu, commandez en ligne et payez en toute sécurité.",
+  alternates: { canonical: absoluteUrl("/") },
+  openGraph: {
+    title: "Pizza dal Cielo — Pizzeria artisanale à Fort-de-France",
+    description:
+      "Pizzas artisanales faites main à Bellevue (Fort-de-France). Menu complet, commande en ligne, paiement sécurisé.",
+    url: absoluteUrl("/"),
+    type: "website",
+    siteName: "Pizza dal Cielo",
+    images: [
+      { url: getDefaultOgImageUrl(), width: 1200, height: 630, alt: "Pizza dal Cielo — Fort-de-France" },
+    ],
+  },
+};
 
 function pizzasForSlider() {
   return menuData.pizzas.map((p) => ({
@@ -57,9 +77,16 @@ export default async function Home() {
   const chefPizza =
     chefProduct ?? menuData.pizzas.find((p) => p.category === "Du Chef") ?? null;
 
+  const blockReason = orderingBlockReason();
+
   return (
     <>
-      {!ORDERING_ENABLED && (
+      {blockReason === 'monday' && (
+        <div className="bg-red-600 text-white text-center text-sm font-bold py-2.5 px-4">
+          🔒 Pizzeria fermée le lundi — Revenez à partir de mardi !
+        </div>
+      )}
+      {blockReason === 'coming_soon' && (
         <div className="bg-amber-500 text-white text-center text-sm font-bold py-2.5 px-4">
           🚧 Commande en ligne bientôt disponible — Appelez le +596 696 88 72 70 ou{' '}
           <a href="https://wa.me/596696887270" className="underline" target="_blank" rel="noopener noreferrer">

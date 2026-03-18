@@ -6,7 +6,7 @@ import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
 import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal'
 import { MenuItem } from '@/lib/menuUtils'
-import { ORDERING_ENABLED } from '@/lib/ordering'
+import { orderingBlockReason } from '@/lib/ordering'
 import { useState } from 'react'
 
 interface AddToCartButtonProps {
@@ -19,15 +19,16 @@ export function AddToCartButton({ item, size = 'lg', className }: AddToCartButto
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [showComingSoon, setShowComingSoon] = useState(false)
+  const [blockReason, setBlockReason] = useState<'monday' | 'coming_soon' | null>(null)
 
   const category =
     item.category ||
     (item.type === 'drink' ? 'Boissons' : item.type === 'friand' ? 'Friands' : 'Pizzas')
 
   const handleAddToCart = () => {
-    if (!ORDERING_ENABLED) {
-      setShowComingSoon(true)
+    const reason = orderingBlockReason()
+    if (reason) {
+      setBlockReason(reason)
       return
     }
     if (item.type === 'pizza' || item.varianteChoix) {
@@ -74,7 +75,7 @@ export function AddToCartButton({ item, size = 'lg', className }: AddToCartButto
 
   return (
     <>
-      {showComingSoon && <OrderingComingSoonModal onClose={() => setShowComingSoon(false)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
