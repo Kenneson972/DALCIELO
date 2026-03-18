@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Instagram, Facebook, Phone, MapPin, MessageCircle, ArrowUp, CreditCard } from 'lucide-react'
+import { Instagram, Facebook, Phone, Mail, MapPin, MessageCircle, ArrowUp, CreditCard } from 'lucide-react'
 import { contactInfo } from '@/data/menuData'
 import { Button } from '@/components/ui/Button'
 
