@@ -16,7 +16,6 @@
 # misc
 .DS_Store
 .cursor/
-*.mp3
 *.pem
 
 # debug

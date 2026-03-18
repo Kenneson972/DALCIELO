@@ -124,13 +124,25 @@ export default function AdminPage() {
   const prevPaidIdsRef = useRef<Set<string>>(new Set())
   const isFirstLoadRef = useRef(true)
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const audioCtxRef = useRef<AudioContext | null>(null)
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
+  const paidAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioUnlockedRef = useRef(false)
 
-  // Initialise l'AudioContext au premier clic (politique autoplay navigateur)
+  // Précharger et déverrouiller les sons au premier clic (politique autoplay navigateur)
   useEffect(() => {
+    notificationAudioRef.current = new Audio('/sounds/notification.mp3')
+    paidAudioRef.current = new Audio('/sounds/paid.mp3')
+    notificationAudioRef.current.load()
+    paidAudioRef.current.load()
     const unlock = () => {
-      if (audioCtxRef.current) return
-      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      if (audioUnlockedRef.current) return
+      const prime = (audio: HTMLAudioElement) => {
+        audio.volume = 0
+        audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1 }).catch(() => {})
+      }
+      if (notificationAudioRef.current) prime(notificationAudioRef.current)
+      if (paidAudioRef.current) prime(paidAudioRef.current)
+      audioUnlockedRef.current = true
     }
     document.addEventListener('click', unlock, { once: true })
     return () => document.removeEventListener('click', unlock)
@@ -138,26 +150,10 @@ export default function AdminPage() {
 
   const playSound = useCallback((type: 'new_order' | 'paid') => {
     try {
-      const ctx = audioCtxRef.current
-      if (!ctx) return
-      if (ctx.state === 'suspended') ctx.resume()
-
-      const notes = type === 'new_order'
-        ? [{ freq: 880, start: 0, dur: 0.15 }, { freq: 1100, start: 0.18, dur: 0.2 }]
-        : [{ freq: 523, start: 0, dur: 0.12 }, { freq: 659, start: 0.14, dur: 0.12 }, { freq: 784, start: 0.28, dur: 0.22 }]
-
-      notes.forEach(({ freq, start, dur }) => {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.type = 'sine'
-        osc.frequency.value = freq
-        gain.gain.setValueAtTime(0.35, ctx.currentTime + start)
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur)
-        osc.start(ctx.currentTime + start)
-        osc.stop(ctx.currentTime + start + dur + 0.01)
-      })
+      const audio = type === 'new_order' ? notificationAudioRef.current : paidAudioRef.current
+      if (!audio) return
+      audio.currentTime = 0
+      audio.play().catch(() => {})
     } catch { }
   }, [])
 
