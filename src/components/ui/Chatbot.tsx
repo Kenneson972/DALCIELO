@@ -128,7 +128,7 @@ export const Chatbot = () => {
   }, [messages, isLoading])
 
   const MAX_MESSAGES_PER_MINUTE = 5
-  const MAX_MESSAGES_PER_SESSION = 20
+  const MAX_MESSAGES_PER_SESSION = 200
 
   const sendToBot = async (messageToSend: string, historyForApi: Message[]) => {
     try {
