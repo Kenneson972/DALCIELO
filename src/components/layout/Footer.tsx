@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Instagram, Facebook, Phone, Mail, MapPin, MessageCircle, ArrowUp, CreditCard } from 'lucide-react'
+import { Instagram, Facebook, Phone, MapPin, MessageCircle, ArrowUp, CreditCard } from 'lucide-react'
 import { contactInfo } from '@/data/menuData'
 import { Button } from '@/components/ui/Button'
 
@@ -37,7 +37,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           
-          {/* Brand & Newsletter */}
+          {/* Brand */}
           <div className="space-y-8">
             <Link href="/" className="flex items-center gap-3 group w-fit">
               <img
@@ -52,31 +52,29 @@ export const Footer = () => {
                 <span className="text-xs font-bold text-white/80 uppercase tracking-widest">Pizzeria Artisanale</span>
               </div>
             </Link>
-            
+
             <p className="text-white/80 leading-relaxed">
-              Le goût authentique de l'Italie sous le soleil de Martinique. 
+              Le goût authentique de l'Italie sous le soleil de Martinique.
               Des produits frais, une pâte faite main, et beaucoup d'amour.
             </p>
 
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-3xl border border-white/20">
-              <h4 className="font-bold mb-3 flex items-center gap-2">
-                <Mail size={18} /> Newsletter
-              </h4>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Votre email..."
-                  autoComplete="email"
-                  className="bg-white/20 border-none placeholder-white/50 text-white px-4 py-3 min-h-[48px] rounded-xl w-full focus:ring-2 focus:ring-white/50 outline-none text-sm touch-manipulation"
-                />
-                <button
-                  type="button"
-                  className="min-w-[48px] min-h-[48px] flex items-center justify-center bg-white text-[#D4633F] rounded-xl hover:bg-[#FFF8F0] transition-colors touch-manipulation"
-                  aria-label="Envoyer"
-                >
-                  <ArrowUp size={20} className="rotate-45" />
-                </button>
-              </div>
+            <div className="flex flex-col gap-3">
+              <a
+                href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-[#25D366] text-white px-5 py-3 rounded-2xl font-bold hover:opacity-90 transition-opacity w-fit"
+              >
+                <MessageCircle size={20} />
+                Commander par WhatsApp
+              </a>
+              <a
+                href={`tel:${contactInfo.phone.replace(/\s/g, '')}`}
+                className="inline-flex items-center gap-3 bg-white/20 text-white px-5 py-3 rounded-2xl font-bold hover:bg-white/30 transition-colors w-fit"
+              >
+                <Phone size={20} />
+                {contactInfo.phone}
+              </a>
             </div>
           </div>
 
@@ -84,10 +82,10 @@ export const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-xl font-bold border-b-2 border-white/20 pb-2 inline-block">Navigation</h3>
             <ul className="space-y-4">
-              {['Accueil', 'Notre Menu', 'Commander', 'Personnaliser', 'À Propos', 'Contact'].map((item) => (
+              {['Accueil', 'Notre Menu', 'Commander', 'À Propos', 'Contact'].map((item) => (
                 <li key={item}>
-                  <Link 
-                    href={item === 'Accueil' ? '/' : item === 'Notre Menu' ? '/menu' : item === 'Commander' ? '/commander' : item === 'Personnaliser' ? '/customize' : `/${item.toLowerCase().replace(/ /g, '')}`} 
+                  <Link
+                    href={item === 'Accueil' ? '/' : item === 'Notre Menu' ? '/menu' : item === 'Commander' ? '/commander' : `/${item.toLowerCase().replace(/ /g, '')}`}
                     className="flex items-center gap-2 text-white/80 hover:text-white transition-all hover:translate-x-2 group"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-white/50 group-hover:bg-white transition-colors" />

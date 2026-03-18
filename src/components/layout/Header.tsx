@@ -16,7 +16,6 @@ const CartDrawer = dynamic(() => import('./CartDrawer').then((m) => ({ default: 
 const navLinks = [
   { name: 'Accueil', href: '/' },
   { name: 'Menu', href: '/menu' },
-  { name: 'Perso', href: '/customize' },
   { name: 'À Propos', href: '/about' },
   { name: 'Contact', href: '/contact' },
 ]

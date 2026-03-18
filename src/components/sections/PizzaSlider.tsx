@@ -211,7 +211,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
         <button
           type="button"
           onClick={goPrev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:left-4 md:translate-x-0 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-[#3D2418] hover:bg-white hover:scale-110 transition-all"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:left-4 md:translate-x-0 z-10 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-[#3D2418] hover:bg-white hover:scale-110 transition-all"
           aria-label="Précédent"
         >
           <ChevronLeft size={24} />
@@ -219,7 +219,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
         <button
           type="button"
           onClick={goNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:right-4 md:translate-x-0 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-[#3D2418] hover:bg-white hover:scale-110 transition-all"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:right-4 md:translate-x-0 z-10 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-[#3D2418] hover:bg-white hover:scale-110 transition-all"
           aria-label="Suivant"
         >
           <ChevronRight size={24} />

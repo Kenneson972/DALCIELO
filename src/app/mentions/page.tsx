@@ -38,9 +38,6 @@ export default function MentionsPage() {
             440 N Barranca Ave #4133, Covina, CA 91723, États-Unis.<br />
             <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">vercel.com</a>
           </p>
-          <p className="text-sm text-[#3D2418]/70 mt-2">
-            (À adapter si l&apos;hébergement est différent en production.)
-          </p>
         </section>
 
         <section className="mb-10" id="cookies">
