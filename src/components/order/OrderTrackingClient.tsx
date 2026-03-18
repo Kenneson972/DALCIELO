@@ -706,14 +706,24 @@ export const OrderTrackingClient = () => {
                 </div>
               )}
 
-              {/* Payment CTA — paiement en ligne bientôt disponible */}
+              {/* Payment CTA */}
               {order.status === 'waiting_payment' && (
                 <div className="mt-6 space-y-3">
-                  <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-1">
-                    <p className="text-2xl">💳</p>
-                    <p className="font-black text-amber-800">Paiement en ligne bientôt disponible</p>
-                    <p className="text-sm text-amber-700">Guylian vous contactera par WhatsApp pour finaliser le règlement.</p>
-                  </div>
+                  {order.payment_link ? (
+                    <a
+                      href={order.payment_link}
+                      className="flex items-center justify-center gap-3 w-full bg-primary text-white px-6 py-4 rounded-2xl font-bold text-base hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                    >
+                      <CreditCard size={22} />
+                      Payer maintenant
+                    </a>
+                  ) : (
+                    <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-1">
+                      <p className="text-2xl">💳</p>
+                      <p className="font-black text-amber-800">Lien de paiement en cours de préparation</p>
+                      <p className="text-sm text-amber-700">Guylian vous enverra le lien sous quelques instants.</p>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={handleCancelClick}

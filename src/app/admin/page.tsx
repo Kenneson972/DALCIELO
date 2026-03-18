@@ -124,6 +124,29 @@ export default function AdminPage() {
   const prevPaidIdsRef = useRef<Set<string>>(new Set())
   const isFirstLoadRef = useRef(true)
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
+  const paidAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioUnlockedRef = useRef(false)
+
+  // Initialiser et déverrouiller l'audio au premier clic (politique autoplay navigateur)
+  useEffect(() => {
+    notificationAudioRef.current = new Audio('/sounds/notification.mp3')
+    paidAudioRef.current = new Audio('/sounds/paid.mp3')
+    notificationAudioRef.current.load()
+    paidAudioRef.current.load()
+    const unlock = () => {
+      if (audioUnlockedRef.current) return
+      const prime = (audio: HTMLAudioElement) => {
+        audio.volume = 0
+        audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1 }).catch(() => {})
+      }
+      if (notificationAudioRef.current) prime(notificationAudioRef.current)
+      if (paidAudioRef.current) prime(paidAudioRef.current)
+      audioUnlockedRef.current = true
+    }
+    document.addEventListener('click', unlock, { once: true })
+    return () => document.removeEventListener('click', unlock)
+  }, [])
 
   // Persist sidebar collapse state
   useEffect(() => {
@@ -175,7 +198,7 @@ export default function AdminPage() {
             (o) => o.status === 'pending_validation' && !prevPendingIdsRef.current.has(o.id)
           )
           if (newPending.length > 0) {
-            new Audio('/sounds/notification.mp3').play().catch(() => {})
+            notificationAudioRef.current?.play().catch(() => {})
             setNewOrderAlert({
               name: newPending[0].client_name,
               time: newPending[0].heure_souhaitee,
@@ -191,7 +214,7 @@ export default function AdminPage() {
             (o) => o.status === 'paid' && !prevPaidIdsRef.current.has(o.id)
           )
           if (newPaid.length > 0) {
-            new Audio('/sounds/paid.mp3').play().catch(() => {})
+            paidAudioRef.current?.play().catch(() => {})
           }
         }
 
