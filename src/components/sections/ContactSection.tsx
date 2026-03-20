@@ -40,7 +40,13 @@ export const ContactSection = () => {
                 {contactInfo.address.postalCode}
               </p>
               <div className="mt-8">
-                <Button variant="ghost" className="text-primary">Voir sur Maps</Button>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${contactInfo.address.street}, ${contactInfo.address.city}, ${contactInfo.address.state}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="ghost" className="text-primary">Voir sur Maps</Button>
+                </a>
               </div>
             </Card>
           </motion.div>
