@@ -34,11 +34,12 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const [blockReason, setBlockReason] = useState<’monday’ | null>(null)
+  const prefersReducedMotion = useReducedMotion()
 
   // Rafraîchir la Pizza du Chef depuis l’API au montage (pas de cache) pour refléter les modifs admin
   useEffect(() => {
-    fetch('/api/announcement', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+    fetch(‘/api/announcement’, { cache: ‘no-store’, headers: { ‘Cache-Control’: ‘no-cache’ } })
       .then((res) => res.json())
       .then((data) => {
         const product = data?.product
@@ -63,8 +64,6 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   }, [])
 
   if (!chefPizza) return null
-
-  const prefersReducedMotion = useReducedMotion()
   const id = Number(chefPizza.menu_id ?? (chefPizza as { id?: number }).id ?? 0)
   const name = chefPizza.name
   const price = Number(chefPizza.price)
