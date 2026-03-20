@@ -89,9 +89,11 @@ export default async function Home() {
 
   return (
     <>
-      {blockReason === 'monday' && (
+      {blockReason && (
         <div className="bg-red-600 text-white text-center text-sm font-bold py-2.5 px-4">
-          🔒 Pizzeria fermée le lundi — Revenez à partir de mardi !
+          {blockReason === 'sunday'
+            ? '🔒 Pizzeria fermée le dimanche — Revenez à partir de lundi !'
+            : '🔒 Pizzeria fermée le lundi — Revenez à partir de mardi !'}
         </div>
       )}
       <Hero />

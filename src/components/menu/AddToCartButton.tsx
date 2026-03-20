@@ -19,7 +19,7 @@ export function AddToCartButton({ item, size = 'lg', className }: AddToCartButto
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | 'sunday' | null>(null)
 
   const category =
     item.category ||
@@ -75,7 +75,7 @@ export function AddToCartButton({ item, size = 'lg', className }: AddToCartButto
 
   return (
     <>
-      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}

@@ -6,10 +6,11 @@ import { X } from 'lucide-react'
 
 interface OrderingComingSoonModalProps {
   onClose: () => void
+  reason?: 'monday' | 'sunday'
 }
 
-/** Affiché quand la commande en ligne est indisponible (ex. fermeture hebdomadaire le lundi). */
-export function OrderingComingSoonModal({ onClose }: OrderingComingSoonModalProps) {
+/** Affiché quand la commande en ligne est indisponible (fermeture lundi ou dimanche). */
+export function OrderingComingSoonModal({ onClose, reason = 'monday' }: OrderingComingSoonModalProps) {
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => {
@@ -43,12 +44,25 @@ export function OrderingComingSoonModal({ onClose }: OrderingComingSoonModalProp
 
           <div className="p-8 pt-10">
             <div className="text-5xl mb-4">🔒</div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé le lundi</h2>
-            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-              La pizzeria est fermée tous les lundis.
-              <br />
-              Revenez à partir de mardi !
-            </p>
+            {reason === 'sunday' ? (
+              <>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé le dimanche</h2>
+                <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+                  La pizzeria est fermée tous les dimanches.
+                  <br />
+                  Revenez à partir de lundi !
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé le lundi</h2>
+                <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+                  La pizzeria est fermée tous les lundis.
+                  <br />
+                  Revenez à partir de mardi !
+                </p>
+              </>
+            )}
 
             <button
               onClick={onClose}

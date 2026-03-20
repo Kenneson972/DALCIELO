@@ -36,7 +36,7 @@ interface PizzaCardProps {
 export const PizzaCard = ({ pizza }: PizzaCardProps) => {
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | 'sunday' | null>(null)
   const [justAdded, setJustAdded] = useState(false)
 
   const isPizza = !pizza.type || pizza.type === 'Pizza' || pizza.type === 'Chef'
@@ -87,7 +87,7 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
 
   return (
     <>
-      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}

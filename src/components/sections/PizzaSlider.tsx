@@ -35,7 +35,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { addItem } = useCart()
   const [optionsItem, setOptionsItem] = useState<PizzaSliderItem | null>(null)
-  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | 'sunday' | null>(null)
   const prefersReducedMotion = useReducedMotion()
 
   // Responsive visible count
@@ -125,7 +125,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
 
   return (
     <>
-      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       {optionsItem && (
         <PizzaOptionsModal
           open

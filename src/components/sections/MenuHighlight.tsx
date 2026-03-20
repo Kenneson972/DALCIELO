@@ -34,7 +34,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | 'sunday' | null>(null)
   const prefersReducedMotion = useReducedMotion()
 
   // Rafraichir la Pizza du Chef depuis l'API au montage (pas de cache) pour refleter les modifs admin
@@ -107,7 +107,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
 
   return (
     <>
-      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
+      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
