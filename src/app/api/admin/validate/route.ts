@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getOrderById, updateOrderStatus } from '@/lib/ordersStore'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
+import { logAdminAction } from '@/lib/auditLog'
+import { getIp } from '@/lib/rateLimit'
 
 export async function POST(req: NextRequest) {
   const authError = requireAdminWithRateLimit(req)
@@ -93,6 +95,13 @@ export async function POST(req: NextRequest) {
 
     await updateOrderStatus(orderFromDb.id, 'waiting_payment', {
       payment_link: session.url,
+    })
+    logAdminAction({
+      action: 'validate_order',
+      entity_type: 'order',
+      entity_id: orderFromDb.id,
+      details: { total, client_name: orderFromDb.client_name },
+      ip: getIp(req),
     })
     return NextResponse.json({ paymentLink: session.url })
   } catch (error: unknown) {

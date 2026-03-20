@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MessageCircle, Phone, Clock, CheckCircle, XCircle, AlertCircle, Loader2, ExternalLink, X } from 'lucide-react'
 import type { Order } from '@/types/order'
+import { getCsrfToken } from '@/lib/csrf'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -20,7 +21,7 @@ const REFUSAL_REASONS = [
 
 interface QuickActionsProps {
   order: Order
-  onStatusChange: (newStatus: string, data?: any) => void
+  onStatusChange: (newStatus: string, data?: Record<string, unknown>) => void
 }
 
 export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
@@ -83,7 +84,7 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
 
   const handleCustomMessage = () => {
     if (!customMessage.trim()) return
-    sendWhatsApp(`Bonjour ${order.client_name},\n\n${customMessage}\n\n- Pizza dal Cielo 🍕`)
+    sendWhatsApp(`Bonjour ${order.client_name},\n\n${customMessage}\n\n- Pizza Dal Cielo 🍕`)
     setCustomMessage('')
     setShowCustomMessage(false)
   }
@@ -98,6 +99,7 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
         headers: {
           'Content-Type': 'application/json',
           'x-admin-pin': getAdminPin(),
+          'x-csrf-token': getCsrfToken(),
         },
         body: JSON.stringify({ order }),
       })

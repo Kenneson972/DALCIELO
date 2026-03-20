@@ -3,6 +3,7 @@ import { MenuHighlight } from "@/components/sections/MenuHighlight";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { GallerySection } from "@/components/sections/GallerySection";
 import { PizzaSlider } from "@/components/sections/PizzaSlider";
+import { WaveDivider } from "@/components/ui/WaveDivider";
 import { getChefProduct, getProducts } from "@/lib/productsStore";
 import { getHomepageSettings } from "@/lib/homepageSettingsStore";
 import { menuData } from "@/data/menuData";
@@ -14,19 +15,22 @@ import { absoluteUrl, getDefaultOgImageUrl } from "@/lib/seo";
 export const revalidate = 0; // Pizza du Chef toujours à jour (pas de cache page)
 
 export const metadata: Metadata = {
-  title: "Pizza dal Cielo — Pizzeria artisanale à Fort-de-France (Bellevue)",
+  /** `absolute` évite le suffixe du layout (`%s | Pizza Dal Cielo`) → pas de double marque dans <title>. */
+  title: {
+    absolute: "Pizza Dal Cielo — Pizzeria artisanale à Fort-de-France (Bellevue)",
+  },
   description:
-    "Pizza dal Cielo à Bellevue (Fort-de-France) : pizzas artisanales faites main, ingrédients frais. Consultez le menu, commandez en ligne et payez en toute sécurité.",
+    "Pizza Dal Cielo à Bellevue (Fort-de-France) : pizzas artisanales faites main, ingrédients frais. Consultez le menu, commandez en ligne et payez en toute sécurité.",
   alternates: { canonical: absoluteUrl("/") },
   openGraph: {
-    title: "Pizza dal Cielo — Pizzeria artisanale à Fort-de-France",
+    title: "Pizza Dal Cielo — Pizzeria artisanale à Fort-de-France",
     description:
       "Pizzas artisanales faites main à Bellevue (Fort-de-France). Menu complet, commande en ligne, paiement sécurisé.",
     url: absoluteUrl("/"),
     type: "website",
-    siteName: "Pizza dal Cielo",
+    siteName: "Pizza Dal Cielo",
     images: [
-      { url: getDefaultOgImageUrl(), width: 1200, height: 630, alt: "Pizza dal Cielo — Fort-de-France" },
+      { url: getDefaultOgImageUrl(), width: 1200, height: 630, alt: "Pizza Dal Cielo — Fort-de-France" },
     ],
   },
 };
@@ -44,6 +48,7 @@ function pizzasForSlider() {
 
 export default async function Home() {
   let chefProduct = null;
+  let supabaseReachable = false;
   let pizzaSliderItems = pizzasForSlider();
   let sliderEnabled = true;
 
@@ -53,6 +58,7 @@ export default async function Home() {
       getProducts(),
       getHomepageSettings(),
     ]);
+    supabaseReachable = true;
     chefProduct = chef;
     sliderEnabled = homepageSettings.sliderEnabled;
     if (products.length > 0) {
@@ -74,8 +80,10 @@ export default async function Home() {
     // Supabase indisponible → fallback menuData
   }
 
-  const chefPizza =
-    chefProduct ?? menuData.pizzas.find((p) => p.category === "Du Chef") ?? null;
+  // Si Supabase répond et chef=null → la pizza du chef est désactivée, pas de fallback
+  const chefPizza = supabaseReachable
+    ? chefProduct
+    : (chefProduct ?? menuData.pizzas.find((p) => p.category === "Du Chef") ?? null);
 
   const blockReason = orderingBlockReason();
 
@@ -86,18 +94,26 @@ export default async function Home() {
           🔒 Pizzeria fermée le lundi — Revenez à partir de mardi !
         </div>
       )}
-      {blockReason === 'coming_soon' && (
-        <div className="bg-amber-500 text-white text-center text-sm font-bold py-2.5 px-4">
-          🚧 Commande en ligne bientôt disponible — Appelez le +596 696 88 72 70 ou{' '}
-          <a href="https://wa.me/596696887270" className="underline" target="_blank" rel="noopener noreferrer">
-            WhatsApp
-          </a>
-        </div>
-      )}
       <Hero />
+
+      {/* Pizza du Chef */}
+      <WaveDivider fill="rgba(255,248,240,0.0)" />
       <MenuHighlight chefPizza={chefPizza} />
-      {sliderEnabled && <PizzaSlider items={pizzaSliderItems} />}
+
+      {/* Slider pizzas */}
+      {sliderEnabled && (
+        <>
+          <WaveDivider fill="rgba(255,248,240,0.0)" />
+          <PizzaSlider items={pizzaSliderItems} />
+        </>
+      )}
+
+      {/* Lien Instagram (sans grille photos) */}
+      <WaveDivider fill="rgba(255,248,240,0.0)" />
       <GallerySection />
+
+      {/* Contact */}
+      <WaveDivider fill="rgba(255,248,240,0.0)" />
       <ContactSection />
     </>
   );

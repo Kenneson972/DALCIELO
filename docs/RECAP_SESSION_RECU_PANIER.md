@@ -48,7 +48,7 @@
 
 **Côté n8n :**
 
-- Nouveau nœud **« Upload PDF to app »** entre **Download as PDF** et **Envoyer email (Guylian)**.
+- Nouveau nœud **« Upload PDF to app »** entre **Download as PDF** et **Envoyer email (equipe de Dal Cielo)**.
 - Méthode POST, URL : `https://YOUR-APP-URL/api/orders/` + token du webhook + `/receipt-pdf`.
 - En-tête : `x-receipt-secret` = valeur de `RECEIPT_UPLOAD_SECRET`.
 - Body : données binaires du nœud précédent (champ `data`). Si l’import ne configure pas le body binaire, le faire à la main dans le nœud (Send Body → Binary / n8n Binary File → champ `data`).

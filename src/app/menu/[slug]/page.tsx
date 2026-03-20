@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { getMenuItemBySlug, getAllSlugs, type MenuItem } from '@/lib/menuUtils'
@@ -9,19 +10,40 @@ import { AddToCartButton } from '@/components/menu/AddToCartButton'
 import { ProductImageGallery } from '@/components/menu/ProductImageGallery'
 import { ProductDetailTabs } from '@/components/menu/ProductDetailTabs'
 import { ChefValidUntilTimer } from '@/components/ui/ChefValidUntilTimer'
-import { ChefPizzaPage } from '@/components/menu/ChefPizzaPage'
+/** Chunk séparé : évite erreurs webpack « factory undefined » sur certaines résolutions lucide / client. */
+const ChefPizzaPage = dynamic(
+  () =>
+    import('@/components/menu/ChefPizzaPage').then((m) => ({
+      default: m.ChefPizzaPage,
+    })),
+  {
+    loading: () => (
+      <div className="min-h-[70vh] bg-[#0f0a05] flex flex-col items-center justify-center gap-4 px-4">
+        <div
+          className="h-10 w-10 rounded-full border-2 border-amber-500/25 border-t-amber-500 animate-spin"
+          aria-hidden
+        />
+        <p className="text-sm text-white/50">Chargement…</p>
+      </div>
+    ),
+    ssr: true,
+  }
+)
 import { ProductReviews } from '@/components/menu/ProductReviews'
 import { ArrowLeft } from 'lucide-react'
 import { menuData } from '@/data/menuData'
+import { absoluteUrl, getDefaultOgImageUrl, truncateMetaDescription } from '@/lib/seo'
+import { InlineJsonLd } from '@/components/seo/InlineJsonLd'
+import { getApprovedReviews, getReviewStats } from '@/lib/reviewsStore'
 
-export const revalidate = 30
+export const revalidate = 0
 
 const PIZZA_IDS_SAUCE_AU_CHOIX = new Set([201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 213, 214, 215])
 
 const VARIANTE_CHOIX_MAP = new Map<number, { count: number; options: string[] }>()
 for (const p of menuData.pizzas)  { if (p.varianteChoix) VARIANTE_CHOIX_MAP.set(p.id, p.varianteChoix) }
 for (const f of menuData.friands) { if (f.varianteChoix) VARIANTE_CHOIX_MAP.set(f.id, f.varianteChoix) }
-const BASE_URL = 'https://pizzadalcielo.com'
+const BASE_URL = absoluteUrl('/')
 
 interface PageProps {
   params: { slug: string }
@@ -31,6 +53,8 @@ async function getItem(slug: string): Promise<(MenuItem & { images?: string[] })
   try {
     const product = await getProductBySlug(slug)
     if (product) {
+      // Produit désactivé → introuvable (404)
+      if (!product.available) return null
       const isPizza = product.type === 'pizza'
       const imageUrls = (product as { image_urls?: string[] | null }).image_urls
       const images = imageUrls?.length ? imageUrls : (product.image_url ? [product.image_url] : [])
@@ -64,35 +88,23 @@ export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }))
 }
 
-const META_DESC_MAX = 155
-
-function truncateMetaDesc(text: string, max = META_DESC_MAX): string {
-  if (text.length <= max) return text
-  return text.slice(0, max - 3).trim() + '…'
-}
-
-function absoluteImageUrl(url: string | undefined): string | undefined {
-  if (!url) return undefined
-  if (url.startsWith('http://') || url.startsWith('https://')) return url
-  return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const item = await getItem(params.slug)
   if (!item) return { title: 'Produit introuvable' }
   const rawDesc = item.description || item.ingredients?.join(', ') || `Découvrez ${item.name} - ${item.price}€`
-  const description = truncateMetaDesc(rawDesc)
-  const ogImage = absoluteImageUrl(item.image)
+  const description = truncateMetaDescription(rawDesc)
+  const ogImage = item.image ? absoluteUrl(item.image) : getDefaultOgImageUrl()
   return {
-    title: `${item.name} - Pizza dal Cielo`,
+    /** Seul le nom du produit : le layout ajoute ` | Pizza Dal Cielo` (évite doublon SEO). */
+    title: item.name,
     description,
     alternates: { canonical: `${BASE_URL}/menu/${params.slug}` },
     openGraph: {
-      title: `${item.name} | Pizza dal Cielo`,
+      title: `${item.name} | Pizza Dal Cielo`,
       description,
       url: `${BASE_URL}/menu/${params.slug}`,
       type: 'website',
-      images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: item.name }] : undefined,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: item.name }],
     },
   }
 }
@@ -139,8 +151,75 @@ export default async function ProductPage({ params }: PageProps) {
     upsellItems = menuData.drinks.slice(0, 2).map(i => ({...i, type: 'drink'} as MenuItem))
   }
 
+  let reviewStats: { total: number; average: number } | null = null
+  let reviewsForSchema: Array<{ author_name: string; rating: number; comment: string | null; created_at: string }> = []
+  try {
+    const [stats, reviews] = await Promise.all([
+      getReviewStats(item.id),
+      getApprovedReviews(item.id),
+    ])
+    reviewStats = stats.total > 0 ? { total: stats.total, average: stats.average } : null
+    reviewsForSchema = (reviews ?? []).slice(0, 10)
+  } catch {
+    // silencieux : Supabase/reviews indisponibles → pas de schema reviews
+  }
+
+  const productUrl = absoluteUrl(`/menu/${params.slug}`)
+  const productSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: item.name,
+    description: truncateMetaDescription(item.description || item.ingredients?.join(', ') || item.name),
+    image: images.map((img) => absoluteUrl(img)),
+    url: productUrl,
+    brand: { '@type': 'Brand', name: 'Pizza Dal Cielo' },
+    offers: {
+      '@type': 'Offer',
+      url: productUrl,
+      priceCurrency: 'EUR',
+      price: String(item.price),
+      availability: 'https://schema.org/InStock',
+    },
+    ...(reviewStats
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: String(reviewStats.average),
+            reviewCount: String(reviewStats.total),
+            bestRating: '5',
+            worstRating: '1',
+          },
+          review: reviewsForSchema
+            .filter((r) => r.author_name && r.rating)
+            .map((r) => ({
+              '@type': 'Review',
+              reviewRating: {
+                '@type': 'Rating',
+                ratingValue: String(r.rating),
+                bestRating: '5',
+                worstRating: '1',
+              },
+              author: { '@type': 'Person', name: r.author_name },
+              ...(r.comment ? { reviewBody: r.comment } : {}),
+              datePublished: r.created_at,
+            })),
+        }
+      : {}),
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: absoluteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: 'Menu', item: absoluteUrl('/menu') },
+      { '@type': 'ListItem', position: 3, name: item.name, item: productUrl },
+    ],
+  }
+
   return (
     <div className="page-wrapper">
+      <InlineJsonLd schema={[breadcrumbSchema, productSchema]} />
       <div className="pt-28 pb-20 px-4 md:px-6">
         <div className="w-full max-w-[920px] mx-auto">
 

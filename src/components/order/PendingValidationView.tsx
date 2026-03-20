@@ -84,7 +84,7 @@ export function PendingValidationView({
                 Votre commande est entre de bonnes mains 👨‍🍳
               </h1>
               <p className="text-gray-600 mb-4">
-                Guylian vérifie la disponibilité et prépare votre commande...
+                L&apos;équipe de Dal Cielo vérifie la disponibilité et prépare votre commande...
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3 text-sm">

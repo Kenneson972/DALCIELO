@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -14,16 +14,60 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children, className }: ModalProps) => {
+  const modalRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+
+  // ESC key handler
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      // Focus trap
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    },
+    [onClose]
+  )
+
   useEffect(() => {
     if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement
       document.body.style.overflow = 'hidden'
+      document.addEventListener('keydown', handleKeyDown)
+      // Auto-focus the modal
+      requestAnimationFrame(() => {
+        modalRef.current?.focus()
+      })
     } else {
       document.body.style.overflow = 'unset'
+      document.removeEventListener('keydown', handleKeyDown)
+      // Restore previous focus
+      previousFocusRef.current?.focus()
     }
     return () => {
       document.body.style.overflow = 'unset'
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen])
+  }, [isOpen, handleKeyDown])
 
   return (
     <AnimatePresence>
@@ -36,13 +80,18 @@ export const Modal = ({ isOpen, onClose, title, children, className }: ModalProp
             onClick={onClose}
             className="absolute inset-0 bg-dark/60 backdrop-blur-sm"
           />
-          
+
           <motion.div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className={cn(
-              "relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden",
+              "relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden outline-none",
               className
             )}
           >
@@ -51,11 +100,12 @@ export const Modal = ({ isOpen, onClose, title, children, className }: ModalProp
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-cream rounded-full transition-colors text-gray-400 hover:text-primary"
+                aria-label="Fermer"
               >
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="p-8 max-h-[70vh] overflow-y-auto">
               {children}
             </div>

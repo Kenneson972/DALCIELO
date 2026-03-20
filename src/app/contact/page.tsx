@@ -15,9 +15,8 @@ function openCieloBot() {
 
 export default function ContactPage() {
   return (
-    <div className="pt-32 pb-24 px-6 min-h-screen">
+    <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white/90 backdrop-blur-sm rounded-[3rem] p-8 md:p-12 shadow-2xl mb-12">
           <div className="text-center mb-12">
             <h1 className="text-5xl md:text-7xl font-black mb-6 text-[#3D2418]">Nous <span className="text-primary">Contacter</span></h1>
             <p className="text-[#3D2418]/80 text-lg max-w-2xl mx-auto">
@@ -108,14 +107,13 @@ export default function ContactPage() {
               </Card>
             </div>
           </div>
-        </div>
 
-        {/* Google Maps - affichage automatique */}
+        {/* Google Maps — cadre plus discret, cohérent avec mise en page épurée */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="rounded-[3rem] overflow-hidden h-[450px] shadow-2xl relative border-4 border-white/50"
+          className="mt-12 rounded-2xl overflow-hidden h-[450px] shadow-lg relative border border-white/40"
         >
           <iframe
             src={`https://www.google.com/maps?q=${encodeURIComponent(
@@ -127,7 +125,7 @@ export default function ContactPage() {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="Pizza dal Cielo - Localisation"
+            title="Pizza Dal Cielo - Localisation"
             className="w-full h-full min-h-[450px]"
           />
         </motion.div>

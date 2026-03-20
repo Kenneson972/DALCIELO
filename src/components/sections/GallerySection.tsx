@@ -5,52 +5,36 @@ import { motion } from 'framer-motion'
 import { Instagram, ArrowUpRight } from 'lucide-react'
 import { contactInfo } from '@/data/menuData'
 
+/** Accueil : uniquement le lien Instagram (grille photos retirée). */
 export const GallerySection = () => {
-  return (
-    <section className="py-24 px-6 relative bg-transparent">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <h2 className="text-4xl md:text-5xl mb-6 text-[#3D2418]">
-              Suivez nos <span className="text-primary">aventures</span>
-            </h2>
-            <p className="text-[#3D2418]/80 text-lg max-w-xl">
-              Dernières créations, ambiance de la pizzeria et coulisses : retrouvez tout sur notre Instagram.
-            </p>
-          </div>
-        </div>
+  const href = contactInfo.socials.instagram
 
+  return (
+    <section className="py-16 sm:py-20 px-4 relative" aria-label="Instagram Pizza Dal Cielo">
+      <div className="max-w-2xl mx-auto">
         <motion.a
-          href={contactInfo.socials.instagram}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="block w-full relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#E17B5F]/90 to-[#D4633F]/90 p-10 md:p-14 text-left group border-2 border-white/20 shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-300"
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between w-full rounded-3xl bg-gradient-to-r from-[#E17B5F] to-[#D4633F] p-6 md:p-8 group border border-white/20 shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 min-h-[56px]"
         >
-          <div className="absolute inset-0 bg-[url('/images/site-background.png')] bg-cover bg-center opacity-10 mix-blend-overlay" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                <Instagram size={40} className="text-white md:w-12 md:h-12" />
-              </div>
-              <div>
-                <p className="text-white/90 text-sm font-bold uppercase tracking-widest mb-1">
-                  Notre fil
-                </p>
-                <p className="text-2xl md:text-3xl font-black text-white">
-                  @pizza_dal_cielo
-                </p>
-                <p className="text-white/80 text-sm mt-1">
-                  Pizzas, coulisses et bonne humeur
-                </p>
-              </div>
+          <div className="flex items-center gap-5 min-w-0">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0" aria-hidden>
+              <Instagram size={28} className="text-white" />
             </div>
-            <div className="flex items-center gap-2 text-white font-bold group-hover:gap-3 transition-all">
-              <span>Voir le profil</span>
-              <ArrowUpRight size={22} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            <div className="min-w-0">
+              <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-0.5">Suivez-nous</p>
+              <p className="text-xl md:text-2xl font-black text-white truncate">@pizza_dal_cielo</p>
+              <p className="text-white/70 text-sm">Photos et actus sur Instagram</p>
             </div>
+          </div>
+          <div className="flex items-center gap-2 text-white font-black text-sm group-hover:gap-3 transition-all shrink-0 ml-3">
+            <span className="hidden sm:block">Voir le profil</span>
+            <ArrowUpRight size={22} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden />
           </div>
         </motion.a>
       </div>

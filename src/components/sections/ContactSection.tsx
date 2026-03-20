@@ -29,7 +29,7 @@ export const ContactSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm shadow-lg">
+            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm max-md:bg-white/92 shadow-lg">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                 <MapPin size={32} />
               </div>
@@ -61,7 +61,7 @@ export const ContactSection = () => {
                 Pour toute commande ou information,<br />
                 contactez-nous directement :
               </p>
-              <a href={`tel:${contactInfo.phone}`} className="text-3xl font-accent font-black hover:scale-105 transition-transform">
+              <a href={`tel:${contactInfo.phone}`} className="text-3xl font-sans font-black hover:scale-105 transition-transform">
                 {contactInfo.phone}
               </a>
               <div className="mt-8">
@@ -79,7 +79,7 @@ export const ContactSection = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm shadow-lg">
+            <Card className="p-10 h-full flex flex-col items-center text-center hover:border-primary/20 border-2 border-transparent bg-white/55 backdrop-blur-sm max-md:bg-white/92 shadow-lg">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                 <Clock size={32} />
               </div>
@@ -121,7 +121,7 @@ export const ContactSection = () => {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="Pizza dal Cielo - Localisation"
+            title="Pizza Dal Cielo - Localisation"
             className="w-full h-full min-h-[450px]"
           />
         </motion.div>

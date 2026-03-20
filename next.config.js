@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: ['framer-motion', 'lucide-react', 'recharts'],
+  },
   // Perf (kb-performance) : supprimer console en prod, formats image modernes
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
@@ -40,7 +43,24 @@ const nextConfig = {
         value: 'max-age=31536000; includeSubDomains; preload',
       })
     }
-    return [{ source: '/:path*', headers }]
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          ...headers,
+          // Empêche Cloudflare de cacher les pages HTML (données Supabase temps réel)
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_APP_URL || 'https://pizzadalcielo.com' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, x-csrf-token, x-admin-pin' },
+        ],
+      },
+    ]
   },
 };
 

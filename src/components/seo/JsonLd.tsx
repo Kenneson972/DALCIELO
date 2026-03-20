@@ -1,6 +1,11 @@
 import { contactInfo } from '@/data/menuData'
+import { absoluteUrl, getBaseUrl } from '@/lib/seo'
 
-const BASE_URL = 'https://pizzadalcielo.com'
+const BASE_URL = getBaseUrl()
+const GBP_URL = 'https://share.google/Y4tYHayqzTwUmFlRB'
+const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${contactInfo.name}, ${contactInfo.address.street}, ${contactInfo.address.postalCode} ${contactInfo.address.city}, ${contactInfo.address.state}`
+)}`
 
 /** Horaires Mardi–Samedi 18h–22h (kb-seo: openingHoursSpecification en tableau) */
 const openingHoursSpecification = [
@@ -17,6 +22,8 @@ const openingHoursSpecification = [
 }))
 
 export function JsonLd() {
+  const logoUrl = absoluteUrl('/images/logo.png')
+
   const restaurantSchema = {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
@@ -34,16 +41,34 @@ export function JsonLd() {
       postalCode: contactInfo.address.postalCode,
       addressCountry: 'MQ',
     },
-    geo: {
-      '@type': 'GeoCoordinates' as const,
-      addressLocality: contactInfo.address.city,
-      addressRegion: 'Martinique',
-    },
     openingHoursSpecification,
-    image: `${BASE_URL}/images/logo.png`,
-    sameAs: [contactInfo.socials.instagram, contactInfo.socials.facebook],
+    image: logoUrl,
+    logo: logoUrl,
+    hasMap: MAPS_URL,
     priceRange: '€€',
-    servesCuisine: 'Italian',
+    currenciesAccepted: 'EUR',
+    servesCuisine: ['Pizza', 'Italian'],
+    acceptsReservations: true,
+    areaServed: [
+      { '@type': 'AdministrativeArea', name: 'Martinique' },
+      { '@type': 'City', name: 'Fort-de-France' },
+    ],
+    sameAs: [
+      GBP_URL,
+      contactInfo.socials.instagram,
+      contactInfo.socials.facebook,
+      contactInfo.socials.tripadvisor,
+    ].filter(Boolean),
+  }
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${BASE_URL}/#website`,
+    url: BASE_URL,
+    name: contactInfo.name,
+    publisher: { '@id': `${BASE_URL}/#restaurant` },
+    inLanguage: 'fr-FR',
   }
 
   const breadcrumbSchema = {
@@ -63,6 +88,10 @@ export function JsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
     </>
   )

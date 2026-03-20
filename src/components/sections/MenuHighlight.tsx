@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/Badge'
+import Image from 'next/image'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { Pizza, ArrowRight, ShoppingBag, Sparkles, Star } from 'lucide-react'
+import { Pizza, ShoppingBag, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { PizzaOptionsModal } from '@/components/menu/PizzaOptionsModal'
@@ -34,7 +34,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<'monday' | 'coming_soon' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
 
   // Rafraîchir la Pizza du Chef depuis l’API au montage (pas de cache) pour refléter les modifs admin
   useEffect(() => {
@@ -55,6 +55,8 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
             chef_valid_until: product.chef_valid_until ?? null,
             slug: product.slug ?? null,
           })
+        } else {
+          setChefPizza(null)
         }
       })
       .catch(() => {})
@@ -62,12 +64,19 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
 
   if (!chefPizza) return null
 
-  const id = Number((chefPizza as any).menu_id ?? chefPizza.id ?? 0)
+  const prefersReducedMotion = useReducedMotion()
+  const id = Number(chefPizza.menu_id ?? (chefPizza as { id?: number }).id ?? 0)
   const name = chefPizza.name
   const price = Number(chefPizza.price)
-  const description = (chefPizza as any).description ?? "Une recette unique et audacieuse qui change tous les 15 jours."
-  const ingredients = (chefPizza as any).ingredients ?? []
-  const image = (chefPizza as any).image_url ?? (chefPizza as any).image ?? "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop"
+  const description =
+    chefPizza.description ??
+    'Une recette unique et audacieuse qui change tous les 15 jours.'
+  const ingredients = Array.isArray(chefPizza.ingredients) ? chefPizza.ingredients : []
+  const image =
+    (chefPizza as { image_url?: string | null }).image_url ??
+    (chefPizza as { image?: string | null }).image ??
+    'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop'
+  const chefValidUntil = (chefPizza as { chef_valid_until?: string | null }).chef_valid_until
 
   const handleOptionsAdd = ({ customizations, totalPrice, supplements }: { customizations: string[]; totalPrice: number; supplements: Array<{ id: number; name: string; price: number }> }) => {
     const suppTotal = supplements.reduce((sum, s) => sum + s.price, 0)
@@ -94,128 +103,124 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
 
   return (
     <>
-      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
+      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
         pizza={{ id, name, price, category: 'Du Chef', image }}
         onAdd={handleOptionsAdd}
       />
-      <section className="py-20 px-6 relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+      <section className="py-24 sm:py-28 px-4 sm:px-6 relative overflow-hidden" aria-labelledby="chef-creation-title">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] bg-primary/[0.06] rounded-full blur-[100px] pointer-events-none" aria-hidden />
 
-        <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+        <div className="max-w-6xl mx-auto relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-white/45 backdrop-blur-2xl rounded-[3rem] p-6 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.08)] border border-white/40 overflow-hidden relative group"
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-white/50 bg-white/50 shadow-[0_32px_64px_-12px_rgba(61,36,24,0.08)] backdrop-blur-2xl max-md:bg-white/92 p-8 sm:p-10 md:p-12"
           >
-            {/* Top Shine Effect */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-            
-            {/* Badge édition limitée - plus compact */}
-            <div className="absolute top-0 right-0 bg-gradient-to-br from-yellow-400 to-orange-500 text-white px-6 py-2.5 rounded-bl-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-lg z-20 flex items-center gap-2">
-              <Sparkles size={14} className="animate-pulse" />
-              Édition Limitée
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" aria-hidden />
+
+            {/* Badge premium — sobre, contraste OK */}
+            <div className="absolute top-0 right-0 z-10 flex items-center gap-2 rounded-bl-2xl border-b border-l border-amber-200/50 bg-amber-50/95 px-5 py-2.5 shadow-sm backdrop-blur-sm">
+              <Sparkles size={14} className="text-amber-700/80 shrink-0" aria-hidden />
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-800/90">Édition limitée</span>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-10 items-center">
-              {/* Image Section - Scaled down */}
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
+            {/* Grille : colonne image plus large (≈55%) pour mettre la photo en avant */}
+            <div className="grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-14 items-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="relative max-w-[380px] mx-auto lg:mx-0"
+                transition={{ duration: 0.5 }}
+                className="relative w-full max-w-[400px] sm:max-w-[440px] mx-auto lg:mx-0 lg:max-w-none"
               >
-                <div className="absolute inset-0 bg-primary/15 rounded-[2.5rem] blur-2xl group-hover:bg-primary/25 transition-colors duration-700" />
-                
-                <div className="relative aspect-square rounded-[2.5rem] overflow-hidden shadow-xl border-[8px] border-white/20 backdrop-blur-md">
-                  <img 
-                    src={image} 
+                <div className="absolute -inset-4 bg-primary/10 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden />
+                <div className="relative aspect-square rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden border border-white/40 shadow-[0_20px_50px_-12px_rgba(61,36,24,0.15)]">
+                  <Image
+                    src={image}
                     alt={name}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 640px) 400px, (max-width: 1024px) 440px, 55vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/10 via-transparent to-white/5 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" aria-hidden />
                 </div>
-
-                {/* Floating Price Tag - Smaller */}
-                <motion.div 
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-4 -right-4 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-xl border border-white/50 z-30"
-                >
-                  <p className="text-primary font-black text-2xl tracking-tight">{price}€</p>
-                </motion.div>
+                <div className="absolute -bottom-3 -right-3 z-10 rounded-2xl border border-white/60 bg-white/95 px-5 py-2.5 shadow-lg backdrop-blur-sm">
+                  <p className="font-playfair text-2xl font-bold tracking-tight text-[#3D2418]">{price}€</p>
+                </div>
               </motion.div>
 
-              {/* Content Section - Compacted */}
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-7">
                 <div>
-                  <div className="inline-flex items-center gap-2 text-primary font-bold uppercase tracking-[0.2em] text-[10px] mb-3">
-                    <span className="w-6 h-px bg-primary/50" />
+                  <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#3D2418]/60 mb-4">
+                    <span className="h-px w-8 bg-primary/40" aria-hidden />
                     Création du chef
-                  </div>
-                  
-                  <h2 className="text-4xl md:text-5xl font-display font-black text-[#3D2418] mb-4 leading-tight drop-shadow-sm">
+                  </p>
+                  <h2 id="chef-creation-title" className="font-playfair text-3xl sm:text-4xl md:text-[2.75rem] font-bold text-[#3D2418] leading-[1.15] tracking-tight mb-5">
                     {name}
                   </h2>
 
-                  {(chefPizza as any).chef_valid_until && (
+                  {chefValidUntil && (
                     <div className="mb-6">
-                      <ChefValidUntilTimer validUntil={(chefPizza as any).chef_valid_until} />
+                      <ChefValidUntilTimer validUntil={chefValidUntil} variant="premium" />
                     </div>
                   )}
 
-                  <p className="text-[#3D2418]/70 text-lg leading-relaxed mb-6 font-medium line-clamp-3">
+                  <p className="text-[#3D2418]/75 text-base sm:text-lg leading-relaxed mb-7 font-normal max-w-xl">
                     {description}
                   </p>
-                  
-                  <div className="grid grid-cols-1 gap-3">
-                    <h3 className="font-bold text-[#3D2418] flex items-center gap-2 text-sm uppercase tracking-widest">
-                      <Pizza size={18} className="text-primary" />
+
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#3D2418]/70">
+                      <Pizza size={16} className="text-primary/80 shrink-0" aria-hidden />
                       Ingrédients
                     </h3>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(Array.isArray(ingredients) ? ingredients : []).slice(0, 6).map((ing, i) => (
-                        <span 
-                          key={i} 
-                          className="px-4 py-1.5 bg-white/40 backdrop-blur-sm border border-white/60 rounded-xl text-[#3D2418] font-bold text-xs shadow-sm"
+                    <div className="flex flex-wrap gap-2">
+                      {ingredients.slice(0, 6).map((ing, i) => (
+                        <span
+                          key={i}
+                          className="px-3.5 py-1.5 rounded-lg border border-[#3D2418]/12 bg-[#3D2418]/[0.05] text-[#3D2418] font-medium text-sm"
                         >
                           {ing}
                         </span>
                       ))}
-                      {ingredients.length > 6 && <span className="text-xs text-[#3D2418]/40 font-bold self-center ml-1">+{ingredients.length - 6} autres</span>}
+                      {ingredients.length > 6 && (
+                        <span className="self-center text-xs font-medium text-[#3D2418]/50 pl-1">+{ingredients.length - 6}</span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <Button
-                    onClick={() => {
-                      if (!price) return
-                      const reason = orderingBlockReason()
-                      if (reason) { setBlockReason(reason); return }
-                      setOptionsOpen(true)
-                    }}
-                    className="flex-grow py-4 text-base shadow-xl shadow-primary/20"
-                    size="md"
-                    icon={<ShoppingBag size={20} />}
-                  >
-                    Commander l'exclu
-                  </Button>
-                  <Link href={slug ? `/menu/${slug}` : "/menu"} className="w-full sm:w-auto">
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-2 border-primary/10 text-primary hover:bg-primary hover:text-white py-4 px-8 backdrop-blur-sm text-sm"
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <Link href={slug ? `/menu/${slug}` : '/menu'} className="w-full sm:w-auto min-h-[48px] flex">
+                    <Button
+                      variant="outline"
+                      className="w-full min-h-[48px] border-2 border-[#3D2418]/15 text-[#3D2418] hover:bg-[#3D2418]/5 py-4 px-6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       size="md"
                     >
                       Détails
                     </Button>
                   </Link>
+                  <Button
+                    onClick={() => {
+                      if (!price) return
+                      const reason = orderingBlockReason()
+                      if (reason) {
+                        setBlockReason(reason)
+                        return
+                      }
+                      setOptionsOpen(true)
+                    }}
+                    className="min-h-[48px] flex-grow py-4 text-base shadow-lg shadow-primary/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    size="md"
+                    icon={<ShoppingBag size={20} aria-hidden />}
+                  >
+                    Commander l&apos;exclu
+                  </Button>
                 </div>
               </div>
             </div>

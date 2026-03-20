@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Loader2, Check, Megaphone, X, Upload, Plus, Pencil, Trash2, ChevronDown } from 'lucide-react'
 import type { Popup, PopupType, DismissMode } from '@/types/popup'
 
+import { getCsrfToken } from '@/lib/csrf'
+
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
   return localStorage.getItem('admin_pin') || sessionStorage.getItem('admin_pin') || ''
@@ -210,7 +212,7 @@ export function AnnouncementEditor() {
         isNew ? '/api/admin/popups' : `/api/admin/popups/${editingId}`,
         {
           method: isNew ? 'POST' : 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin },
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify(payload),
         }
       )
@@ -234,7 +236,7 @@ export function AnnouncementEditor() {
     setDeleting(id)
     const pin = getAdminPin()
     try {
-      await fetch(`/api/admin/popups/${id}`, { method: 'DELETE', headers: { 'x-admin-pin': pin } })
+      await fetch(`/api/admin/popups/${id}`, { method: 'DELETE', headers: { 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() } })
       showToast('success', 'Popup supprimé.')
       loadPopups()
       if (editingId === id) closeForm()
@@ -250,7 +252,7 @@ export function AnnouncementEditor() {
     try {
       const res = await fetch(`/api/admin/popups/${p.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ active: !p.active }),
       })
       if (!res.ok) throw new Error()
@@ -272,7 +274,7 @@ export function AnnouncementEditor() {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin() }, body: formData })
+      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: formData })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) set('image_url', data.url)
       else setUploadError(data.error || "Erreur d'upload")

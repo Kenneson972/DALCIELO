@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Minus, Package, RefreshCw, Search, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import type { Stock } from '@/lib/stocksStore'
 import { menuData } from '@/data/menuData'
+import { getCsrfToken } from '@/lib/csrf'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -60,7 +61,7 @@ export function StocksManager() {
     const pin = getAdminPin()
     setSeeding(true)
     try {
-      const res = await fetch('/api/admin/stocks/seed', { method: 'POST', headers: { 'x-admin-pin': pin } })
+      const res = await fetch('/api/admin/stocks/seed', { method: 'POST', headers: { 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() } })
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
         await loadStocks()
@@ -87,7 +88,7 @@ export function StocksManager() {
     try {
       const res = await fetch(`/api/admin/stocks/${encodeURIComponent(item_id)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ adjust: delta }),
       })
       const data = await res.json().catch(() => ({}))
@@ -109,7 +110,7 @@ export function StocksManager() {
     try {
       const res = await fetch('/api/admin/stocks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({
           item_id,
           name: newItem.name.trim(),

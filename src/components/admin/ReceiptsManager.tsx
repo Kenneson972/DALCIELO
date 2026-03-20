@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Download, FileText, ExternalLink, X, Eye } from 'lucide-react'
 import type { Order } from '@/types/order'
+import { getCsrfToken } from '@/lib/csrf'
 
 interface ReceiptsManagerProps {
   orders: Order[]
@@ -108,6 +109,7 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
         headers: {
           'Content-Type': 'application/json',
           'x-admin-pin': adminPin,
+          'x-csrf-token': getCsrfToken(),
         },
         body: JSON.stringify({
           status: order.status,

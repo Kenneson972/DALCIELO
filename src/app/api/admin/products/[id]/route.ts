@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { updateProduct } from '@/lib/productsStore'
+import { logAdminAction } from '@/lib/auditLog'
+import { getIp } from '@/lib/rateLimit'
 
 const PatchSchema = z.object({
   name:             z.string().min(1).max(120).optional(),
@@ -47,6 +49,13 @@ export async function PATCH(
     }
 
     const updated = await updateProduct(numId, parsed.data)
+    logAdminAction({
+      action: 'update_product',
+      entity_type: 'product',
+      entity_id: String(numId),
+      details: parsed.data as Record<string, unknown>,
+      ip: getIp(req),
+    })
     return NextResponse.json({ success: true, product: updated })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)

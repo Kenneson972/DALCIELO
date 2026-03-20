@@ -88,7 +88,7 @@ export const AboutSection = () => {
             <span className="text-primary">traditionnelle</span> en Martinique
           </h2>
           <p className="text-gray-text text-lg mb-8 leading-relaxed">
-            Ouverte en juin 2024 par Guylian Grangenois, Pizza dal Cielo est née d&apos;une passion 
+            Ouverte en juin 2024 par l&apos;équipe de Dal Cielo, Pizza Dal Cielo est née d&apos;une passion 
             pour l&apos;artisanat et le goût authentique. Situés à Bellevue, nous mettons tout notre 
             cœur dans la création de pizzas qui vous feront voyager.
           </p>

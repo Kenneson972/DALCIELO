@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PizzaCard } from '@/components/menu/PizzaCard'
 import { CategoryFilter } from '@/components/menu/CategoryFilter'
@@ -84,14 +85,16 @@ function ChefPizzaBigCard({ item }: { item: MenuPageItem }) {
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300"
+        className="relative overflow-hidden rounded-[2rem] border border-white/50 bg-white/45 backdrop-blur-xl shadow-xl hover:shadow-2xl transition-all duration-300 max-lg:bg-white/92 max-lg:backdrop-blur-none max-lg:border-white/55"
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[320px]">
           <div className="relative h-64 lg:h-auto lg:min-h-[320px]">
-            <img
+            <Image
               src={img}
               alt={item.name}
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent lg:from-black/30" />
             <div className="absolute bottom-4 left-4 right-4 lg:left-6 lg:bottom-6 flex items-center gap-2">
@@ -103,9 +106,9 @@ function ChefPizzaBigCard({ item }: { item: MenuPageItem }) {
               )}
             </div>
           </div>
-          <div className="p-8 lg:p-10 flex flex-col justify-center">
-            <h2 className="text-3xl lg:text-4xl font-black text-[#3D2418] mb-2 group-hover:text-primary transition-colors">{item.name}</h2>
-            <p className="text-gray-600 mb-6 line-clamp-3">
+          <div className="p-8 lg:p-10 flex flex-col justify-center lg:bg-white/40 lg:backdrop-blur-md lg:border-l lg:border-white/40 max-lg:border-t max-lg:border-white/50">
+            <h2 className="text-3xl lg:text-4xl font-black text-[#2c1a12] mb-2 group-hover:text-primary transition-colors">{item.name}</h2>
+            <p className="text-[#2c1a12]/85 mb-6 line-clamp-3 leading-relaxed">
               {item.ingredients?.length ? item.ingredients.join(', ') : item.description || 'Création exclusive du Chef, change tous les 15 jours.'}
             </p>
             <div className="flex flex-wrap items-center gap-4">
@@ -150,33 +153,33 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
   const restItems = useMemo(() => filteredItems.filter(i => i.category !== 'Du Chef'), [filteredItems])
 
   return (
-    <div className="pt-32 pb-24 px-6 min-h-screen">
-      <div className="max-w-7xl mx-auto bg-white/90 backdrop-blur-sm rounded-[3rem] p-8 md:p-12 shadow-2xl">
-        <div className="text-center mb-16">
+    <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12 sm:mb-14 max-w-3xl mx-auto rounded-[1.75rem] border border-white/50 bg-white/75 backdrop-blur-md px-6 py-8 sm:px-8 shadow-sm max-md:backdrop-blur-none max-md:bg-white/92">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-bold text-sm uppercase tracking-widest mb-4"
+            className="inline-flex items-center gap-2 bg-primary/12 text-primary px-4 py-2 rounded-full font-bold text-sm uppercase tracking-widest mb-4"
           >
             Fait Maison
           </motion.div>
-          <h1 className="text-5xl md:text-6xl font-black mb-6 text-[#3D2418]">Notre <span className="text-primary">Carte</span></h1>
-          <p className="text-[#3D2418]/80 text-lg max-w-2xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-black mb-6 text-[#2c1a12]">Notre <span className="text-primary">Carte</span></h1>
+          <p className="text-[#2c1a12]/88 text-lg max-w-2xl mx-auto leading-relaxed">
             Découvrez notre sélection complète de pizzas artisanales, friands savoureux et boissons fraîches.
             Des recettes classiques aux créations signatures du Chef.
           </p>
         </div>
 
-        {/* Search & Filters */}
-        <div className="mb-12">
+        {/* Recherche + filtres — léger verre, pas de mega-bloc page entière (kb-ui-ux-pro-max) */}
+        <div className="mb-12 rounded-2xl border border-white/40 bg-white/55 backdrop-blur-md max-md:bg-white/92 px-4 py-6 sm:px-6 sm:py-8 shadow-sm">
           <div className="relative max-w-md mx-auto mb-8">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} aria-hidden />
             <input
-              type="text"
+              type="search"
               placeholder="Rechercher une pizza, un ingrédient..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 rounded-2xl bg-white border-2 border-gray-100 focus:border-primary/20 focus:outline-none shadow-sm transition-all"
+              className="w-full min-h-[48px] pl-12 pr-6 py-3 rounded-2xl bg-white/90 border border-[#3D2418]/10 focus:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
             />
           </div>
           <CategoryFilter
@@ -189,8 +192,8 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
         {/* Pizza du Chef – grande case */}
         {chefItems.length > 0 && (
           <div className="mb-14">
-            <h2 className="text-2xl font-black text-[#3D2418] mb-6 flex items-center gap-2">
-              <Sparkles className="text-primary" size={28} />
+            <h2 className="text-2xl font-black text-[#2c1a12] mb-6 flex items-center gap-2 drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]">
+              <Sparkles className="text-primary shrink-0" size={28} aria-hidden />
               Pizza du Chef
             </h2>
             <div className="space-y-6">
@@ -205,7 +208,7 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
         {restItems.length > 0 && (
           <>
             {chefItems.length > 0 && (
-              <h2 className="text-xl font-black text-[#3D2418] mb-6">Pizzas, friands, desserts & boissons</h2>
+              <h2 className="text-xl font-black text-[#2c1a12] mb-6 drop-shadow-[0_1px_1px_rgba(255,255,255,0.85)]">Pizzas, friands, desserts & boissons</h2>
             )}
             <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <AnimatePresence mode="popLayout">
@@ -227,12 +230,12 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
         )}
 
         {filteredItems.length === 0 && (
-          <div className="text-center py-20">
-            <div className="bg-white inline-flex p-6 rounded-full text-gray-300 mb-6">
-              <Pizza size={48} />
+          <div className="text-center py-20 rounded-3xl border border-white/50 bg-white/70 backdrop-blur-md px-6 max-md:backdrop-blur-none max-md:bg-white/92">
+            <div className="bg-white/80 inline-flex p-6 rounded-full text-[#2c1a12]/25 mb-6 border border-white/60">
+              <Pizza size={48} aria-hidden />
             </div>
-            <h3 className="text-xl font-bold text-gray-500">Aucun résultat trouvé</h3>
-            <p className="text-gray-400 mt-2">Essayez d&apos;autres mots-clés ou changez de catégorie.</p>
+            <h3 className="text-xl font-bold text-[#2c1a12]">Aucun résultat trouvé</h3>
+            <p className="text-[#2c1a12]/70 mt-2">Essayez d&apos;autres mots-clés ou changez de catégorie.</p>
           </div>
         )}
 

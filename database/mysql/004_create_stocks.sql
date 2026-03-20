@@ -1,5 +1,5 @@
 -- Stocks table for Pizza dal Cielo (pizzas, boissons, friands, etc.)
--- Guylian can update quantities and create new items in real time
+-- equipe de Dal Cielo can update quantities and create new items in real time
 
 CREATE TABLE IF NOT EXISTS stocks (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

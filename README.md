@@ -1,6 +1,6 @@
-# Pizza dal Cielo
+# Pizza Dal Cielo
 
-Site vitrine + commande pour la pizzeria Pizza dal Cielo (Fort-de-France, Martinique).
+Site vitrine + commande pour la pizzeria Pizza Dal Cielo (Fort-de-France, Martinique).
 
 ## ✅ Fonctionnalités clés
 - Menu complet (pizzas, friands, boissons) + pages produits dynamiques.

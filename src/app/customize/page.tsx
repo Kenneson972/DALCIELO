@@ -7,13 +7,13 @@ import { Pizza, ArrowRight } from 'lucide-react'
 
 export default function CustomizePage() {
   return (
-    <div className="pt-32 pb-24 px-6 min-h-screen flex flex-col items-center justify-center">
-      <div className="max-w-xl mx-auto text-center">
+    <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen flex flex-col items-center justify-center">
+      <div className="max-w-xl mx-auto text-center w-full">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/90 backdrop-blur-sm rounded-[3rem] p-10 md:p-14 shadow-2xl border border-primary/5"
+          className="rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md p-10 md:p-14 shadow-sm"
         >
           <div className="w-24 h-24 mx-auto mb-8 bg-primary/10 rounded-full flex items-center justify-center">
             <Pizza size={48} className="text-primary" />

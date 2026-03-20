@@ -4,9 +4,9 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <div className="pt-32 pb-24 px-6 min-h-screen">
+    <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">
       <div className="max-w-2xl mx-auto text-center">
-        <div className="bg-white/90 backdrop-blur-sm rounded-[3rem] p-12 shadow-2xl">
+        <div className="rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md p-10 sm:p-12 shadow-sm">
           <div className="text-6xl mb-6">🍕</div>
           <h1 className="text-4xl font-black text-[#3D2418] mb-4">
             Produit introuvable

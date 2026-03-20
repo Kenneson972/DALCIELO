@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getProducts, createProduct } from '@/lib/productsStore'
+import { logAdminAction } from '@/lib/auditLog'
+import { getIp } from '@/lib/rateLimit'
 
 export async function GET(req: NextRequest) {
   const authError = requireAdminWithRateLimit(req)
@@ -52,6 +54,13 @@ export async function POST(req: NextRequest) {
     }
 
     const product = await createProduct(parsed.data)
+    logAdminAction({
+      action: 'create_product',
+      entity_type: 'product',
+      entity_id: String(product?.id ?? ''),
+      details: { name: parsed.data.name, type: parsed.data.type },
+      ip: getIp(req),
+    })
     return NextResponse.json({ success: true, product }, { status: 201 })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)

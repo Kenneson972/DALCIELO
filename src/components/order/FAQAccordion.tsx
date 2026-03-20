@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { HelpCircle, Minus, Plus } from 'lucide-react'
+import { InlineJsonLd } from '@/components/seo/InlineJsonLd'
 
 const faqs = [
   {
     q: 'Combien de temps ça prend ?',
-    a: 'En général 1-2 minutes. Guylian vérifie la disponibilité des ingrédients et valide votre créneau horaire.',
+    a: "En général 1-2 minutes. L'équipe de Dal Cielo vérifie la disponibilité des ingrédients et valide votre créneau horaire.",
   },
   {
     q: 'Est-ce que je vais recevoir une notification ?',
@@ -25,8 +26,22 @@ const faqs = [
 export function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  }
+
   return (
     <div className="space-y-3">
+      <InlineJsonLd schema={faqSchema as Record<string, unknown>} />
       {faqs.map((faq, index) => (
         <div
           key={index}

@@ -43,8 +43,12 @@ import {
   exportOrdersToCSV,
 } from '@/lib/localStore'
 import { useQueueEstimate } from '@/hooks/useQueueEstimate'
+import dynamic from 'next/dynamic'
 import { KPICard } from '@/components/admin/KPICard'
-import { RevenueChart } from '@/components/admin/RevenueChart'
+const RevenueChart = dynamic(
+  () => import('@/components/admin/RevenueChart').then((m) => m.RevenueChart),
+  { ssr: false }
+)
 import { StockAlerts } from '@/components/admin/StockAlerts'
 import { TopPizzas } from '@/components/admin/TopPizzas'
 import { OrdersList } from '@/components/admin/OrdersList'
@@ -55,6 +59,7 @@ import { MenuManager } from '@/components/admin/MenuManager'
 import { AnnouncementEditor } from '@/components/admin/AnnouncementEditor'
 import { ReviewsManager } from '@/components/admin/ReviewsManager'
 import { ReceiptsManager } from '@/components/admin/ReceiptsManager'
+import { getCsrfToken } from '@/lib/csrf'
 import type { Order, DashboardStats } from '@/types/order'
 
 type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews'
@@ -256,7 +261,7 @@ export default function AdminPage() {
       try {
         const res = await fetch(`/api/admin/orders/${id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin, 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify({ status, ...data }),
         })
         if (res.status === 401) {
@@ -368,7 +373,7 @@ export default function AdminPage() {
           <div className="text-center mb-6 md:mb-8">
             <div className="text-5xl md:text-6xl mb-4 animate-bounce">🍕</div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
-            <p className="text-slate-600">Pizza dal Cielo</p>
+            <p className="text-slate-600">Pizza Dal Cielo</p>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-6">
@@ -737,7 +742,7 @@ function DashboardView({
     try {
       const res = await fetch('/api/admin/homepage-settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ sliderEnabled: enabled }),
       })
       const data = await res.json().catch(() => ({}))
@@ -760,7 +765,7 @@ function DashboardView({
     try {
       const res = await fetch('/api/admin/homepage-settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ dessertsEnabled: enabled }),
       })
       const data = await res.json().catch(() => ({}))
@@ -785,7 +790,7 @@ function DashboardView({
     try {
       const res = await fetch('/api/admin/queue-settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin, 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ ovenAvailable: next }),
       })
       if (!res.ok) throw new Error()
@@ -811,6 +816,7 @@ function DashboardView({
         headers: {
           'Content-Type': 'application/json',
           'x-admin-pin': adminPin,
+          'x-csrf-token': getCsrfToken(),
         },
         body: JSON.stringify(payload),
       })
@@ -1075,7 +1081,7 @@ function DashboardView({
           
           <p className="text-slate-500 text-sm font-medium ml-1">
             {!estimate.ovenAvailable
-              ? 'Guylian a temporairement désactivé le four. Le délai affiché est indicatif.'
+              ? "L'équipe de Dal Cielo a temporairement désactivé le four. Le délai affiché est indicatif."
               : estimate.totalItems === 0
               ? 'Aucune commande en attente de cuisson.'
               : `${estimate.totalItems} pizza${estimate.totalItems > 1 ? 's' : ''} à préparer · ${estimate.activeOrders} commande${estimate.activeOrders > 1 ? 's' : ''} en cours`}

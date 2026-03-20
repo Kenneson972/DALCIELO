@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Star } from 'lucide-react'
 import type { Review, ReviewStats } from '@/types/review'
+import { getCsrfToken } from '@/lib/csrf'
 
 interface ProductReviewsProps {
   menuId: number
@@ -131,7 +132,7 @@ function ReviewForm({
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({
           menu_id: menuId,
           author_name: name.trim(),

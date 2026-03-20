@@ -15,27 +15,29 @@ export const CategoryFilter = ({
   setActiveCategory 
 }: CategoryFilterProps) => {
   return (
-    <div className="flex flex-wrap justify-center gap-2 mb-12">
+    <div className="flex flex-wrap justify-center gap-2 mb-2">
       <button
+        type="button"
         onClick={() => setActiveCategory('Tous')}
         className={cn(
-          "px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all",
-          activeCategory === 'Tous' 
-            ? "bg-primary text-white shadow-lg shadow-primary/30" 
-            : "bg-white text-gray-text hover:bg-cream border border-gray-100"
+          'min-h-[44px] px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all',
+          activeCategory === 'Tous'
+            ? 'bg-primary text-white shadow-lg shadow-primary/30'
+            : 'bg-white/55 text-[#2c1a12]/90 backdrop-blur-sm border border-white/60 hover:bg-white/80 max-md:bg-white/85 max-md:backdrop-blur-none'
         )}
       >
         Tous
       </button>
       {categories.map((category) => (
         <button
+          type="button"
           key={category}
           onClick={() => setActiveCategory(category)}
           className={cn(
-            "px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all",
-            activeCategory === category 
-              ? "bg-primary text-white shadow-lg shadow-primary/30" 
-              : "bg-white text-gray-text hover:bg-cream border border-gray-100"
+            'min-h-[44px] px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all',
+            activeCategory === category
+              ? 'bg-primary text-white shadow-lg shadow-primary/30'
+              : 'bg-white/55 text-[#2c1a12]/90 backdrop-blur-sm border border-white/60 hover:bg-white/80 max-md:bg-white/85 max-md:backdrop-blur-none'
           )}
         >
           {category}

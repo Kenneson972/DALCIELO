@@ -34,7 +34,7 @@ Cette erreur apparaît souvent quand **tu lances l’app en local** (`npm run de
 
 - Déploie le site Next.js sur o2switch (FTP + Node ou hébergement Node proposé par o2switch).
 - Sur le serveur, l’app et MySQL sont sur la même machine : utilise `DB_HOST=127.0.0.1` (ou `localhost`) dans les variables d’environnement du serveur.
-- L’utilisateur MySQL `'fawo6188_Guylian'@'localhost'` acceptera la connexion.
+- L’utilisateur MySQL `'fawo6188_DalCielo'@'localhost'` acceptera la connexion.
 
 ### 2. Accès MySQL à distance (depuis ton PC)
 

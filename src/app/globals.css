@@ -29,6 +29,7 @@ a,
   --pdc-text-light: rgba(61, 36, 24, 0.7);
   --pdc-shadow: rgba(225, 123, 95, 0.2);
   --pdc-overlay: rgba(212, 99, 63, 0.9);
+  --pdc-coral-text: #C54A35;
 }
 
 body {
@@ -69,12 +70,11 @@ body {
   #site-bg::after { background: rgba(255, 248, 240, 0.32); }
 }
 
-/* Mobile : désactiver backdrop-filter globalement (42 occurrences = perf killer) */
+/* Mobile : désactiver backdrop-filter globalement — Chrome Android GPU killer */
 @media (max-width: 768px) {
-  .glass,
-  .glass-dark {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+  *:not(.keep-blur) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }
 
@@ -165,4 +165,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-progress-indeterminate {
   animation: progress-indeterminate 2s ease-in-out infinite;
+}
+
+/* P2-10: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

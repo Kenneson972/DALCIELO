@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, AlertTriangle } from 'lucide-react'
@@ -50,11 +51,12 @@ function ChefLayout({ popup, onClose }: { popup: Popup; onClose: () => void }) {
       {/* Left — Photo */}
       <div className="relative sm:w-[48%] h-56 sm:h-auto flex-shrink-0 overflow-hidden bg-[#2D1508]">
         {popup.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={popup.image_url}
             alt={popup.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, 48vw"
+            className="object-cover"
             style={{ filter: 'brightness(0.92) saturate(1.1)' }}
           />
         ) : (
@@ -131,8 +133,7 @@ function PromoLayout({ popup, onClose }: { popup: Popup; onClose: () => void }) 
 
       {popup.image_url && (
         <div className="relative sm:w-[44%] h-48 sm:h-auto flex-shrink-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={popup.image_url} alt={popup.title} className="w-full h-full object-cover" style={{ filter: 'brightness(0.88) saturate(1.15)' }} />
+          <Image src={popup.image_url} alt={popup.title} fill sizes="(max-width: 640px) 100vw, 44vw" className="object-cover" style={{ filter: 'brightness(0.88) saturate(1.15)' }} />
           <div className="absolute inset-y-0 right-0 w-16 hidden sm:block" style={{ background: 'linear-gradient(to right, transparent, #0a2e1a)' }} />
           <div className="absolute inset-x-0 bottom-0 h-14 sm:hidden" style={{ background: 'linear-gradient(to bottom, transparent, #0a2e1a)' }} />
         </div>
@@ -195,8 +196,7 @@ function EventLayout({ popup, onClose }: { popup: Popup; onClose: () => void }) 
 
       {popup.image_url && (
         <div className="relative sm:w-[44%] h-48 sm:h-auto flex-shrink-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={popup.image_url} alt={popup.title} className="w-full h-full object-cover" style={{ filter: 'brightness(0.85) saturate(1.1)' }} />
+          <Image src={popup.image_url} alt={popup.title} fill sizes="(max-width: 640px) 100vw, 44vw" className="object-cover" style={{ filter: 'brightness(0.85) saturate(1.1)' }} />
           <div className="absolute inset-y-0 right-0 w-16 hidden sm:block" style={{ background: 'linear-gradient(to right, transparent, #0f0c29)' }} />
           <div className="absolute inset-x-0 bottom-0 h-14 sm:hidden" style={{ background: 'linear-gradient(to bottom, transparent, #0f0c29)' }} />
         </div>

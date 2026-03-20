@@ -2,22 +2,20 @@
 
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Phone, MessageCircle } from 'lucide-react'
+import { X } from 'lucide-react'
 
 interface OrderingComingSoonModalProps {
   onClose: () => void
-  reason?: 'monday' | 'coming_soon'
 }
 
-export function OrderingComingSoonModal({ onClose, reason = 'coming_soon' }: OrderingComingSoonModalProps) {
+/** Affiché quand la commande en ligne est indisponible (ex. fermeture hebdomadaire le lundi). */
+export function OrderingComingSoonModal({ onClose }: OrderingComingSoonModalProps) {
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = 'unset'
     }
   }, [])
-
-  const isMondayClosed = reason === 'monday'
 
   return (
     <AnimatePresence>
@@ -44,46 +42,20 @@ export function OrderingComingSoonModal({ onClose, reason = 'coming_soon' }: Ord
           </button>
 
           <div className="p-8 pt-10">
-            <div className="text-5xl mb-4">{isMondayClosed ? '🔒' : '🍕'}</div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">
-              {isMondayClosed ? 'Fermé le lundi' : 'Commandez par téléphone'}
-            </h2>
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé le lundi</h2>
             <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-              {isMondayClosed
-                ? <>La pizzeria est fermée tous les lundis.<br />Revenez à partir de mardi !</>
-                : <>La commande en ligne sera bientôt disponible.<br />En attendant, contactez-nous directement.</>
-              }
+              La pizzeria est fermée tous les lundis.
+              <br />
+              Revenez à partir de mardi !
             </p>
 
-            {!isMondayClosed && (
-              <div className="flex flex-col gap-3">
-                <a
-                  href="tel:+596696887270"
-                  className="flex items-center justify-center gap-3 bg-primary text-white px-6 py-3.5 rounded-xl font-bold text-base hover:opacity-90 transition-opacity"
-                >
-                  <Phone size={20} />
-                  Appeler
-                </a>
-                <a
-                  href="https://wa.me/596696887270"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 bg-[#25D366] text-white px-6 py-3.5 rounded-xl font-bold text-base hover:opacity-90 transition-opacity"
-                >
-                  <MessageCircle size={20} />
-                  WhatsApp
-                </a>
-              </div>
-            )}
-
-            {isMondayClosed && (
-              <button
-                onClick={onClose}
-                className="w-full bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-bold text-base hover:bg-gray-200 transition-colors"
-              >
-                Fermer
-              </button>
-            )}
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-bold text-base hover:bg-gray-200 transition-colors"
+            >
+              Fermer
+            </button>
           </div>
         </motion.div>
       </div>

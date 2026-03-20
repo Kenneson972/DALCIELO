@@ -1,4 +1,4 @@
--- Catégorie reçu / bon de commande pour classement par Guylian (admin)
+-- Catégorie reçu / bon de commande pour classement par equipe de Dal Cielo (admin)
 ALTER TABLE orders
 ADD COLUMN IF NOT EXISTS receipt_category VARCHAR(64);
 

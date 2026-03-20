@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { getBaseUrl } from '@/lib/seo'
 
-const BASE_URL = 'https://pizzadalcielo.com'
+const BASE_URL = getBaseUrl()
 
 export default function robots(): MetadataRoute.Robots {
   return {

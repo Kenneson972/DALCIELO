@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Sparkles, Pizza, ShoppingBag, Star, ChefHat, Info, Plus, Clock } from 'lucide-react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { ArrowLeft, Sparkles, Pizza, ChefHat, Info, Plus, Clock, CupSoda, Cookie } from 'lucide-react'
 import { MenuItem, MenuItemType } from '@/lib/menuUtils'
 import { AddToCartButton } from '@/components/menu/AddToCartButton'
 import { Button } from '@/components/ui/Button'
@@ -19,31 +19,31 @@ interface ChefPizzaPageProps {
   images: string[]
 }
 
-const FloatingElement = ({ delay, x, y, rotate, scale, children }: { delay: number, x: number, y: number, rotate: number, scale: number, children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ 
-      opacity: [0.2, 0.4, 0.2], 
-      scale: [scale, scale * 1.1, scale],
-      y: [y, y - 20, y],
-      rotate: [rotate, rotate + 15, rotate]
-    }}
-    transition={{ 
-      duration: 6, 
-      delay: delay,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-    className="absolute pointer-events-none select-none z-0"
-    style={{ left: `${x}%`, top: `${y}%` }}
-  >
-    {children}
-  </motion.div>
-)
+/** Décoration discrète (pas d’emoji — kb-ui-ux-pro-max). Désactivée si prefers-reduced-motion. */
+function FloatingOrb({ delay, x, y, reducedMotion }: { delay: number; x: number; y: number; reducedMotion?: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={
+        reducedMotion
+          ? { opacity: 0.08 }
+          : {
+              opacity: [0.06, 0.12, 0.06],
+              scale: [1, 1.15, 1],
+            }
+      }
+      transition={{ duration: 8, delay, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute pointer-events-none select-none z-0 w-24 h-24 rounded-full bg-amber-500/20 blur-2xl"
+      style={{ left: `${x}%`, top: `${y}%` }}
+      aria-hidden
+    />
+  )
+}
 
 export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
   const [revealed, setRevealed] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     setMounted(true)
@@ -61,15 +61,14 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
   return (
     <div className="min-h-screen bg-[#0f0a05] text-[#FFF8F0] selection:bg-amber-500/30 overflow-x-hidden relative">
       
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {/* Background — orbes douces, pas d’emoji (premium / a11y) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-amber-900/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-orange-950/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2" />
-        
-        <FloatingElement delay={0} x={10} y={20} rotate={-15} scale={1}><span className="text-4xl opacity-20">🍅</span></FloatingElement>
-        <FloatingElement delay={2} x={85} y={15} rotate={45} scale={1.2}><span className="text-5xl opacity-10">🍃</span></FloatingElement>
-        <FloatingElement delay={1} x={15} y={80} rotate={-30} scale={0.9}><span className="text-4xl opacity-15">🍄</span></FloatingElement>
-        <FloatingElement delay={3} x={80} y={75} rotate={15} scale={1}><span className="text-5xl opacity-10">🧀</span></FloatingElement>
+        <FloatingOrb delay={0} x={10} y={20} reducedMotion={!!prefersReducedMotion} />
+        <FloatingOrb delay={2} x={85} y={15} reducedMotion={!!prefersReducedMotion} />
+        <FloatingOrb delay={1} x={15} y={80} reducedMotion={!!prefersReducedMotion} />
+        <FloatingOrb delay={3} x={80} y={75} reducedMotion={!!prefersReducedMotion} />
       </div>
 
       <div className="page-wrapper relative z-10">
@@ -100,8 +99,9 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                 thumbnailVariant="dark"
                 badges={
                   <>
-                    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[0.7rem] font-black uppercase tracking-[0.2em] text-white bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg animate-pulse">
-                      🌟 Édition Limitée
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[0.7rem] font-bold uppercase tracking-[0.2em] text-amber-950 bg-amber-400/90 border border-amber-300/50 shadow-lg backdrop-blur-sm">
+                      <Sparkles size={14} aria-hidden />
+                      Édition limitée
                     </span>
                     <Badge text="Du Chef" variant="premium" className="bg-white/10 backdrop-blur-md text-white border-white/20" />
                   </>
@@ -119,13 +119,14 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
               >
                 {/* Timer Exclusif */}
                 {item.chef_valid_until && (
-                  <div className="mb-10 p-6 bg-gradient-to-br from-amber-500/10 to-orange-600/5 rounded-3xl border border-amber-500/20 relative overflow-hidden group shadow-inner">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform duration-700">
-                      <Clock size={80} />
+                  <div className="mb-10 p-6 sm:p-8 bg-amber-500/[0.08] rounded-2xl border border-amber-500/15 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.06]" aria-hidden>
+                      <Clock size={72} />
                     </div>
                     <div className="relative z-10 flex flex-col items-center text-center">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/80 mb-4 flex items-center gap-2">
-                        <Sparkles size={12} /> Temps restant pour l&apos;exclu
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-400/90 mb-4 flex items-center gap-2">
+                        <Sparkles size={12} aria-hidden />
+                        Temps restant pour l&apos;exclu
                       </span>
                       <ChefValidUntilTimer validUntil={item.chef_valid_until} variant="dark" />
                     </div>
@@ -133,21 +134,18 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                 )}
 
                 <div className="relative">
-                  <p className="text-[0.75rem] font-black uppercase tracking-[0.3em] text-amber-500 mb-2">
-                    👨‍🍳 Signature de Guylian
+                  <p className="flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-[0.28em] text-amber-400/90 mb-3">
+                    <ChefHat size={14} aria-hidden />
+                    Signature du Chef
                   </p>
-                  <h1 className="font-playfair text-4xl md:text-6xl font-black text-white leading-tight mb-3 drop-shadow-sm">
+                  <h1 id="chef-page-title" className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight mb-4">
                     {item.name}
                   </h1>
-                  
-                  <div className="flex items-center gap-4 mb-8">
-                    <span className="font-playfair text-5xl md:text-6xl font-black text-amber-500 tracking-tight drop-shadow-xl">
-                      {item.price}<span className="text-2xl md:text-3xl align-top ml-1">€</span>
+
+                  <div className="flex flex-wrap items-baseline gap-4 mb-8">
+                    <span className="font-playfair text-4xl md:text-5xl font-bold text-amber-400 tracking-tight">
+                      {item.price}<span className="text-xl md:text-2xl align-top ml-0.5 opacity-90">€</span>
                     </span>
-                    <div className="h-8 w-px bg-white/10 mx-2" />
-                    <div className="flex text-amber-400/60">
-                      {[1, 2, 3, 4, 5].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
-                    </div>
                   </div>
 
                   {item.description && (
@@ -183,10 +181,12 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                             className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/20 rounded-3xl backdrop-blur-sm"
                           >
                             <button
+                              type="button"
                               onClick={() => setRevealed(true)}
-                              className="px-10 py-5 bg-amber-500 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_20px_50px_rgba(245,158,11,0.3)] hover:bg-amber-400 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                              className="min-h-[48px] px-8 py-4 bg-amber-500 text-[#1c1917] font-bold uppercase tracking-widest rounded-2xl shadow-lg hover:bg-amber-400 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 flex items-center gap-3"
                             >
-                              <Plus size={24} /> Révéler les ingrédients
+                              <Plus size={22} aria-hidden />
+                              Révéler les ingrédients
                             </button>
                             <p className="text-[10px] font-bold text-amber-500/40 uppercase tracking-widest mt-4">Cliquez pour voir la composition</p>
                           </motion.div>
@@ -210,12 +210,16 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                       </h3>
                       <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2 scrollbar-hide">
                         {upsellItems.map((upsell) => (
-                          <div 
-                            key={upsell.id} 
-                            className="flex-shrink-0 w-44 bg-white/5 border border-white/5 rounded-[2rem] p-5 flex flex-col items-center text-center shadow-lg hover:border-amber-500/20 transition-all group"
+                          <div
+                            key={upsell.id}
+                            className="flex-shrink-0 w-44 bg-white/[0.06] border border-white/10 rounded-2xl p-5 flex flex-col items-center text-center shadow-lg hover:border-amber-500/20 transition-colors group"
                           >
-                            <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center text-4xl mb-4 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-6 shadow-inner">
-                              {upsell.type === 'drink' ? '🥤' : '🥐'}
+                            <div className="w-16 h-16 bg-white/5 rounded-xl flex items-center justify-center mb-4 text-amber-400/80 group-hover:text-amber-400 transition-colors" aria-hidden>
+                              {upsell.type === 'drink' ? (
+                                <CupSoda size={28} strokeWidth={1.5} />
+                              ) : (
+                                <Cookie size={28} strokeWidth={1.5} />
+                              )}
                             </div>
                             <p className="font-bold text-white text-sm leading-tight mb-1 line-clamp-1">{upsell.name}</p>
                             <p className="text-amber-500 font-black text-sm mb-4">{upsell.price.toFixed(2)}€</p>
@@ -230,28 +234,28 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                     </div>
                   )}
 
-                  {/* Bouton Ajouter au panier final */}
-                  <div className="flex gap-4 items-center mt-10 pt-10 border-t border-white/5">
+                  {/* Bouton CTA — min 44px, focus visible (kb-ui-ux-pro-max) */}
+                  <div className="flex gap-4 items-center mt-10 pt-10 border-t border-white/10">
                     <AddToCartButton
                       item={item}
-                      className="flex-1 py-5 rounded-2xl font-black text-lg shadow-[0_20px_50px_rgba(245,158,11,0.2)] hover:shadow-[0_25px_60px_rgba(245,158,11,0.3)] hover:-translate-y-1 transition-all bg-gradient-to-br from-amber-500 to-orange-600 border-0 text-white"
+                      className="min-h-[48px] flex-1 py-5 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-br from-amber-500 to-orange-600 border-0 text-[#1c1917] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     />
                   </div>
                 </div>
 
                 {/* Footer de la fiche : Envie d'autre chose ? */}
-                <div className="mt-16 pt-10 border-t border-white/5 text-center">
-                  <p className="text-xs font-black uppercase tracking-[0.3em] text-white/30 mb-6">
-                    Explorer la carte complète
+                <div className="mt-16 pt-10 border-t border-white/10 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/40 mb-6">
+                    Explorer la carte
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href="/menu">
-                      <Button variant="outline" size="lg" className="border-white/10 text-white hover:bg-white/5 px-10 rounded-2xl">
+                    <Link href="/menu" className="min-h-[48px] flex items-center justify-center">
+                      <Button variant="outline" size="lg" className="min-h-[48px] w-full sm:w-auto border-white/20 text-white hover:bg-white/10 px-8 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
                         Tout le menu
                       </Button>
                     </Link>
-                    <Link href="/customize">
-                      <Button variant="secondary" size="lg" className="bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 px-10 rounded-2xl">
+                    <Link href="/customize" className="min-h-[48px] flex items-center justify-center">
+                      <Button variant="secondary" size="lg" className="min-h-[48px] w-full sm:w-auto bg-amber-500/15 text-amber-300 border border-amber-500/25 hover:bg-amber-500/25 px-8 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
                         Ma pizza perso
                       </Button>
                     </Link>

@@ -341,10 +341,10 @@ export const menuData = {
 };
 
 export const contactInfo = {
-  name: "Pizza dal Cielo",
-  owner: "Guylian Grangenois",
+  name: "Pizza Dal Cielo",
+  owner: "L'équipe de Dal Cielo",
   address: {
-    street: "146 Bd De La Pointes Des Négres",
+    street: "146 Bd De La Pointe des Nègres",
     city: "Fort-de-France",
     state: "Martinique",
     postalCode: "97200",

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getCsrfToken } from '@/lib/csrf'
 import { X, Send, Loader2, Minimize2, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -38,7 +39,7 @@ const TTL_MS = 24 * 60 * 60 * 1000
 
 const WELCOME: Message = {
   role: 'assistant',
-  content: "Bonjour ! 👋 Je suis CieloBot, l'assistant de Pizza dal Cielo. Comment puis-je vous aider aujourd'hui ?"
+  content: "Bonjour ! 👋 Je suis CieloBot, l'assistant de Pizza Dal Cielo. Comment puis-je vous aider aujourd'hui ?"
 }
 
 function sanitizeMessages(messages: Message[]): Message[] {
@@ -134,7 +135,7 @@ export const Chatbot = () => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ message: messageToSend, history: historyForApi }),
       })
       const data = await response.json()
@@ -364,7 +365,7 @@ export const Chatbot = () => {
                   </button>
                 </div>
                 <p className="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest font-bold">
-                  Propulsé par Pizza dal Cielo
+                  Propulsé par Pizza Dal Cielo
                 </p>
               </div>
             </div>

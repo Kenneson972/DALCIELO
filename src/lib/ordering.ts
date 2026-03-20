@@ -1,5 +1,7 @@
-export const ORDERING_ENABLED =
-  process.env.NEXT_PUBLIC_ORDERING_ENABLED !== 'false'
+/**
+ * Règles métier pour la disponibilité de la commande en ligne.
+ * (L’ancien flag NEXT_PUBLIC_ORDERING_ENABLED a été retiré : la commande n’est plus désactivable globalement par env.)
+ */
 
 /** True si aujourd'hui est lundi en Martinique (UTC-4) */
 export function isMondayClosed(): boolean {
@@ -11,13 +13,11 @@ export function isMondayClosed(): boolean {
 }
 
 /**
- * Raison pour laquelle les commandes sont bloquées.
- * - 'monday'       → pizzeria fermée le lundi
- * - 'coming_soon'  → commande en ligne pas encore disponible
- * - null           → commandes disponibles
+ * Raison pour laquelle les commandes sont bloquées côté UI.
+ * - 'monday' → pizzeria fermée le lundi
+ * - null     → commandes autorisées (sous réserve four / API)
  */
-export function orderingBlockReason(): 'monday' | 'coming_soon' | null {
+export function orderingBlockReason(): 'monday' | null {
   if (isMondayClosed()) return 'monday'
-  if (!ORDERING_ENABLED) return 'coming_soon'
   return null
 }

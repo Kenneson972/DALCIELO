@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus, Trash2, ShoppingBag, Send, AlertTriangle, Phone, MessageCircle, Clock, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -11,6 +12,7 @@ import { contactInfo, menuData } from '@/data/menuData'
 import { supabase, supabaseEnabled } from '@/lib/supabaseClient'
 import { createLocalOrderId, createOrderToken, createOrder } from '@/lib/localStore'
 import type { Order } from '@/types/order'
+import { getCsrfToken } from '@/lib/csrf'
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -49,6 +51,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     { cartOpen: isOpen }
   )
   const [notes, setNotes] = useState('')
+  const [rgpdConsent, setRgpdConsent] = useState(false)
   const [form, setForm] = useState({
     client_firstname: '',
     client_lastname: '',
@@ -67,8 +70,9 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     if (ovenLoading) return false
     if (!estimate.ovenAvailable) return false
     if (form.type_service === 'delivery' && deliveryFeeStatus !== 'ok') return false
+    if (!rgpdConsent) return false
     return true
-  }, [clientName, form.client_phone, items.length, deliveryFeeStatus, estimate.ovenAvailable, ovenLoading])
+  }, [clientName, form.client_phone, items.length, deliveryFeeStatus, estimate.ovenAvailable, ovenLoading, rgpdConsent])
 
   // Réinitialiser l'état "sent" à l'ouverture du tiroir pour afficher le panier à jour (vide après envoi)
   useEffect(() => {
@@ -190,7 +194,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify(orderPayload),
       })
       const data = await res.json().catch(() => ({}))
@@ -283,7 +287,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       </div>
                       <h4 className="text-xl font-black text-dark mb-3">Problème de connexion</h4>
                       <p className="text-gray-text mb-4">
-                        Votre commande n&apos;a pas pu être envoyée automatiquement. Veuillez contacter Guylian directement pour passer votre commande :
+                        Votre commande n&apos;a pas pu être envoyée automatiquement. Veuillez contacter l&apos;équipe de Dal Cielo directement pour passer votre commande :
                       </p>
                       <div className="space-y-3 w-full mb-6">
                         <a
@@ -323,7 +327,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       </div>
                       <h4 className="text-xl font-black text-dark mb-3">Commande envoyée !</h4>
                       <p className="text-gray-text mb-6">
-                        Guylian vérifie les stocks. Vous recevrez le lien de paiement par WhatsApp sous 5-10 min.
+                        L&apos;équipe de Dal Cielo vérifie les stocks. Vous recevrez le lien de paiement par WhatsApp sous 5-10 min.
                       </p>
                       <Button
                         onClick={() => {
@@ -357,10 +361,12 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                   <div className="p-6 space-y-6">
                     {items.map((item, index) => (
                       <div key={`${item.id}-${(item.customizations ?? []).join('|')}-${index}`} className="flex gap-4 group">
-                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
-                          <img
+                        <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
+                          <Image
                             src={item.image || getCartItemFallback(item.category)}
                             alt={item.name}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -472,29 +478,35 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="grid grid-cols-2 gap-2">
                         <input
+                          id="cart-firstname"
                           type="text"
                           name="given-name"
                           placeholder="Prénom"
                           autoComplete="given-name"
+                          aria-label="Prénom"
                           className="w-full px-4 py-3 min-h-[48px] rounded-2xl border border-gray-200 focus:outline-none focus:border-primary/30 touch-manipulation"
                           value={form.client_firstname}
                           onChange={(e) => setForm({ ...form, client_firstname: e.target.value })}
                         />
                         <input
+                          id="cart-lastname"
                           type="text"
                           name="family-name"
                           placeholder="Nom"
                           autoComplete="family-name"
+                          aria-label="Nom"
                           className="w-full px-4 py-3 min-h-[48px] rounded-2xl border border-gray-200 focus:outline-none focus:border-primary/30 touch-manipulation"
                           value={form.client_lastname}
                           onChange={(e) => setForm({ ...form, client_lastname: e.target.value })}
                         />
                       </div>
                       <input
+                        id="cart-phone"
                         type="tel"
                         name="tel"
                         placeholder="Téléphone WhatsApp"
                         autoComplete="tel"
+                        aria-label="Téléphone WhatsApp"
                         className="w-full px-4 py-3 min-h-[48px] rounded-2xl border border-gray-200 focus:outline-none focus:border-primary/30 touch-manipulation"
                         value={form.client_phone}
                         onChange={(e) => setForm({ ...form, client_phone: e.target.value })}
@@ -713,6 +725,18 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
             {/* ── Bouton submit sticky ── */}
             {!sent && items.length > 0 && (
               <div className="p-6 border-t border-gray-100 bg-white flex-shrink-0 space-y-2">
+                <label className="flex items-start gap-3 cursor-pointer mb-2">
+                  <input
+                    type="checkbox"
+                    checked={rgpdConsent}
+                    onChange={(e) => setRgpdConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary accent-primary shrink-0"
+                  />
+                  <span className="text-xs text-gray-500 leading-snug">
+                    J&apos;accepte que mes données soient utilisées pour traiter ma commande.{' '}
+                    <a href="/mentions" className="underline text-primary hover:text-primary/80">Mentions légales</a>
+                  </span>
+                </label>
                 <Button
                   onClick={handleSubmit}
                   className="w-full py-4 text-lg"
@@ -726,7 +750,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       : 'Envoyer pour validation'}
                 </Button>
                 <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest">
-                  Validation manuelle par Guylian avant paiement
+                  Validation manuelle par l&apos;équipe de Dal Cielo avant paiement
                 </p>
               </div>
             )}

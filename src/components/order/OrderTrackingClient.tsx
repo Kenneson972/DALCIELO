@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { getCsrfToken } from '@/lib/csrf'
 import {
   CheckCircle,
   ChefHat,
@@ -124,7 +125,7 @@ const getStatusConfig = (status: OrderStatus) => {
       return {
         title: 'En préparation',
         description:
-          'Guylian prépare votre commande avec soin. Vous serez prévenu(e) dès qu\u2019elle est prête.',
+          "L'équipe de Dal Cielo prépare votre commande avec soin. Vous serez prévenu(e) dès qu\u2019elle est prête.",
         helper: 'Temps estimé : 20-30 minutes',
         helperIcon: Flame,
         icon: ChefHat,
@@ -152,7 +153,7 @@ const getStatusConfig = (status: OrderStatus) => {
       return {
         title: 'Commande terminée',
         description: 'Merci pour votre commande ! N\u2019hésitez pas à revenir.',
-        helper: 'À très vite chez Pizza dal Cielo.',
+        helper: 'À très vite chez Pizza Dal Cielo.',
         helperIcon: Sparkles,
         icon: Sparkles,
         accent: 'text-green-600',
@@ -449,7 +450,7 @@ export const OrderTrackingClient = () => {
     if (!token) return
     setCancelling(true)
     try {
-      const res = await fetch(`/api/orders/${encodeURIComponent(token)}/cancel`, { method: 'POST' })
+      const res = await fetch(`/api/orders/${encodeURIComponent(token)}/cancel`, { method: 'POST', headers: { 'x-csrf-token': getCsrfToken() } })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data?.order) {
         setOrder(data.order)
@@ -637,7 +638,7 @@ export const OrderTrackingClient = () => {
 
           <header className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">Pizza dal Cielo</p>
+              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">Pizza Dal Cielo</p>
               <h1 className="text-2xl font-black">Suivi de commande</h1>
             </div>
             <div className="text-right">
@@ -721,7 +722,7 @@ export const OrderTrackingClient = () => {
                     <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-1">
                       <p className="text-2xl">💳</p>
                       <p className="font-black text-amber-800">Lien de paiement en cours de préparation</p>
-                      <p className="text-sm text-amber-700">Guylian vous enverra le lien sous quelques instants.</p>
+                      <p className="text-sm text-amber-700">L&apos;équipe de Dal Cielo vous enverra le lien sous quelques instants.</p>
                     </div>
                   )}
                   <button
@@ -860,7 +861,7 @@ export const OrderTrackingClient = () => {
             <div className="bg-white rounded-3xl shadow-lg p-6 space-y-4">
               <h3 className="text-lg font-black">Besoin d&apos;aide ?</h3>
               <p className="text-gray-text">
-                Votre page se met à jour automatiquement. Vous pouvez contacter Guylian à tout moment si besoin.
+                Votre page se met à jour automatiquement. Vous pouvez contacter l&apos;équipe de Dal Cielo à tout moment si besoin.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a

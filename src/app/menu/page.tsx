@@ -3,8 +3,10 @@ import { menuData } from '@/data/menuData'
 import { generateSlug } from '@/lib/utils'
 import { MenuPageClient, type MenuPageItem } from '@/components/menu/MenuPageClient'
 import { getHomepageSettings } from '@/lib/homepageSettingsStore'
+import { InlineJsonLd } from '@/components/seo/InlineJsonLd'
+import { absoluteUrl, getBaseUrl } from '@/lib/seo'
 
-export const revalidate = 30 // Les modifs admin apparaissent sous ~30s
+export const revalidate = 0 // Toujours à jour (toggle Pizza du Chef, stocks, etc.)
 
 /** IDs des pizzas avec sauce au choix (Variante 2 dans import_articles_source.csv). Utilisé quand Supabase n'a pas sauce_au_choix. */
 const PIZZA_IDS_SAUCE_AU_CHOIX = new Set([201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 213, 214, 215])
@@ -110,5 +112,33 @@ export default async function MenuPage() {
     items = itemsFromStaticData().filter(i => i.type !== 'Dessert' || dessertsEnabled)
   }
 
-  return <MenuPageClient items={items} />
+  const BASE_URL = getBaseUrl()
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Menu', item: absoluteUrl('/menu') },
+    ],
+  }
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Menu Pizza Dal Cielo',
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: items.length,
+    itemListElement: items.slice(0, 30).map((it, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: it.name,
+      url: absoluteUrl(`/menu/${it.slug}`),
+    })),
+  }
+
+  return (
+    <>
+      <InlineJsonLd schema={[breadcrumbSchema, itemListSchema]} />
+      <MenuPageClient items={items} />
+    </>
+  )
 }

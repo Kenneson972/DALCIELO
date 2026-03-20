@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Instagram, Facebook, Phone, Mail, MapPin, MessageCircle, ArrowUp, CreditCard } from 'lucide-react'
 import { contactInfo } from '@/data/menuData'
 import { Button } from '@/components/ui/Button'
@@ -40,9 +41,11 @@ export const Footer = () => {
           {/* Brand */}
           <div className="space-y-8">
             <Link href="/" className="flex items-center gap-3 group w-fit">
-              <img
+              <Image
                 src="/images/logo.png"
-                alt="Pizza dal Cielo Logo"
+                alt="Pizza Dal Cielo Logo"
+                width={48}
+                height={48}
                 className="h-12 w-auto object-contain transition-opacity duration-300 group-hover:opacity-90 drop-shadow-md"
               />
               <div className="flex flex-col">
@@ -102,7 +105,7 @@ export const Footer = () => {
             <ul className="space-y-6">
               <li className="flex items-start gap-4 text-white/90 group">
                 <div className="bg-white/20 p-2 rounded-lg mt-1 group-hover:bg-white/30 transition-colors">
-                  <MapPin size={20} />
+                  <MapPin size={20} aria-hidden="true" />
                 </div>
                 <span>
                   <strong className="block text-lg mb-1">Bellevue</strong>
@@ -112,7 +115,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-4 text-white/90 group">
                 <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
-                  <Phone size={20} />
+                  <Phone size={20} aria-hidden="true" />
                 </div>
                 <a href={`tel:${sanitizePhone(contactInfo.phone)}`} className="text-lg font-bold hover:underline">
                   {contactInfo.phone}
@@ -120,7 +123,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-4 text-white/90 group">
                 <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
-                  <Mail size={20} />
+                  <Mail size={20} aria-hidden="true" />
                 </div>
                 <a href={`mailto:${contactInfo.email}`} className="hover:underline">
                   {contactInfo.email}
@@ -131,7 +134,7 @@ export const Footer = () => {
 
           {/* Social & Hours */}
           <div className="space-y-8">
-            <div className="inline-block bg-white/20 backdrop-blur-md border-2 border-white/40 rounded-3xl p-6 shadow-xl w-full">
+            <div className="inline-block bg-white/20 backdrop-blur-md max-md:bg-white/15 border-2 border-white/40 rounded-3xl p-6 shadow-xl w-full">
               <p className="text-white font-bold text-lg mb-2 flex items-center gap-2">
                 🕐 Horaires
               </p>
@@ -174,7 +177,7 @@ export const Footer = () => {
         {/* Footer Bottom */}
         <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-white/60 text-sm">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-            <p>© {new Date().getFullYear()} Pizza dal Cielo. Fait avec ❤️ en Martinique.</p>
+            <p>© {new Date().getFullYear()} Pizza Dal Cielo. Fait avec ❤️ en Martinique.</p>
             <span className="hidden md:inline">·</span>
             <Link href="/mentions" className="hover:text-white transition-colors">Mentions légales</Link>
             <span className="hidden md:inline">·</span>

@@ -17,6 +17,10 @@ const StickyCartBar = dynamic(
   () => import('@/components/layout/StickyCartBar').then((m) => m.StickyCartBar),
   { ssr: false }
 )
+const CookieConsent = dynamic(
+  () => import('@/components/ui/CookieConsent').then((m) => m.CookieConsent),
+  { ssr: false }
+)
 
 export function LayoutSwitch({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -30,7 +34,7 @@ export function LayoutSwitch({ children }: { children: React.ReactNode }) {
   return (
     <QueueEstimateProvider>
       <Header />
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow">
         {children}
       </main>
       <Footer />
@@ -38,6 +42,7 @@ export function LayoutSwitch({ children }: { children: React.ReactNode }) {
         <Chatbot />
         <AnnouncementPopup />
         <StickyCartBar />
+        <CookieConsent />
       </Suspense>
     </QueueEstimateProvider>
   )

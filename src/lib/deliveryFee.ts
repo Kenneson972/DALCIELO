@@ -1,5 +1,5 @@
 // Pizzeria coordinates — verify before deployment via:
-// https://nominatim.openstreetmap.org/search?q=146+Pointes+des+Negres+Fort-de-France&format=json
+// https://nominatim.openstreetmap.org/search?q=146+Pointe+des+Negres+Fort-de-France&format=json
 export const PIZZERIA_LAT = 14.6165
 export const PIZZERIA_LNG = -61.1152
 

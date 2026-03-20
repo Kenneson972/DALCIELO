@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -25,8 +25,47 @@ export const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [cartBounce, setCartBounce] = useState(false)
   const pathname = usePathname()
   const { getItemCount } = useCart()
+  const prevCount = React.useRef(0)
+  const navPillContainerRef = useRef<HTMLDivElement>(null)
+  /** Pill mesurée au layout — évite layoutId Framer (souvent mauvaise origine après scroll + navigation Next). */
+  const [navPill, setNavPill] = useState({ left: 0, top: 0, width: 0, height: 0, visible: false })
+
+  const updateNavPillPosition = useCallback(() => {
+    const container = navPillContainerRef.current
+    if (!container) return
+    const activeIndex = navLinks.findIndex((l) => l.href === pathname)
+    if (activeIndex < 0) {
+      setNavPill((p) => ({ ...p, visible: false }))
+      return
+    }
+    const linkEl = container.querySelector(`[data-nav-pill-link="${activeIndex}"]`) as HTMLElement | null
+    if (!linkEl) return
+    const c = container.getBoundingClientRect()
+    const r = linkEl.getBoundingClientRect()
+    setNavPill({
+      left: r.left - c.left,
+      top: r.top - c.top,
+      width: r.width,
+      height: r.height,
+      visible: true,
+    })
+  }, [pathname])
+
+  useLayoutEffect(() => {
+    updateNavPillPosition()
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(updateNavPillPosition)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [updateNavPillPosition, scrolled])
+
+  useEffect(() => {
+    window.addEventListener('resize', updateNavPillPosition)
+    return () => window.removeEventListener('resize', updateNavPillPosition)
+  }, [updateNavPillPosition])
 
   useEffect(() => {
     setMounted(true)
@@ -36,6 +75,17 @@ export const Header = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Bounce animation when cart count increases
+  useEffect(() => {
+    if (!mounted) return
+    const count = getItemCount()
+    if (count > prevCount.current) {
+      setCartBounce(true)
+      setTimeout(() => setCartBounce(false), 600)
+    }
+    prevCount.current = count
+  })
 
   useEffect(() => {
     const openCart = () => setIsCartOpen(true)
@@ -47,19 +97,19 @@ export const Header = () => {
     <>
       <header
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 sm:px-6 bg-transparent',
-          scrolled 
-            ? 'py-3' 
-            : 'pt-6 pb-4'
+          'fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300',
+          scrolled
+            ? 'py-2.5 bg-white/25 backdrop-blur-xl max-md:bg-white/92 border-b border-white/30 shadow-sm'
+            : 'py-4 bg-transparent border-b border-transparent'
         )}
       >
-        <div className="max-w-7xl mx-auto flex items-center">
+        <div className="max-w-7xl mx-auto flex min-h-[52px] items-center">
           {/* Colonne gauche (1/3) — Logo */}
           <div className="flex-1 flex justify-start min-w-0">
-            <Link href="/" className="flex items-center group relative z-50" aria-label="Pizza dal Cielo - Accueil">
+            <Link href="/" className="flex items-center group relative z-50" aria-label="Pizza Dal Cielo - Accueil">
               <Image
                 src="/images/logo.png"
-                alt="Pizza dal Cielo Logo"
+                alt="Pizza Dal Cielo Logo"
                 width={48}
                 height={48}
                 sizes="48px"
@@ -70,51 +120,69 @@ export const Header = () => {
 
           {/* Colonne centre (1/3) — Nav + cart, centré dans le viewport */}
           <nav className="flex-1 hidden md:flex items-center justify-center gap-4 min-w-0">
-              <div className="flex items-center bg-white/30 backdrop-blur-sm rounded-full p-1 border border-white/25 shadow-sm">
-                {navLinks.map((link) => {
+            <div
+              ref={navPillContainerRef}
+              className="relative flex items-center rounded-full border border-white/25 bg-white/30 p-1 shadow-sm backdrop-blur-sm max-md:bg-white/80"
+            >
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute z-0 rounded-full bg-[#D4633F] shadow-md"
+                initial={false}
+                animate={{
+                  left: navPill.left,
+                  top: navPill.top,
+                  width: Math.max(navPill.width, 0),
+                  height: Math.max(navPill.height, 0),
+                  opacity: navPill.visible && navPill.width > 0 ? 1 : 0,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              />
+              {navLinks.map((link, index) => {
                 const isActive = pathname === link.href
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
+                    data-nav-pill-link={index}
                     className={cn(
-                      'relative px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-full transition-all duration-300',
-                      isActive 
-                        ? 'text-white bg-[#D4633F] shadow-md' 
-                        : scrolled 
-                          ? 'text-[#3D2418] hover:bg-[#D4633F]/10' 
+                      'relative z-10 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-200',
+                      isActive
+                        ? 'text-white'
+                        : scrolled
+                          ? 'text-[#3D2418] hover:bg-[#D4633F]/10'
                           : 'text-[#3D2418] hover:bg-white/20 hover:text-[#D4633F]'
                     )}
                   >
                     {link.name}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute inset-0 bg-[#D4633F] rounded-full -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
                   </Link>
                 )
               })}
             </div>
 
-            <button 
+            <motion.button
               onClick={() => setIsCartOpen(true)}
+              animate={cartBounce ? { scale: [1, 1.3, 0.9, 1.1, 1] } : {}}
+              transition={{ duration: 0.5 }}
               className={cn(
                 "relative p-3 rounded-full transition-all duration-300 group",
-                scrolled 
-                  ? "bg-white/50 hover:bg-[#D4633F] hover:text-white text-[#D4633F] shadow-sm border border-[#D4633F]/20" 
-                  : "bg-white/80 hover:bg-[#D4633F] hover:text-white text-[#3D2418] shadow-lg backdrop-blur-md"
+                scrolled
+                  ? "bg-white/50 hover:bg-[#D4633F] hover:text-white text-[#D4633F] shadow-sm border border-[#D4633F]/20"
+                  : "bg-white/80 hover:bg-[#D4633F] hover:text-white text-[#3D2418] shadow-lg backdrop-blur-md max-md:bg-white/92"
               )}
+              aria-label={`Panier — ${mounted ? getItemCount() : 0} article(s)`}
             >
               <ShoppingBag size={20} />
               {mounted && getItemCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#D4633F] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-white group-hover:text-[#D4633F]">
+                <motion.span
+                  key={getItemCount()}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-[#D4633F] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-white group-hover:text-[#D4633F]"
+                >
                   {getItemCount()}
-                </span>
+                </motion.span>
               )}
-            </button>
+            </motion.button>
           </nav>
 
           {/* Colonne droite (1/3) — Commander (desktop) ou panier + menu (mobile) */}
@@ -137,7 +205,7 @@ export const Header = () => {
               onClick={() => setIsCartOpen(true)}
               className={cn(
                 "md:hidden relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors touch-manipulation",
-                scrolled ? "text-[#D4633F] bg-white/50" : "text-[#3D2418] bg-white/80 backdrop-blur-sm shadow-sm"
+                scrolled ? "text-[#D4633F] bg-white/50" : "text-[#3D2418] bg-white/90 shadow-sm"
               )}
               aria-label="Ouvrir le panier"
             >
@@ -151,7 +219,7 @@ export const Header = () => {
             <button
               className={cn(
                 "md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors z-50 touch-manipulation",
-                isOpen ? "bg-white text-[#D4633F] shadow-md" : scrolled ? "text-[#D4633F]" : "text-[#3D2418] bg-white/80 backdrop-blur-sm shadow-sm"
+                isOpen ? "bg-white text-[#D4633F] shadow-md" : scrolled ? "text-[#D4633F]" : "text-[#3D2418] bg-white/90 shadow-sm"
               )}
               onClick={() => setIsOpen(!isOpen)}
               aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}

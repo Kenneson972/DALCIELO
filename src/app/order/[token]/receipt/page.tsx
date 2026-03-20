@@ -123,12 +123,12 @@ export default function ReceiptPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/logo.png"
-            alt="Pizza dal Cielo"
+            alt="Pizza Dal Cielo"
             width={80}
             height={80}
             className="w-20 h-20 object-contain mx-auto mb-3"
           />
-          <h1 className="text-[22px] font-black text-gray-900 tracking-tight">Pizza dal Cielo</h1>
+          <h1 className="text-[22px] font-black text-gray-900 tracking-tight">Pizza Dal Cielo</h1>
           <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
             {fullAddress}<br />
             {contactInfo.phone} · {contactInfo.email}
@@ -239,7 +239,7 @@ export default function ReceiptPage() {
 
         {/* Footer */}
         <div className="mx-10 pb-10 pt-5 border-t border-dashed border-gray-200 text-center">
-          <p className="text-[11px] text-gray-400">Merci pour votre confiance. À bientôt chez Pizza dal Cielo !</p>
+          <p className="text-[11px] text-gray-400">Merci pour votre confiance. À bientôt chez Pizza Dal Cielo !</p>
           <p className="text-[10px] text-gray-300 mt-1">
             Reçu généré le {formatDate(new Date().toISOString())}
           </p>

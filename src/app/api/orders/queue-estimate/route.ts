@@ -3,7 +3,7 @@ import { getOrders } from '@/lib/ordersStore'
 import { DEFAULT_QUEUE_SETTINGS, getQueueSettings } from '@/lib/queueSettingsStore'
 
 // ─── Configuration four ───────────────────────────────────────────────────────
-// Guylian peut ajuster ces valeurs selon son four
+// L'équipe de Dal Cielo peut ajuster ces valeurs selon son four
 const OVEN_CAPACITY = 4      // pizzas max par fournée
 const PREP_TIME_MIN  = 15    // minutes par fournée
 
@@ -13,7 +13,7 @@ const COOKED_CATEGORIES = [
 ]
 
 // Statuts qui représentent une charge réelle sur le four
-// (on exclut pending_validation : pas encore confirmé par Guylian)
+// (on exclut pending_validation : pas encore confirmé par L'équipe de Dal Cielo)
 const ACTIVE_STATUSES = ['waiting_payment', 'paid', 'in_preparation'] as const
 
 export async function GET() {

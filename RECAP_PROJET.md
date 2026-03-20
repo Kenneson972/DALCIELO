@@ -1,6 +1,6 @@
 # 🍕 Récapitulatif complet – Pizza dal Cielo
 
-**Client :** Guylian Grangenois  
+**Client :** equipe de Dal Cielo  
 **Projet :** Site web vitrine + e-commerce pour la pizzeria Pizza dal Cielo  
 **Localisation :** Bellevue, Fort-de-France, Martinique  
 **Repo GitHub :** [Kenneson972/DALCIELO](https://github.com/Kenneson972/DALCIELO)
@@ -9,7 +9,7 @@
 
 ## 1. Contexte
 
-Pizza dal Cielo est une pizzeria artisanale ouverte en **juin 2024** par Guylian Grangenois (23 ans). Le site vise à offrir une **expérience web premium**, reflétant l’authenticité et la qualité des pizzas dans un design moderne et tropical, tout en permettant la commande en ligne et la prise de contact simplifiée.
+Pizza dal Cielo est une pizzeria artisanale ouverte en **juin 2024** par l'equipe de Dal Cielo. Le site vise à offrir une **expérience web premium**, reflétant l’authenticité et la qualité des pizzas dans un design moderne et tropical, tout en permettant la commande en ligne et la prise de contact simplifiée.
 
 ---
 
@@ -113,14 +113,14 @@ DALCIELO/
 
 ---
 
-## 5. Flux de commande (validation par Guylian)
+## 5. Flux de commande (validation par equipe de Dal Cielo)
 
-Le paiement n’est **pas immédiat** : la commande est d’abord envoyée pour **validation par Guylian sur l’iPad**, puis le lien de paiement Stripe est envoyé au client par WhatsApp.
+Le paiement n’est **pas immédiat** : la commande est d’abord envoyée pour **validation par equipe de Dal Cielo sur l’iPad**, puis le lien de paiement Stripe est envoyé au client par WhatsApp.
 
 1. **Client** : Remplit le panier, ouvre le tiroir panier, remplit le formulaire (Nom, Téléphone WhatsApp, Click & Collect / Livraison, Heure souhaitée) et clique sur **« Envoyer pour validation »**.
 2. **Système** : Appel **POST /api/orders** → enregistrement en **MySQL** (table `orders`). En cas d’échec (DB indisponible), fallback **localStorage** puis redirection. Vide le panier, redirige vers **/order/[token]** (suivi de commande).
 3. **Suivi commande** : Page **/order/[token]** charge la commande via **GET /api/orders/[token]** ; si 404/500, fallback **localStorage** pour afficher les commandes créées en local.
-4. **Guylian (iPad)** : Sur `/admin`, onglet **Commandes** : liste chargée via **GET /api/admin/orders** (MySQL). Changement de statut via **PATCH /api/admin/orders/[id]**.
+4. **equipe de Dal Cielo (iPad)** : Sur `/admin`, onglet **Commandes** : liste chargée via **GET /api/admin/orders** (MySQL). Changement de statut via **PATCH /api/admin/orders/[id]**.
 5. **Validation** : Clique **Valider** → API crée un Stripe Payment Link, statut `waiting_payment`. Bouton **« Envoyer WhatsApp »** pour le lien de paiement.
 6. **Client** : Paie via le lien Stripe reçu.
 7. **Webhook Stripe** : À `checkout.session.completed`, la commande passe en `paid`.
@@ -135,7 +135,7 @@ Le paiement n’est **pas immédiat** : la commande est d’abord envoyée pour 
 
 - **Hero** : Titre accrocheur, CTA « Découvrir le menu » et « Personnaliser ma pizza », note 5.0 TripAdvisor, image pizza.
 - **Menu en avant** : 3 pizzas populaires avec bouton « Ajouter » au panier.
-- **À propos (court)** : Histoire de Guylian, valeurs, localisation Bellevue.
+- **À propos (court)** : Histoire de l'equipe de Dal Cielo, valeurs, localisation Bellevue.
 - **Galerie** : Grille type masonry avec photos (placeholder Unsplash) + lien Instagram.
 - **Contact / Horaires** : Cartes avec adresse, téléphone, email, horaires Mardi–Samedi 18h–22h.
 
@@ -155,7 +155,7 @@ Le paiement n’est **pas immédiat** : la commande est d’abord envoyée pour 
 
 ### 6.4 Page À propos (`/about`)
 
-- Histoire de Pizza dal Cielo et de Guylian, valeurs, Mission et Vision.
+- Histoire de Pizza dal Cielo et de l'equipe de Dal Cielo, valeurs, Mission et Vision.
 
 ### 6.5 Page Contact (`/contact`)
 

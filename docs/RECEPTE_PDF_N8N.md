@@ -120,7 +120,7 @@ Notes : {{NOTES}}
 | 5                | Google Docs       | **Update a document** : Replace All pour chaque `{{PLACEHOLDER}}` par la valeur du Code. |
 | 6                | Google Drive      | **Download file** : télécharge le Doc en PDF (option de conversion → `application/pdf`). |
 | 7                | HTTP Request      | **Upload PDF to app** : POST du PDF vers l’API → stockage Supabase + URL enregistrée sur la commande. |
-| 8                | Send email        | Envoi du PDF en pièce jointe (binary `data`) à Guylian et/ou au client. |
+| 8                | Send email        | Envoi du PDF en pièce jointe (binary `data`) à equipe de Dal Cielo et/ou au client. |
 
 **Reçu côté client** : une fois le PDF uploadé (étape 7), l’app enregistre son URL sur la commande (`receipt_pdf_url`). Sur la page de suivi (`/order/[token]`), le client voit un bouton **« Télécharger le reçu PDF »** qui ouvre ce même PDF (celui généré par n8n).
 
@@ -145,7 +145,7 @@ L’app appelle le webhook n8n **automatiquement** quand un paiement Stripe est 
 - **Même principe qu’EMMA 2.0** : Google Doc template → Copy → Update (placeholders) → Download as PDF → Send email.
 - **Données** : fournies par `GET /api/orders/[token]` (ou par le webhook si vous envoyez déjà l’objet `order`).
 - **Template** : un seul Google Doc « Reçu » avec les placeholders listés ci‑dessus.
-- **Résultat** : un PDF reçu généré automatiquement et envoyé par email (Guylian, client, ou les deux selon les branches du workflow).
+- **Résultat** : un PDF reçu généré automatiquement et envoyé par email (equipe de Dal Cielo, client, ou les deux selon les branches du workflow).
 
 ---
 
@@ -160,7 +160,7 @@ Le fichier **`n8n/Reçu-Pizza-dal-Cielo-PDF.json`** contient un workflow calqué
 5. **Update document** (Google Docs) → remplace tous les `{{PLACEHOLDER}}`.
 6. **Download as PDF** (Google Drive) → télécharge le Doc en PDF.
 7. **Upload PDF to app** (HTTP Request) → envoie le PDF à l’API pour stockage et affichage client.
-8. **Envoyer email (Guylian)** → envoie le PDF en pièce jointe.
+8. **Envoyer email (equipe de Dal Cielo)** → envoie le PDF en pièce jointe.
 9. **Respond to Webhook** → répond au caller.
 
 **À faire après import :**

@@ -94,7 +94,7 @@ Ce document regroupe les récaps de sessions de développement. Chaque section e
 ## 1. Tunnel de commande — Suppression WhatsApp + Refus structuré
 
 ### Problème
-Le tunnel de paiement dépendait de WhatsApp à chaque étape : Guylian devait manuellement envoyer un lien Stripe au client, et les refus utilisaient un `window.prompt` basique (non mobile-friendly, pas de raisons prédéfinies).
+Le tunnel de paiement dépendait de WhatsApp à chaque étape : equipe de Dal Cielo devait manuellement envoyer un lien Stripe au client, et les refus utilisaient un `window.prompt` basique (non mobile-friendly, pas de raisons prédéfinies).
 
 ### Ce qui a changé
 
@@ -166,7 +166,7 @@ Réécriture complète avec :
 ## 3. CieloBot → Dashboard Admin — Notification nouvelle commande
 
 ### Problème
-Quand CieloBot créait une commande, Guylian n'était pas notifié en temps réel sur le dashboard.
+Quand CieloBot créait une commande, equipe de Dal Cielo n'était pas notifié en temps réel sur le dashboard.
 
 ### Architecture mise en place
 
@@ -206,15 +206,15 @@ n8n "Format Order Response" → envoie en parallèle :
 
 ---
 
-## 4. Notification bot au client — Après validation Guylian
+## 4. Notification bot au client — Après validation equipe de Dal Cielo
 
 ### Problème
-Quand Guylian validait une commande, le client ne recevait aucun signal sauf si sa page de suivi était ouverte.
+Quand equipe de Dal Cielo validait une commande, le client ne recevait aucun signal sauf si sa page de suivi était ouverte.
 
 ### Architecture mise en place
 
 ```
-Guylian clique "Valider" (admin dashboard)
+equipe de Dal Cielo clique "Valider" (admin dashboard)
         ↓
 PATCH /api/admin/orders/[id] → status: waiting_payment
         ↓
@@ -223,7 +223,7 @@ Fire-and-forget → POST N8N_ORDER_NOTIFY_WEBHOOK_URL
 n8n "Order Validated Webhook" reçoit les données
         ↓
 "Format Validation Message" → construit le message :
-  "Bonne nouvelle ! Guylian a validé votre commande.
+  "Bonne nouvelle ! equipe de Dal Cielo a validé votre commande.
    💳 Lien de paiement : dalcielo.fr/order/XXX"
         ↓
 "Send WhatsApp Confirmation" → API WhatsApp Business

@@ -273,9 +273,10 @@ function OrderCard({
                 <div className="space-y-2">
                   {(() => {
                     // Grouper les suppléments sous leur pizza parente
-                    type GroupedItem = { item: any; supplements: any[] }
+                    type OrderItem = { name?: string; price?: number; quantity?: number; category?: string; customizations?: string[] }
+                    type GroupedItem = { item: OrderItem; supplements: OrderItem[] }
                     const grouped: GroupedItem[] = []
-                    for (const item of order.items as any[]) {
+                    for (const item of order.items as OrderItem[]) {
                       if (item.category === 'Suppléments') {
                         if (grouped.length > 0) grouped[grouped.length - 1].supplements.push(item)
                       } else {
@@ -303,16 +304,16 @@ function OrderCard({
                             )}
                             {supplements.length > 0 && (
                               <div className="ml-9 mt-1.5 space-y-0.5">
-                                {supplements.map((sup: any, si: number) => (
+                                {supplements.map((sup: OrderItem, si: number) => (
                                   <p key={si} className="text-xs text-coral font-medium">
-                                    + {sup.name} ({sup.price.toFixed(2)}€)
+                                    + {sup.name} ({(sup.price ?? 0).toFixed(2)}€)
                                   </p>
                                 ))}
                               </div>
                             )}
                           </div>
                           <span className="font-bold text-slate-600 shrink-0 ml-4">
-                            {(item.price * item.quantity + supplements.reduce((s: number, sup: any) => s + sup.price * sup.quantity, 0)).toFixed(2)}€
+                            {((item.price ?? 0) * (item.quantity ?? 1) + supplements.reduce((s: number, sup: OrderItem) => s + (sup.price ?? 0) * (sup.quantity ?? 1), 0)).toFixed(2)}€
                           </span>
                         </div>
                       </div>
@@ -320,7 +321,7 @@ function OrderCard({
                   })()}
                 </div>
                 {(() => {
-                  const itemsSubtotal = Math.round(order.items.reduce((s: number, i: any) => s + i.price * i.quantity, 0) * 100) / 100
+                  const itemsSubtotal = Math.round(order.items.reduce((s: number, i: { price?: number; quantity?: number }) => s + (i.price ?? 0) * (i.quantity ?? 1), 0) * 100) / 100
                   const deliveryFee = Math.round((order.total - itemsSubtotal) * 100) / 100
                   return (
                     <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">

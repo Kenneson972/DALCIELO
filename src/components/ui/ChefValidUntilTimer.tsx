@@ -7,7 +7,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
 const MS_PER_HOUR = 60 * 60 * 1000
 const MS_PER_MIN = 60 * 1000
 
-type TimerVariant = 'default' | 'dark'
+type TimerVariant = 'default' | 'dark' | 'premium'
 
 const variantClasses = {
   default: {
@@ -28,6 +28,16 @@ const variantClasses = {
     pulse: 'text-[#FFF8F0]',
     past: 'text-sm font-semibold text-[#E17B5F]/80',
   },
+  /** Style premium : intégré, sobre, contraste 4.5:1 (kb-ui-ux-pro-max) */
+  premium: {
+    label: 'text-xs font-medium uppercase tracking-[0.2em] text-[#3D2418]/65',
+    icon: 'text-[#3D2418]/50',
+    box: 'rounded-xl bg-[#3D2418]/[0.06] px-4 py-2.5 border border-[#3D2418]/10',
+    value: 'text-xl sm:text-2xl font-bold tabular-nums text-[#3D2418]',
+    unit: 'text-[10px] font-semibold uppercase tracking-wider text-[#3D2418]/60',
+    pulse: 'text-[#3D2418]',
+    past: 'text-sm font-medium text-[#3D2418]/60',
+  },
 }
 
 /** Affiche la date de fin de validité et un décompte en direct (jours, heures, minutes, secondes). */
@@ -40,7 +50,7 @@ export function ChefValidUntilTimer({
 }) {
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState(() => new Date())
-  const c = variantClasses[variant]
+  const c = variantClasses[variant] ?? variantClasses.default
 
   useEffect(() => setMounted(true), [])
 
@@ -56,9 +66,8 @@ export function ChefValidUntilTimer({
   const endDate = new Date(y, m - 1, d, 23, 59, 59)
   const isPast = endDate.getTime() <= now.getTime()
 
-  const formatDate = () => {
-    return endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-  }
+  const formatDate = () =>
+    endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 
   const getParts = () => {
     const diff = endDate.getTime() - now.getTime()

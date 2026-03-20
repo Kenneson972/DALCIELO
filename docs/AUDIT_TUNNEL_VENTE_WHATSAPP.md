@@ -162,7 +162,7 @@ Une commande est considérée comme « validée » si son statut n’est pas `re
 
 ---
 
-### 3.2 Validation admin (Guylian)
+### 3.2 Validation admin (equipe de Dal Cielo)
 
 | Étape | API / Composant | Action |
 |-------|-----------------|--------|
@@ -187,7 +187,7 @@ Une commande est considérée comme « validée » si son statut n’est pas `re
 | Retard | Template `delay` | Nouvelle heure + raison |
 | Refus | Template `refused` | Raison du refus |
 
-**Important** : L’envoi n’est pas automatisé. Guylian doit cliquer sur le bouton pour ouvrir WhatsApp avec le message pré-rempli, puis envoyer manuellement. Aucune API WhatsApp Business n’est utilisée.
+**Important** : L’envoi n’est pas automatisé. equipe de Dal Cielo doit cliquer sur le bouton pour ouvrir WhatsApp avec le message pré-rempli, puis envoyer manuellement. Aucune API WhatsApp Business n’est utilisée.
 
 ---
 
@@ -210,7 +210,7 @@ Une commande est considérée comme « validée » si son statut n’est pas `re
 
 | Point | Détail |
 |-------|--------|
-| **Validation manuelle** | Guylian contrôle stocks et disponibilité avant paiement |
+| **Validation manuelle** | equipe de Dal Cielo contrôle stocks et disponibilité avant paiement |
 | **Montant sécurisé** | Total pris en BDD, pas côté client |
 | **Templates WhatsApp** | Messages cohérents (lien paiement, prépa, prête, retard, refus) |
 | **Double accès au lien** | Client peut payer via le site ou via le lien envoyé par WhatsApp |
@@ -224,7 +224,7 @@ Une commande est considérée comme « validée » si son statut n’est pas `re
 
 ### 5.1 [MOYEN] Envoi WhatsApp non automatisé
 
-**Risque** : Guylian doit cliquer, copier le lien et envoyer. Oubli ou retard possible.
+**Risque** : equipe de Dal Cielo doit cliquer, copier le lien et envoyer. Oubli ou retard possible.
 
 **Pistes** : Intégration WhatsApp Business API (Coût élevé, validation Meta) ou n8n avec script d’envoi automatique après validation.
 

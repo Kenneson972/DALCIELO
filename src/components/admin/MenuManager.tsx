@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import type { Product, ProductUpdate, ProductCreate } from '@/lib/productsStore'
 import { ChefPizzaEditor } from './ChefPizzaEditor'
+import { getCsrfToken } from '@/lib/csrf'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -69,7 +70,7 @@ function ProductCreateModal({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res  = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin() }, body: fd })
+      const res  = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: fd })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) {
         if (isPizza) {
@@ -117,8 +118,8 @@ function ProductCreateModal({
         ...(isPizza && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
-    } catch (e: any) {
-      setError(e.message || 'Erreur')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Erreur')
     } finally {
       setSaving(false)
     }
@@ -369,7 +370,7 @@ function ProductEditModal({
       formData.append('file', file)
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: { 'x-admin-pin': getAdminPin() },
+        headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
         body: formData,
       })
       const data = await res.json().catch(() => ({}))
@@ -428,8 +429,8 @@ function ProductEditModal({
         ...(product.type === 'pizza' && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
-    } catch (e: any) {
-      setError(e.message || 'Erreur')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Erreur')
     } finally {
       setSaving(false)
     }
@@ -594,7 +595,7 @@ function ProductEditModal({
                       try {
                         const formData = new FormData()
                         formData.append('file', file)
-                        const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin() }, body: formData })
+                        const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: formData })
                         const data = await res.json().catch(() => ({}))
                         if (res.ok && data.url) setForm(f => ({ ...f, slider_image_url: data.url }))
                         else setUploadError(data.error || 'Erreur d’upload')
@@ -787,7 +788,7 @@ export function MenuManager() {
     try {
       const res = await fetch('/api/admin/products/seed', {
         method: 'POST',
-        headers: { 'x-admin-pin': getAdminPin() },
+        headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok) { await load(); alert(data.message || 'Synchronisé') }
@@ -800,7 +801,7 @@ export function MenuManager() {
   const handleSaveProduct = async (product: Product, patch: ProductUpdate) => {
     const res = await fetch(`/api/admin/products/${product.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin() },
+      headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
       body: JSON.stringify(patch),
     })
     const data = await res.json().catch(() => ({}))
@@ -815,7 +816,7 @@ export function MenuManager() {
   const handleCreateProduct = async (data: ProductCreate) => {
     const res = await fetch('/api/admin/products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin() },
+      headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
       body: JSON.stringify(data),
     })
     const json = await res.json().catch(() => ({}))

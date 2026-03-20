@@ -24,6 +24,8 @@ const STATUS_LABELS: Record<ReviewStatus, { label: string; color: string }> = {
   rejected: { label: 'Rejeté',     color: 'bg-red-100 text-red-700 border-red-200' },
 }
 
+import { getCsrfToken } from '@/lib/csrf'
+
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
   return localStorage.getItem('admin_pin') || sessionStorage.getItem('admin_pin') || ''
@@ -64,6 +66,7 @@ export function ReviewsManager() {
         headers: {
           'Content-Type': 'application/json',
           'x-admin-pin': getAdminPin(),
+          'x-csrf-token': getCsrfToken(),
         },
         body: JSON.stringify({ status }),
       })

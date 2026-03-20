@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getStocks, createStock } from '@/lib/stocksStore'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
+import { logAdminAction } from '@/lib/auditLog'
+import { getIp } from '@/lib/rateLimit'
 
 const CreateStockSchema = z.object({
   item_id: z.string().min(1).max(128).trim(),
@@ -48,6 +50,13 @@ export async function POST(req: NextRequest) {
       quantity,
       min_threshold,
       unit,
+    })
+    logAdminAction({
+      action: 'create_stock',
+      entity_type: 'stock',
+      entity_id: item_id,
+      details: { name, category },
+      ip: getIp(req),
     })
     return NextResponse.json({ stock }, { status: 201 })
   } catch (error: unknown) {

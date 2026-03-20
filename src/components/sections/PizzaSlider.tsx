@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useCart } from '@/hooks/useCart'
@@ -34,7 +35,8 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { addItem } = useCart()
   const [optionsItem, setOptionsItem] = useState<PizzaSliderItem | null>(null)
-  const [blockReason, setBlockReason] = useState<'monday' | 'coming_soon' | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
+  const prefersReducedMotion = useReducedMotion()
 
   // Responsive visible count
   useEffect(() => {
@@ -64,9 +66,9 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
   const goPrev = useCallback(() => goTo(index - 1), [goTo, index])
   const goNext = useCallback(() => goTo(index + 1), [goTo, index])
 
-  // Auto-play
+  // Auto-play (disabled for reduced-motion preference)
   useEffect(() => {
-    if (total <= 0 || isPaused) return
+    if (total <= 0 || isPaused || prefersReducedMotion) return
     const timer = setInterval(() => {
       setIndex((i) => {
         if (i >= maxIndex) return 0
@@ -74,7 +76,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
       })
     }, 3500)
     return () => clearInterval(timer)
-  }, [total, isPaused, maxIndex])
+  }, [total, isPaused, maxIndex, prefersReducedMotion])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX)
@@ -123,7 +125,7 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
 
   return (
     <>
-      {blockReason && <OrderingComingSoonModal reason={blockReason} onClose={() => setBlockReason(null)} />}
+      {blockReason === 'monday' && <OrderingComingSoonModal onClose={() => setBlockReason(null)} />}
       {optionsItem && (
         <PizzaOptionsModal
           open
@@ -141,12 +143,22 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-6xl font-display font-black text-[#3D2418] mb-3 text-shadow-sm">
-            Des pizzas qui <span className="text-primary">touchent le ciel</span>
-          </h2>
-          <p className="text-lg text-[#3D2418]/70 max-w-2xl mx-auto mb-6">
-            Découvrez nos pizzas artisanales à Fort-de-France
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3 bg-primary/10 px-4 py-1.5 rounded-full">
+              🍕 Nos créations
+            </span>
+            <h2 className="text-4xl md:text-6xl font-display font-black text-[#3D2418] mb-3">
+              Artisanales &amp; <span className="text-primary">Généreuses</span>
+            </h2>
+            <p className="text-lg text-[#3D2418]/70 max-w-2xl mx-auto">
+              Faites main chaque jour, cuites au four artisanal
+            </p>
+          </motion.div>
         </div>
 
         {/* Slider track */}
@@ -225,12 +237,31 @@ export function PizzaSlider({ items }: PizzaSliderProps) {
           <ChevronRight size={24} />
         </button>
 
-        <div className="mt-16 text-center">
-          <Link 
-            href="/menu" 
+        {/* Dots pagination */}
+        <div className="flex justify-center gap-2 mt-8" role="tablist" aria-label="Sélection pizza">
+          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={index === i}
+              aria-label={`Groupe ${i + 1}`}
+              onClick={() => goTo(i)}
+              className={`transition-all duration-300 rounded-full ${
+                index === i
+                  ? 'w-8 h-2.5 bg-primary shadow-sm shadow-primary/30'
+                  : 'w-2.5 h-2.5 bg-[#3D2418]/20 hover:bg-primary/50'
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/menu"
             className="inline-flex items-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20 group"
           >
-            Voir toute la carte 
+            Voir toute la carte
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

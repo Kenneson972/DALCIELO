@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { generateSlug } from '@/lib/utils'
-import { Sparkles, Save, Loader2, Calendar, X, Upload } from 'lucide-react'
+import { Sparkles, Save, Loader2, Calendar, X, Upload, Power } from 'lucide-react'
+import { getCsrfToken } from '@/lib/csrf'
 import type { Product } from '@/lib/productsStore'
 
 function getAdminPin(): string {
@@ -29,11 +30,33 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
     show_in_slider:  (product as { show_in_slider?: boolean }).show_in_slider ?? true,
     chef_valid_until: product.chef_valid_until ?? '',
   })
+  const [isActive, setIsActive] = useState(product.available)
+  const [toggling, setToggling] = useState(false)
   const [saving, setSaving]   = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError]     = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const handleToggleActive = async () => {
+    setToggling(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+        body: JSON.stringify({ available: !isActive }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(data.error || `Erreur ${res.status}`); return }
+      setIsActive(!isActive)
+      onUpdated(data.product)
+    } catch {
+      setError('Erreur réseau')
+    } finally {
+      setToggling(false)
+    }
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -47,7 +70,7 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin() }, body: formData })
+      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: formData })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) setForm(f => ({ ...f, image_urls: [...f.image_urls, data.url] }))
       else setUploadError(data.error || 'Erreur d’upload')
@@ -83,7 +106,7 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
       const slug = generateSlug(name) || 'pizza-du-chef'
       const res = await fetch(`/api/admin/products/${product.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin() },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({
           name:             name,
           slug,
@@ -124,18 +147,44 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
             </p>
           </div>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
-          daysSinceUpdate > 14
-            ? 'bg-red-100 text-red-700'
-            : daysSinceUpdate > 10
-            ? 'bg-amber-100 text-amber-700'
-            : 'bg-green-100 text-green-700'
-        }`}>
-          <Calendar size={14} />
-          Mise à jour il y a {daysSinceUpdate} jour{daysSinceUpdate > 1 ? 's' : ''}
-          {daysSinceUpdate > 14 && ' — À renouveler !'}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+            daysSinceUpdate > 14
+              ? 'bg-red-100 text-red-700'
+              : daysSinceUpdate > 10
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-green-100 text-green-700'
+          }`}>
+            <Calendar size={14} />
+            Mise à jour il y a {daysSinceUpdate} jour{daysSinceUpdate > 1 ? 's' : ''}
+            {daysSinceUpdate > 14 && ' — À renouveler !'}
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleActive}
+            disabled={toggling}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              isActive
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            {toggling ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
+            {isActive ? 'Active' : 'Désactivée'}
+          </button>
         </div>
       </div>
+
+      {/* Bandeau si désactivée */}
+      {!isActive && (
+        <div className="mb-6 flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-2xl px-5 py-4">
+          <Power size={20} className="text-slate-400 shrink-0" />
+          <div>
+            <p className="text-sm font-bold text-slate-700">Pizza du Chef désactivée</p>
+            <p className="text-xs text-slate-500">Elle n&apos;apparaît plus sur le site. Cliquez sur &quot;Active&quot; pour la remettre en ligne.</p>
+          </div>
+        </div>
+      )}
 
       {/* Formulaire */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -285,7 +334,7 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
                     try {
                       const fd = new FormData()
                       fd.append('file', file)
-                      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin() }, body: fd })
+                      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: fd })
                       const data = await res.json().catch(() => ({}))
                       if (res.ok && data.url) setForm(f => ({ ...f, slider_image_url: data.url }))
                       else setUploadError(data.error || 'Erreur upload')
