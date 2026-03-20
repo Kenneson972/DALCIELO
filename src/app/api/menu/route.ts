@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabaseAdmin'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/menu
  * Retourne tous les produits actifs pour CieloBot (lecture publique, pas d'auth).

@@ -3,6 +3,8 @@ import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getSupabase } from '@/lib/supabaseAdmin'
 import type { OrderItem } from '@/types/order'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const authError = requireAdminWithRateLimit(req)
   if (authError) return authError

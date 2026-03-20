@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getOrders } from '@/lib/ordersStore'
 import { DEFAULT_QUEUE_SETTINGS, getQueueSettings } from '@/lib/queueSettingsStore'
 
+export const dynamic = 'force-dynamic'
+
 // ─── Configuration four ───────────────────────────────────────────────────────
 // L'équipe de Dal Cielo peut ajuster ces valeurs selon son four
 const OVEN_CAPACITY = 4      // pizzas max par fournée

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabaseAdmin'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/orders/health
  * Vérifie que Supabase est configuré et que la table orders existe.

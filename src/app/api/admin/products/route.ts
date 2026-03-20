@@ -5,6 +5,8 @@ import { getProducts, createProduct } from '@/lib/productsStore'
 import { logAdminAction } from '@/lib/auditLog'
 import { getIp } from '@/lib/rateLimit'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const authError = requireAdminWithRateLimit(req)
   if (authError) return authError

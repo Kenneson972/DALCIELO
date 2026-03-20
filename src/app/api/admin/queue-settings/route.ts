@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getQueueSettings, upsertQueueSettings } from '@/lib/queueSettingsStore'
 
+export const dynamic = 'force-dynamic'
+
 const QueueSettingsPatchSchema = z.object({
   ovenAvailable: z.boolean().optional(),
   mode: z.enum(['auto', 'manual']).optional(),

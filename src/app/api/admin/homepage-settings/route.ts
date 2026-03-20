@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getHomepageSettings, upsertHomepageSettings } from '@/lib/homepageSettingsStore'
 
+export const dynamic = 'force-dynamic'
+
 const PatchSchema = z.object({
   sliderEnabled: z.boolean().optional(),
   dessertsEnabled: z.boolean().optional(),

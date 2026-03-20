@@ -3,6 +3,8 @@ import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getAllPopups, createPopup } from '@/lib/popupsStore'
 import type { PopupType, DismissMode } from '@/types/popup'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_TYPES: PopupType[] = ['chef', 'promo', 'event', 'alert']
 const VALID_DISMISS_MODES: DismissMode[] = ['once_daily', 'once_session']
 

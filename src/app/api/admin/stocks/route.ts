@@ -5,6 +5,8 @@ import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { logAdminAction } from '@/lib/auditLog'
 import { getIp } from '@/lib/rateLimit'
 
+export const dynamic = 'force-dynamic'
+
 const CreateStockSchema = z.object({
   item_id: z.string().min(1).max(128).trim(),
   name: z.string().min(1).max(255).trim(),

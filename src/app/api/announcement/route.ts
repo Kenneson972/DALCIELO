@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getActivePopup } from '@/lib/popupsStore'
 import { getChefProduct } from '@/lib/productsStore'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const [popup, product] = await Promise.all([

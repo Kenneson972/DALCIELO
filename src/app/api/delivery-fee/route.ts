@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDeliveryFeeForAddress } from '@/lib/deliveryFee'
 
+export const dynamic = 'force-dynamic'
+
 // In-memory rate-limit: 10 req/min per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT = 10

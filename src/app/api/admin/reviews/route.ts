@@ -3,6 +3,8 @@ import { requireAdminWithRateLimit } from '@/lib/adminAuth'
 import { getAllReviews } from '@/lib/reviewsStore'
 import type { ReviewStatus } from '@/types/review'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/admin/reviews?status=pending
  * Liste tous les avis (admin).

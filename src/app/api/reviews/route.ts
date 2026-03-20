@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { getApprovedReviews, getReviewStats, createReview } from '@/lib/reviewsStore'
 
+export const dynamic = 'force-dynamic'
+
 // Rate-limit en mémoire : ip_hash → timestamp du dernier avis
 const recentSubmissions = new Map<string, number>()
 const RATE_LIMIT_MS = 60 * 60 * 1000 // 1 h
