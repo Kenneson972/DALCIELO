@@ -127,7 +127,7 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
         <div className="p-6 flex-grow flex flex-col">
           <div className="flex justify-between items-start gap-2 mb-3">
             <h3 className="text-xl font-black text-[#2c1a12] group-hover:text-primary transition-colors">{pizza.name}</h3>
-            {pizza.price && <span className="text-primary font-sans font-bold text-lg whitespace-nowrap">{pizza.price}€</span>}
+            {pizza.price && <span className="text-primary-text font-sans font-bold text-lg whitespace-nowrap">{pizza.price}€</span>}
           </div>
           <p className="text-[#2c1a12]/80 text-sm mb-4 line-clamp-3 leading-relaxed">
             {pizza.ingredients ? pizza.ingredients.join(', ') : pizza.description || (pizza.type === 'Drink' ? 'Bouteille 50cl' : '')}

@@ -75,6 +75,12 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  other: {
+    'geo.region': 'FR-MQ',
+    'geo.placename': 'Fort-de-France',
+    'geo.position': '14.6037;-61.0742',
+    'ICBM': '14.6037, -61.0742',
+  },
 };
 
 export default function RootLayout({
@@ -85,6 +91,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      suppressHydrationWarning
       className={`${inter.variable} ${poppins.variable} ${indieFlower.variable} ${playfair.variable}`}
     >
       <body className={`${poppins.className} antialiased min-h-screen flex flex-col`}>

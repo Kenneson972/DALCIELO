@@ -40,10 +40,11 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   // Rafraichir la Pizza du Chef depuis l'API au montage (pas de cache) pour refleter les modifs admin
   useEffect(() => {
     fetch('/api/announcement', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
-      .then((res) => res.json())
+      .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => {
         const product = data?.product
         if (product && product.name) {
+          // API confirme une pizza active → mettre à jour
           setChefPizza({
             id: product.id,
             menu_id: product.menu_id,
@@ -56,12 +57,16 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
             chef_valid_until: product.chef_valid_until ?? null,
             slug: product.slug ?? null,
           })
-        } else {
+        } else if (!propChefPizza) {
+          // SSR avait aussi null → confirme absence de pizza du chef
           setChefPizza(null)
         }
+        // Si SSR avait une pizza mais l'API retourne null (erreur transitoire Supabase
+        // ou désactivation admin) → on garde l'affichage SSR. La pizza disparaîtra
+        // proprement au prochain chargement de page.
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {}) // Erreur réseau → garder l'état SSR
+  }, []) // propChefPizza intentionnellement absent des deps (valeur SSR, immuable)
 
   if (!chefPizza) return null
   const id = Number(chefPizza.menu_id ?? (chefPizza as { id?: number }).id ?? 0)

@@ -11,27 +11,20 @@ import { useQueueEstimate } from '@/hooks/useQueueEstimate'
 
 export const Hero = () => {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+    setIsMobile(window.innerWidth <= 768)
+  }, [])
   const { estimate } = useQueueEstimate(mounted)
   const prefersReducedMotion = useReducedMotion()
 
-  // ── Parallax scroll layers (désactivé si prefers-reduced-motion) ─
+  // ── Parallax scroll layers (désactivé si prefers-reduced-motion ou mobile) ─
+  const disableParallax = prefersReducedMotion || isMobile
   const { scrollY } = useScroll()
-  const glowY = useTransform(
-    scrollY,
-    [0, 600],
-    prefersReducedMotion ? [0, 0] : [0, 60]
-  )
-  const textY = useTransform(
-    scrollY,
-    [0, 400],
-    prefersReducedMotion ? [0, 0] : [0, 60]
-  )
-  const logoY = useTransform(
-    scrollY,
-    [0, 400],
-    prefersReducedMotion ? [0, 0] : [0, 40]
-  )
+  const glowY = useTransform(scrollY, [0, 600], disableParallax ? [0, 0] : [0, 60])
+  const textY = useTransform(scrollY, [0, 400], disableParallax ? [0, 0] : [0, 60])
+  const logoY = useTransform(scrollY, [0, 400], disableParallax ? [0, 0] : [0, 40])
   return (
     <section
       className="relative min-h-[95vh] flex flex-col overflow-hidden pt-32 pb-16 sm:pb-20 px-0"
