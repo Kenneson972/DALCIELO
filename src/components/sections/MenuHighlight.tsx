@@ -12,7 +12,7 @@ import { OrderingComingSoonModal } from '@/components/ui/OrderingComingSoonModal
 import { orderingBlockReason } from '@/lib/ordering'
 import { ChefValidUntilTimer } from '@/components/ui/ChefValidUntilTimer'
 
-/** Pizza du Chef : vient de products (Supabase) si dispo, sinon menuData. Mise à jour auto via API. */
+/** Pizza du Chef : vient de products (Supabase) si dispo, sinon menuData. Mise a jour auto via API. */
 type ChefPizzaItem = {
   id?: number
   menu_id?: number
@@ -34,12 +34,12 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
   const [chefPizza, setChefPizza] = useState<ChefPizzaItem>(propChefPizza ?? null)
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [blockReason, setBlockReason] = useState<’monday’ | null>(null)
+  const [blockReason, setBlockReason] = useState<'monday' | null>(null)
   const prefersReducedMotion = useReducedMotion()
 
-  // Rafraîchir la Pizza du Chef depuis l’API au montage (pas de cache) pour refléter les modifs admin
+  // Rafraichir la Pizza du Chef depuis l'API au montage (pas de cache) pour refleter les modifs admin
   useEffect(() => {
-    fetch(‘/api/announcement’, { cache: ‘no-store’, headers: { ‘Cache-Control’: ‘no-cache’ } })
+    fetch('/api/announcement', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
       .then((res) => res.json())
       .then((data) => {
         const product = data?.product
@@ -81,7 +81,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
     const suppTotal = supplements.reduce((sum, s) => sum + s.price, 0)
     const allCustomizations = [...customizations]
     if (supplements.length > 0) {
-      allCustomizations.push(`Suppléments: ${supplements.map(s => s.name).join(', ')}`)
+      allCustomizations.push(`Supplements: ${supplements.map(s => s.name).join(', ')}`)
     }
     addItem({ id, name, price: totalPrice + suppTotal, image, category: 'Du Chef', customizations: allCustomizations })
     setOptionsOpen(false)
@@ -122,13 +122,13 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
           >
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" aria-hidden />
 
-            {/* Badge premium — sobre, contraste OK */}
+            {/* Badge premium */}
             <div className="absolute top-0 right-0 z-10 flex items-center gap-2 rounded-bl-2xl border-b border-l border-amber-200/50 bg-amber-50/95 px-5 py-2.5 shadow-sm backdrop-blur-sm">
               <Sparkles size={14} className="text-amber-700/80 shrink-0" aria-hidden />
-              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-800/90">Édition limitée</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-800/90">Edition limitee</span>
             </div>
 
-            {/* Grille : colonne image plus large (≈55%) pour mettre la photo en avant */}
+            {/* Grille : colonne image plus large */}
             <div className="grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-14 items-center">
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -149,7 +149,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" aria-hidden />
                 </div>
                 <div className="absolute -bottom-3 -right-3 z-10 rounded-2xl border border-white/60 bg-white/95 px-5 py-2.5 shadow-lg backdrop-blur-sm">
-                  <p className="font-playfair text-2xl font-bold tracking-tight text-[#3D2418]">{price}€</p>
+                  <p className="font-playfair text-2xl font-bold tracking-tight text-[#3D2418]">{price}&euro;</p>
                 </div>
               </motion.div>
 
@@ -157,7 +157,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                 <div>
                   <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#3D2418]/60 mb-4">
                     <span className="h-px w-8 bg-primary/40" aria-hidden />
-                    Création du chef
+                    Creation du chef
                   </p>
                   <h2 id="chef-creation-title" className="font-playfair text-3xl sm:text-4xl md:text-[2.75rem] font-bold text-[#3D2418] leading-[1.15] tracking-tight mb-5">
                     {name}
@@ -176,7 +176,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                   <div className="space-y-3">
                     <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#3D2418]/70">
                       <Pizza size={16} className="text-primary/80 shrink-0" aria-hidden />
-                      Ingrédients
+                      Ingredients
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {ingredients.slice(0, 6).map((ing, i) => (
@@ -201,7 +201,7 @@ export const MenuHighlight = ({ chefPizza: propChefPizza }: MenuHighlightProps) 
                       className="w-full min-h-[48px] border-2 border-[#3D2418]/15 text-[#3D2418] hover:bg-[#3D2418]/5 py-4 px-6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       size="md"
                     >
-                      Détails
+                      Details
                     </Button>
                   </Link>
                   <Button
