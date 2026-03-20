@@ -106,6 +106,7 @@ export const menuData = {
       category: "Classique",
       sauceAuChoix: true,
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Poulet colombo", "Oignon rouge", "Olive", "Après cuisson : sauce"],
+      extraBases: [{ id: 4, name: "Colombo", price: 0 }],
       description: "Toute l'âme des Antilles dans une pizza, avec un poulet colombo parfumé et savoureux.",
     },
     { 
@@ -170,14 +171,18 @@ export const menuData = {
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Oignon", "Chèvre", "Olive", "Après cuisson : sauce"],
       description: "Une douceur rustique où le fromage de chèvre s'allie délicieusement aux olives noires."
     },
-    { 
-      id: 209, 
-      name: "4 Fromages", 
+    {
+      id: 209,
+      name: "4 Fromages",
       price: 15,
       category: "Classique",
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Bleu", "Roquefort", "Olive"],
       vegetarian: true,
-      description: "Un classique indémodable pour les passionnés, entre onctuosité et caractère fromager."
+      description: "Un classique indémodable pour les passionnés, entre onctuosité et caractère fromager.",
+      varianteChoix: {
+        count: 2,
+        options: ['Roquefort', 'Bleu', 'Chèvre'],
+      },
     },
     { 
       id: 210, 

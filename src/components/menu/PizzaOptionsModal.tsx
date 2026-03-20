@@ -18,6 +18,8 @@ export interface PizzaOptionItem {
   sauceAuChoix?: boolean
   /** Choix obligatoire d'ingrédients parmi une liste (ex. : 3 viandes pour le Suprême) */
   varianteChoix?: { count: number; options: string[] }
+  /** Bases supplémentaires spécifiques à cette pizza (ex. : Base colombo pour la Colombo) */
+  extraBases?: { id: number; name: string; price: number }[]
 }
 
 const SAUCE_INCLUSE = { id: 0, name: 'Sauce incluse', price: 0 }
@@ -63,6 +65,7 @@ export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsM
   }, [open, mounted])
 
   const hasSauceChoice = pizza.sauceAuChoix === true
+  const bases = [...menuData.bases, ...(pizza.extraBases ?? [])]
   const showSupplements = !pizza.varianteChoix
   const sauceOptions = [SAUCE_INCLUSE, ...menuData.sauces]
 
@@ -174,8 +177,8 @@ export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsM
               {/* Base */}
               <section>
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2.5">Base (incluse)</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {menuData.bases.map((b) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(bases.length, 4)}, minmax(0, 1fr))` }}>
+                  {bases.map((b) => (
                     <button
                       key={b.id}
                       type="button"

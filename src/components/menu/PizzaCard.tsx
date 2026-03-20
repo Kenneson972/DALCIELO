@@ -30,6 +30,7 @@ interface PizzaCardProps {
     /** Slug depuis products (Supabase) — prioritaire pour le lien après modif admin */
     slug?: string
     varianteChoix?: { count: number; options: string[] }
+    extraBases?: { id: number; name: string; price: number }[]
   }
 }
 
@@ -91,7 +92,7 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
       <PizzaOptionsModal
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
-        pizza={{ id: pizza.id, name: pizza.name, price: pizza.price ?? 0, category: itemCategory, image: pizza.image, sauceAuChoix: pizza.sauceAuChoix, varianteChoix: pizza.varianteChoix }}
+        pizza={{ id: pizza.id, name: pizza.name, price: pizza.price ?? 0, category: itemCategory, image: pizza.image, sauceAuChoix: pizza.sauceAuChoix, varianteChoix: pizza.varianteChoix, extraBases: pizza.extraBases }}
         onAdd={handleOptionsAdd}
       />
       <Link href={`/menu/${slug}`} className="block h-full" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 400px' }}>
