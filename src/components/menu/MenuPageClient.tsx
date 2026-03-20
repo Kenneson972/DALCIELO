@@ -27,6 +27,8 @@ export interface MenuPageItem {
   /** Si true, le client peut choisir une sauce après cuisson (Ketchup, Barbecue, etc.). Source : CSV Variante 2. */
   sauceAuChoix?: boolean
   slug?: string
+  varianteChoix?: { count: number; options: string[] }
+  extraBases?: { id: number; name: string; price: number }[]
 }
 
 const CATEGORIES = ['Classiques', 'Pizzas du Chef', 'Friands', 'Végétariennes', 'Desserts', 'Boissons']

@@ -11,6 +11,13 @@ export const revalidate = 0 // Toujours à jour (toggle Pizza du Chef, stocks, e
 /** IDs des pizzas avec sauce au choix (Variante 2 dans import_articles_source.csv). Utilisé quand Supabase n'a pas sauce_au_choix. */
 const PIZZA_IDS_SAUCE_AU_CHOIX = new Set([201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 213, 214, 215])
 
+/** Lookup statique varianteChoix + extraBases par menu_id (non stocké dans Supabase). */
+const PIZZA_EXTRA_OPTIONS: Record<number, { varianteChoix?: { count: number; options: string[] }; extraBases?: { id: number; name: string; price: number }[] }> = Object.fromEntries(
+  [...menuData.pizzas, ...menuData.friands]
+    .filter((p: any) => p.varianteChoix || p.extraBases)
+    .map((p: any) => [p.id, { varianteChoix: p.varianteChoix, extraBases: p.extraBases }])
+)
+
 /** Construit la liste depuis menuData (fallback statique) */
 function itemsFromStaticData(): MenuPageItem[] {
   return [
@@ -28,6 +35,8 @@ function itemsFromStaticData(): MenuPageItem[] {
       premium: (p as any).premium,
       sauceAuChoix: (p as any).sauceAuChoix ?? false,
       slug: generateSlug(p.name),
+      varianteChoix: (p as any).varianteChoix,
+      extraBases: (p as any).extraBases,
     })),
     ...menuData.friands.map(f => ({
       id: f.id,
@@ -41,6 +50,7 @@ function itemsFromStaticData(): MenuPageItem[] {
       popular: (f as any).popular,
       vegetarian: (f as any).vegetarian,
       slug: generateSlug(f.name + '-friand'),
+      varianteChoix: (f as any).varianteChoix,
     })),
     ...menuData.drinks.map(d => ({
       id: d.id,
@@ -102,6 +112,8 @@ export default async function MenuPage() {
             premium: p.premium,
             sauceAuChoix: !!sauceAuChoix,
             slug: p.slug,
+            varianteChoix: PIZZA_EXTRA_OPTIONS[p.menu_id]?.varianteChoix,
+            extraBases: PIZZA_EXTRA_OPTIONS[p.menu_id]?.extraBases,
           }
         })
     } else {

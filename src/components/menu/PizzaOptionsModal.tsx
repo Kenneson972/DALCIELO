@@ -66,7 +66,7 @@ export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsM
 
   const hasSauceChoice = pizza.sauceAuChoix === true
   const bases = [...menuData.bases, ...(pizza.extraBases ?? [])]
-  const showSupplements = !pizza.varianteChoix
+  const showSupplements = pizza.category !== 'Friands'
   const sauceOptions = [SAUCE_INCLUSE, ...menuData.sauces]
 
   const activeSups = menuData.supplements.filter(s => selectedSupplements.has(s.id))
