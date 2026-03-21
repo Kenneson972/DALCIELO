@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const orders = await getOrders(filter)
+    console.log('[admin/orders] returning', orders.length, 'orders, filter:', filter)
     return NextResponse.json({ orders })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
