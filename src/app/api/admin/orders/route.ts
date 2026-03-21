@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const orders = await getOrders(filter)
-    return NextResponse.json({ orders, _dbg: { url: process.env.NEXT_PUBLIC_SUPABASE_URL, count: orders.length } })
+    return NextResponse.json({ orders })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
     console.error('[GET /api/admin/orders] Error:', message)

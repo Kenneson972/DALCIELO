@@ -37,11 +37,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import {
-  getAllOrders,
-  getDashboardStats,
-  exportOrdersToCSV,
-} from '@/lib/localStore'
+import { exportOrdersToCSV } from '@/lib/localStore'
 import { useQueueEstimate } from '@/hooks/useQueueEstimate'
 import dynamic from 'next/dynamic'
 import { KPICard } from '@/components/admin/KPICard'
@@ -205,15 +201,31 @@ export default function AdminPage() {
       }
       const text = await res.text()
       let data: Record<string, unknown> = {}
-      try { data = JSON.parse(text) } catch { console.error('[loadData] JSON parse failed:', text.slice(0, 200)) }
-      console.log('[loadData] status:', res.status, 'dbg:', data._dbg)
+      try {
+        data = JSON.parse(text) as Record<string, unknown>
+      } catch {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[admin loadData] Réponse non-JSON:', text.slice(0, 200))
+        }
+      }
+
       if (!res.ok || !Array.isArray(data.orders)) {
-        console.error('[loadData] unexpected response — status:', res.status, 'data:', JSON.stringify(data).slice(0, 300))
-        setOrdersError(`⚠️ API erreur ${res.status} — voir console F12`)
+        const msg =
+          (typeof data.error === 'string' && data.error) ||
+          (res.status === 403 ? 'Accès refusé. Rechargez la page.' : null) ||
+          (res.status === 429 ? 'Trop de tentatives. Patientez quelques minutes.' : null) ||
+          (res.status === 503 ? 'Admin non configuré côté serveur (PIN).' : null) ||
+          `Impossible de charger les commandes (${res.status}).`
+        setOrdersError(msg)
+        if (isFirstLoadRef.current) {
+          setOrders([])
+          setStats(computeDashboardStats([]))
+        }
         setLastSync(new Date())
         return
       }
-      if (res.ok && Array.isArray(data.orders)) {
+
+      {
         const fetchedOrders = data.orders as Order[]
 
         // Detect pending_validation orders
@@ -268,11 +280,27 @@ export default function AdminPage() {
         setOrdersError(data.databaseError ? 'Base de données en erreur' : null)
         setStatusChangeError(null)
         setLastSync(new Date())
+
+        // Même clé que le panier / tests locaux : aligner sur Supabase pour éviter des « pending » fantômes
+        // restés dans le navigateur quand l’API avait échoué silencieusement avant.
+        try {
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('pdc_orders', JSON.stringify(fetchedOrders))
+          }
+        } catch {
+          /* quota / private mode */
+        }
         return
       }
     } catch (e) {
-      console.error('[loadData] fetch error:', e)
-      setOrdersError('⚠️ Données hors-ligne — API indisponible')
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[admin loadData]', e)
+      }
+      setOrdersError('Réseau indisponible ou erreur de chargement.')
+      if (isFirstLoadRef.current) {
+        setOrders([])
+        setStats(computeDashboardStats([]))
+      }
       setLastSync(new Date())
     }
   }, [playSound])
