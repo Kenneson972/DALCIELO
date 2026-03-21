@@ -194,6 +194,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/orders?filter=all', {
         headers: { 'x-admin-pin': adminPin },
+        cache: 'no-store',
       })
       if (res.status === 401) {
         setIsAuthenticated(false)
