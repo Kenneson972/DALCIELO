@@ -41,7 +41,7 @@ export const ContactSection = () => {
               </p>
               <div className="mt-8">
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${contactInfo.address.street}, ${contactInfo.address.city}, ${contactInfo.address.state}`)}`}
+                  href="https://www.google.com/maps/search/?api=1&query=Pizza+Dal+Cielo+Fort-de-France"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
