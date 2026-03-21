@@ -77,7 +77,7 @@ export type OrderFilter = 'all' | 'today' | OrderStatus
 
 export async function getOrders(filter: OrderFilter = 'all'): Promise<Order[]> {
   const supabase = getSupabase()
-  let query = supabase.from('orders').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(1000)
 
   if (filter === 'today') {
     const today = getTodayInMartinique()
