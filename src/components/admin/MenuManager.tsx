@@ -42,7 +42,6 @@ const EMPTY_FORM = {
   popular:     false,
   vegetarian:  false,
   badge_label: '',
-  badge_label_custom: '',
   sauce_au_choix: false,
 }
 
@@ -155,7 +154,7 @@ function ProductCreateModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  (form.badge_label === CUSTOM_BADGE_KEY ? form.badge_label_custom.trim() : form.badge_label.trim()) || null,
+        badge_label:  form.badge_label.trim() || null,
         ...(isPizza && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -328,12 +327,10 @@ function ProductCreateModal({
                   {label}
                 </button>
               ))}
-              {/* Séparateur visuel */}
               <div className="w-px bg-slate-200 self-stretch mx-1" />
-              {/* Badge : Aucun */}
               <button
                 type="button"
-                onClick={() => setForm(f => ({ ...f, badge_label: '', badge_label_custom: '' }))}
+                onClick={() => setForm(f => ({ ...f, badge_label: '' }))}
                 className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
                   !form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
                 }`}
@@ -344,7 +341,7 @@ function ProductCreateModal({
                 <div key={cat.id} className="relative group">
                   <button
                     type="button"
-                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
+                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name }))}
                     className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
                       form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
                     }`}
@@ -360,32 +357,24 @@ function ProductCreateModal({
                   >×</button>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={() => setForm(f => ({ ...f, badge_label: CUSTOM_BADGE_KEY, badge_label_custom: '' }))}
-                className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                  form.badge_label === CUSTOM_BADGE_KEY ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                }`}
-              >
-                <Edit2 size={18} /> Perso…
-              </button>
-            </div>
-            {form.badge_label === CUSTOM_BADGE_KEY && (
-              <input type="text" value={form.badge_label_custom} onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))} placeholder="Tapez le badge…" autoFocus className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10" />
-            )}
-            {!addingCat ? (
-              <button type="button" onClick={() => setAddingCat(true)} className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-coral transition-colors font-semibold">
-                <Plus size={12} /> Ajouter une catégorie de badge
-              </button>
-            ) : (
-              <div className="mt-2 flex gap-2 items-center">
-                <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom de la catégorie…" autoFocus className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-coral/50" />
-                <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
-                  {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} OK
+              {!addingCat ? (
+                <button
+                  type="button"
+                  onClick={() => setAddingCat(true)}
+                  className="flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-coral hover:text-coral font-bold text-xs transition-all"
+                >
+                  <Plus size={18} /> Nouveau
                 </button>
-                <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center gap-1.5 py-1">
+                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
+                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
+                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                  </button>
+                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
+                </div>
+              )}
+            </div>
             {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
           </div>
 
@@ -447,17 +436,15 @@ function ProductEditModal({
     available:   product.available,
     popular:     product.popular,
     vegetarian:  product.vegetarian,
-    badge_label: (() => {
-      const v = (product as any).badge_label ?? ''
-      return v !== '' && !badgeCategories.some(c => c.name === v) ? CUSTOM_BADGE_KEY : v
-    })(),
-    badge_label_custom: (() => {
-      const v = (product as any).badge_label ?? ''
-      return v !== '' && !badgeCategories.some(c => c.name === v) ? v : ''
-    })(),
+    badge_label: (product as any).badge_label ?? '',
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
-  const [localCats, setLocalCats]         = useState<{ id: number; name: string }[]>(() => [...badgeCategories])
+  const [localCats, setLocalCats]         = useState<{ id: number; name: string }[]>(() => {
+    const cats = [...badgeCategories]
+    const existing = (product as any).badge_label ?? ''
+    if (existing && !cats.some(c => c.name === existing)) cats.push({ id: -1, name: existing })
+    return cats.sort((a, b) => a.name.localeCompare(b.name))
+  })
   const [saving, setSaving]               = useState(false)
   const [error, setError]                 = useState<string | null>(null)
   const [uploading, setUploading]         = useState(false)
@@ -570,7 +557,7 @@ function ProductEditModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  (form.badge_label === CUSTOM_BADGE_KEY ? form.badge_label_custom.trim() : form.badge_label.trim()) || null,
+        badge_label:  form.badge_label.trim() || null,
         ...(product.type === 'pizza' && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -798,7 +785,7 @@ function ProductEditModal({
               </button>
               {localCats.map(cat => (
                 <div key={cat.id} className="relative group">
-                  <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
+                  <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
                     {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
                     {cat.name}
                   </button>
@@ -810,26 +797,24 @@ function ProductEditModal({
                   >×</button>
                 </div>
               ))}
-              <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: CUSTOM_BADGE_KEY, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === CUSTOM_BADGE_KEY ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
-                <Edit2 size={18} /> Perso…
-              </button>
-            </div>
-            {form.badge_label === CUSTOM_BADGE_KEY && (
-              <input type="text" value={form.badge_label_custom} onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))} placeholder="Tapez le badge…" autoFocus className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10" />
-            )}
-            {!addingCat ? (
-              <button type="button" onClick={() => setAddingCat(true)} className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-coral transition-colors font-semibold">
-                <Plus size={12} /> Ajouter une catégorie de badge
-              </button>
-            ) : (
-              <div className="mt-2 flex gap-2 items-center">
-                <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom de la catégorie…" autoFocus className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-coral/50" />
-                <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
-                  {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} OK
+              {!addingCat ? (
+                <button
+                  type="button"
+                  onClick={() => setAddingCat(true)}
+                  className="flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-coral hover:text-coral font-bold text-xs transition-all"
+                >
+                  <Plus size={18} /> Nouveau
                 </button>
-                <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center gap-1.5 py-1">
+                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
+                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
+                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                  </button>
+                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
+                </div>
+              )}
+            </div>
             {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
           </div>
 
