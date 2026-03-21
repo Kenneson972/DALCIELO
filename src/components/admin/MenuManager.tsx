@@ -41,7 +41,7 @@ const EMPTY_FORM = {
   available:   true,
   popular:     false,
   vegetarian:  false,
-  badge_label: '',
+  badge_labels: [] as string[],
   sauce_au_choix: false,
 }
 
@@ -79,7 +79,7 @@ function ProductCreateModal({
     try {
       const newCat = await onAddBadgeCategory(name)
       setLocalCats(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)))
-      setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
+      setForm(f => ({ ...f, badge_labels: [...f.badge_labels, name] }))
       setNewCatInput('')
       setAddingCat(false)
     } catch (e: unknown) {
@@ -93,7 +93,7 @@ function ProductCreateModal({
     const catName = localCats.find(c => c.id === id)?.name
     await onDeleteBadgeCategory(id)
     setLocalCats(prev => prev.filter(c => c.id !== id))
-    if (catName && form.badge_label === catName) setForm(f => ({ ...f, badge_label: '' }))
+    if (catName) setForm(f => ({ ...f, badge_labels: f.badge_labels.filter(l => l !== catName) }))
   }
 
   const isPizza  = form.type === 'pizza'
@@ -154,7 +154,7 @@ function ProductCreateModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  form.badge_label.trim() || null,
+        badge_labels: form.badge_labels,
         ...(isPizza && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -330,33 +330,41 @@ function ProductCreateModal({
               <div className="w-px bg-slate-200 self-stretch mx-1" />
               <button
                 type="button"
-                onClick={() => setForm(f => ({ ...f, badge_label: '' }))}
+                onClick={() => setForm(f => ({ ...f, badge_labels: [] }))}
                 className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                  !form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  form.badge_labels.length === 0 ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
                 }`}
               >
                 <X size={18} /> Aucun badge
               </button>
-              {localCats.map(cat => (
-                <div key={cat.id} className="relative group">
-                  <button
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name }))}
-                    className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                      form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                    }`}
-                  >
-                    {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
-                    {cat.name}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCat(cat.id)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
-                    title="Supprimer"
-                  >×</button>
-                </div>
-              ))}
+              {localCats.map(cat => {
+                const active = form.badge_labels.includes(cat.name)
+                return (
+                  <div key={cat.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({
+                        ...f,
+                        badge_labels: active
+                          ? f.badge_labels.filter(l => l !== cat.name)
+                          : [...f.badge_labels, cat.name],
+                      }))}
+                      className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                        active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                      }`}
+                    >
+                      {active ? <Check size={18} /> : <Tag size={18} />}
+                      {cat.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCat(cat.id)}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
+                      title="Supprimer"
+                    >×</button>
+                  </div>
+                )
+              })}
               {!addingCat ? (
                 <button
                   type="button"
@@ -436,13 +444,15 @@ function ProductEditModal({
     available:   product.available,
     popular:     product.popular,
     vegetarian:  product.vegetarian,
-    badge_label: (product as any).badge_label ?? '',
+    badge_labels: (product.badge_labels ?? []) as string[],
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
   const [localCats, setLocalCats]         = useState<{ id: number; name: string }[]>(() => {
     const cats = [...badgeCategories]
-    const existing = (product as any).badge_label ?? ''
-    if (existing && !cats.some(c => c.name === existing)) cats.push({ id: -1, name: existing })
+    // Ajoute les badges existants du produit qui ne sont pas encore dans les catégories
+    for (const lbl of (product.badge_labels ?? [])) {
+      if (!cats.some(c => c.name === lbl)) cats.push({ id: -1, name: lbl })
+    }
     return cats.sort((a, b) => a.name.localeCompare(b.name))
   })
   const [saving, setSaving]               = useState(false)
@@ -464,7 +474,7 @@ function ProductEditModal({
     try {
       const newCat = await onAddBadgeCategory(name)
       setLocalCats(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)))
-      setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
+      setForm(f => ({ ...f, badge_labels: [...f.badge_labels, name] }))
       setNewCatInput('')
       setAddingCat(false)
     } catch (e: unknown) {
@@ -476,9 +486,9 @@ function ProductEditModal({
 
   const handleDeleteCat = async (id: number) => {
     const catName = localCats.find(c => c.id === id)?.name
-    await onDeleteBadgeCategory(id)
+    if (id > 0) await onDeleteBadgeCategory(id)
     setLocalCats(prev => prev.filter(c => c.id !== id))
-    if (catName && form.badge_label === catName) setForm(f => ({ ...f, badge_label: '' }))
+    if (catName) setForm(f => ({ ...f, badge_labels: f.badge_labels.filter(l => l !== catName) }))
   }
 
   const isPizza = product.type === 'pizza'
@@ -557,7 +567,7 @@ function ProductEditModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  form.badge_label.trim() || null,
+        badge_labels: form.badge_labels,
         ...(product.type === 'pizza' && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -780,23 +790,31 @@ function ProductEditModal({
                 </button>
               ))}
               <div className="w-px bg-slate-200 self-stretch mx-1" />
-              <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: '', badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${!form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
+              <button type="button" onClick={() => setForm(f => ({ ...f, badge_labels: [] }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_labels.length === 0 ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
                 <X size={18} /> Aucun badge
               </button>
-              {localCats.map(cat => (
-                <div key={cat.id} className="relative group">
-                  <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
-                    {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
-                    {cat.name}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCat(cat.id)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
-                    title="Supprimer"
-                  >×</button>
-                </div>
-              ))}
+              {localCats.map(cat => {
+                const active = form.badge_labels.includes(cat.name)
+                return (
+                  <div key={cat.id} className="relative group">
+                    <button type="button" onClick={() => setForm(f => ({
+                      ...f,
+                      badge_labels: active
+                        ? f.badge_labels.filter(l => l !== cat.name)
+                        : [...f.badge_labels, cat.name],
+                    }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
+                      {active ? <Check size={18} /> : <Tag size={18} />}
+                      {cat.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCat(cat.id)}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
+                      title="Supprimer"
+                    >×</button>
+                  </div>
+                )
+              })}
               {!addingCat ? (
                 <button
                   type="button"
@@ -890,7 +908,7 @@ function ProductCard({ product, onEdit, onToggleAvailable }: {
         <div className="flex gap-1 flex-wrap mb-3">
           {product.popular    && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Populaire</span>}
           {product.vegetarian && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Végétarien</span>}
-          {(product as any).badge_label && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{(product as any).badge_label}</span>}
+          {(product.badge_labels ?? []).map(l => <span key={l} className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{l}</span>)}
         </div>
 
         <div className="flex gap-2">

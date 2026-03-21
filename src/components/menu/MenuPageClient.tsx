@@ -23,7 +23,7 @@ export interface MenuPageItem {
   image?: string
   popular?: boolean
   vegetarian?: boolean
-  badgeLabel?: string | null
+  badgeLabels?: string[]
   /** Si true, le client peut choisir une sauce après cuisson (Ketchup, Barbecue, etc.). Source : CSV Variante 2. */
   sauceAuChoix?: boolean
   slug?: string
@@ -103,9 +103,9 @@ function ChefPizzaBigCard({ item }: { item: MenuPageItem }) {
               <span className="inline-flex items-center gap-1.5 bg-amber-400 text-amber-900 px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
                 <Sparkles size={14} /> Du Chef
               </span>
-              {item.badgeLabel && (
-                <span className="inline-flex bg-white/90 text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold">{item.badgeLabel}</span>
-              )}
+              {item.badgeLabels?.map(l => (
+                <span key={l} className="inline-flex bg-white/90 text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold">{l}</span>
+              ))}
             </div>
           </div>
           <div className="p-8 lg:p-10 flex flex-col justify-center lg:bg-white/40 lg:backdrop-blur-md lg:border-l lg:border-white/40 max-lg:border-t max-lg:border-white/50">

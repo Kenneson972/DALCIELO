@@ -36,7 +36,7 @@ const CreateSchema = z.object({
   available:        z.boolean().optional(),
   popular:          z.boolean().optional(),
   vegetarian:       z.boolean().optional(),
-  badge_label:      z.string().nullable().optional(),
+  badge_labels:     z.array(z.string()).optional(),
   sauce_au_choix:   z.boolean().optional(),
   is_chef_special:  z.boolean().optional(),
 })
