@@ -21,7 +21,7 @@ interface PizzaCardProps {
     image?: string
     popular?: boolean
     vegetarian?: boolean
-    premium?: boolean
+    badgeLabel?: string | null
     category?: string
     description?: string
     type?: string
@@ -121,7 +121,7 @@ export const PizzaCard = ({ pizza }: PizzaCardProps) => {
           <div className="absolute top-3 right-3 flex flex-col gap-1.5">
             {pizza.popular && <Badge text="Populaire" variant="popular" />}
             {pizza.vegetarian && <Badge text="Veggie" variant="vegetarian" />}
-            {pizza.premium && <Badge text="Premium" variant="premium" />}
+            {pizza.badgeLabel && <Badge text={pizza.badgeLabel} variant="premium" />}
             {pizza.category === 'Du Chef' && <Badge text="Du Chef" variant="popular" className="bg-amber-400 text-amber-900" />}
           </div>
         </div>

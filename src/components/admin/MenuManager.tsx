@@ -39,7 +39,7 @@ const EMPTY_FORM = {
   available:   true,
   popular:     false,
   vegetarian:  false,
-  premium:     false,
+  badge_label: '',
   sauce_au_choix: false,
 }
 
@@ -114,7 +114,7 @@ function ProductCreateModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        premium:     form.premium,
+        badge_label:  form.badge_label.trim() || null,
         ...(isPizza && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -272,7 +272,6 @@ function ProductCreateModal({
               { key: 'available',  label: 'Disponible', active: form.available },
               { key: 'popular',    label: 'Populaire',  active: form.popular },
               { key: 'vegetarian', label: 'Végétarien', active: form.vegetarian },
-              { key: 'premium',    label: 'Premium',    active: form.premium },
               ...(isPizza ? [{ key: 'sauce_au_choix', label: 'Sauce au choix', active: form.sauce_au_choix }] : []),
             ]).map(({ key, label, active }) => (
               <button
@@ -287,6 +286,18 @@ function ProductCreateModal({
                 {label}
               </button>
             ))}
+          </div>
+
+          {/* Badge personnalisé */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge personnalisé</label>
+            <input
+              type="text"
+              value={form.badge_label}
+              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
+              placeholder="Ex: Produits de la mer, Épicé, Nouveau... (vide = aucun badge)"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10"
+            />
           </div>
 
           {error && (
@@ -341,7 +352,7 @@ function ProductEditModal({
     available:   product.available,
     popular:     product.popular,
     vegetarian:  product.vegetarian,
-    premium:     product.premium,
+    badge_label: (product as any).badge_label ?? '',
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
   const [saving, setSaving] = useState(false)
@@ -425,7 +436,7 @@ function ProductEditModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        premium:     form.premium,
+        badge_label:  form.badge_label.trim() || null,
         ...(product.type === 'pizza' && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -627,7 +638,6 @@ function ProductEditModal({
               { key: 'available',  label: 'Disponible', icon: form.available  ? Eye    : EyeOff,  active: form.available },
               { key: 'popular',    label: 'Populaire',  icon: Star,                               active: form.popular },
               { key: 'vegetarian', label: 'Végétarien', icon: Leaf,                               active: form.vegetarian },
-              { key: 'premium',    label: 'Premium',    icon: Star,                               active: form.premium },
               ...(product.type === 'pizza'
                 ? [
                     { key: 'sauce_au_choix' as const, label: 'Sauce au choix', icon: Droplets, active: form.sauce_au_choix },
@@ -649,6 +659,18 @@ function ProductEditModal({
                 {label}
               </button>
             ))}
+          </div>
+
+          {/* Badge personnalisé */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge personnalisé</label>
+            <input
+              type="text"
+              value={form.badge_label}
+              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
+              placeholder="Ex: Produits de la mer, Épicé, Nouveau... (vide = aucun badge)"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10"
+            />
           </div>
 
           {error && (
@@ -723,7 +745,7 @@ function ProductCard({ product, onEdit, onToggleAvailable }: {
         <div className="flex gap-1 flex-wrap mb-3">
           {product.popular    && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Populaire</span>}
           {product.vegetarian && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Végétarien</span>}
-          {product.premium    && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">Premium</span>}
+          {(product as any).badge_label && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{(product as any).badge_label}</span>}
         </div>
 
         <div className="flex gap-2">

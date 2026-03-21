@@ -144,21 +144,19 @@ export const menuData = {
       sauceAuChoix: true,
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Bœuf cuisiné", "Bacon fumé", "Chorizo", "Jambon", "Merguez", "Poulet cuisiné", "Olive", "Après cuisson : sauce"],
       description: "Le summum de la générosité avec un assortiment de viandes pour les plus grands appétits.",
-      premium: true,
       varianteChoix: {
         count: 3,
         options: ['Bœuf', 'Bacon', 'Chorizo', 'Jambon', 'Merguez', 'Poulet cuisiné', 'Saucisse'],
       },
     },
-    { 
-      id: 207, 
-      name: "Duchesse", 
+    {
+      id: 207,
+      name: "Duchesse",
       price: 20,
       category: "Classique",
       sauceAuChoix: true,
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Roquette", "Oignon rouge", "Olive", "Après cuisson : jambon cru", "Tomate cerise", "Parmesan", "Sauce"],
       description: "Raffinée et fraîche : roquette, jambon cru et tomates cerises pour une touche royale.",
-      premium: true
     },
 
     // --- Pizzas classiques (suite) ---
@@ -228,17 +226,17 @@ export const menuData = {
       category: "Classique",
       sauceAuChoix: true,
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Oignon rouge", "Crevette", "Olive", "Après cuisson : sauce"],
-      premium: true,
+      badgeLabel: 'Produits de la mer',
       description: "Exotique et juteuse : crevettes tendres, oignons rouges et sauce pour un voyage iodé."
     },
-    { 
-      id: 215, 
-      name: "Saumon", 
+    {
+      id: 215,
+      name: "Saumon",
       price: 21,
       category: "Classique",
       sauceAuChoix: true,
       ingredients: ["Base au choix", "Mozzarella", "Emmental", "Oignon rouge", "Olive", "Après cuisson : saumon fumé", "Roquette", "Parmesan", "Sauce"],
-      premium: true,
+      badgeLabel: 'Produits de la mer',
       popular: true,
       description: "Une création raffinée mariant la finesse du saumon fumé à la fraîcheur de la roquette et du parmesan."
     },
@@ -251,7 +249,6 @@ export const menuData = {
       category: "Du Chef",
       ingredients: ["Base selon inspiration", "Produits frais de saison", "Création exclusive"],
       description: "Une recette unique et audacieuse qui change tous les 15 jours. Laissez-vous surprendre par l'inspiration du moment !",
-      premium: true,
     },
   ],
 

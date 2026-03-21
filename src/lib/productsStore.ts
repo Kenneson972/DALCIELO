@@ -25,7 +25,7 @@ export interface Product {
   available: boolean
   popular: boolean
   vegetarian: boolean
-  premium: boolean
+  badge_label: string | null
   /** Pizzas uniquement : choix de sauce après cuisson (Ketchup, Barbecue, etc.). Présent après migration 006. */
   sauce_au_choix?: boolean
   is_chef_special: boolean
@@ -57,7 +57,7 @@ export function buildProductsFromMenu(): Omit<Product, 'id' | 'created_at' | 'up
       available: true,
       popular: (p as any).popular ?? false,
       vegetarian: (p as any).vegetarian ?? false,
-      premium: (p as any).premium ?? false,
+      badge_label: (p as any).badgeLabel ?? null,
       sauce_au_choix: (p as any).sauceAuChoix ?? false,
       image_urls: [],
       slider_image_url: null,
@@ -82,7 +82,7 @@ export function buildProductsFromMenu(): Omit<Product, 'id' | 'created_at' | 'up
       available: true,
       popular: (f as any).popular ?? false,
       vegetarian: (f as any).vegetarian ?? false,
-      premium: false,
+      badge_label: null,
       sauce_au_choix: false,
       image_urls: [],
       slider_image_url: null,
@@ -106,7 +106,7 @@ export function buildProductsFromMenu(): Omit<Product, 'id' | 'created_at' | 'up
       available: true,
       popular: false,
       vegetarian: false,
-      premium: false,
+      badge_label: null,
       sauce_au_choix: false,
       image_urls: [],
       slider_image_url: null,
@@ -130,7 +130,7 @@ export function buildProductsFromMenu(): Omit<Product, 'id' | 'created_at' | 'up
       available: true,
       popular: false,
       vegetarian: false,
-      premium: false,
+      badge_label: null,
       sauce_au_choix: false,
       image_urls: [],
       slider_image_url: null,
@@ -201,7 +201,7 @@ export type ProductCreate = {
   available?: boolean
   popular?: boolean
   vegetarian?: boolean
-  premium?: boolean
+  badge_label?: string | null
   sauce_au_choix?: boolean
   is_chef_special?: boolean
 }
@@ -253,7 +253,7 @@ export async function createProduct(data: ProductCreate): Promise<Product> {
     available:        data.available ?? true,
     popular:          data.popular ?? false,
     vegetarian:       data.vegetarian ?? false,
-    premium:          data.premium ?? false,
+    badge_label:      data.badge_label ?? null,
     sauce_au_choix:   data.sauce_au_choix ?? false,
     is_chef_special:  data.is_chef_special ?? false,
     chef_valid_until: null,

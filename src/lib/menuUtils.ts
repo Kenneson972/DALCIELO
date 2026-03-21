@@ -13,7 +13,7 @@ export interface MenuItem {
   image?: string
   popular?: boolean
   vegetarian?: boolean
-  premium?: boolean
+  badgeLabel?: string | null
   type: MenuItemType
   size?: string
   /** Si true, la pizza propose un choix de sauce après cuisson (Ketchup, Barbecue, etc.) */

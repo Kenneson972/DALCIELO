@@ -13,7 +13,7 @@ export async function GET() {
     const db = getSupabase()
     const { data, error } = await db
       .from('products')
-      .select('menu_id, name, price, category, type, available, vegetarian, premium, sauce_au_choix, ingredients, size')
+      .select('menu_id, name, price, category, type, available, vegetarian, badge_label, sauce_au_choix, ingredients, size')
       .eq('is_chef_special', false)
       .order('type')
       .order('menu_id')

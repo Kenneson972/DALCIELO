@@ -69,7 +69,7 @@ async function getItem(slug: string): Promise<(MenuItem & { images?: string[] })
         images: images.length ? images : undefined,
         popular: product.popular,
         vegetarian: product.vegetarian,
-        premium: product.premium,
+        badgeLabel: product.badge_label ?? undefined,
         type: product.type,
         size: product.size ?? undefined,
         sauceAuChoix: isPizza && PIZZA_IDS_SAUCE_AU_CHOIX.has(product.menu_id),
@@ -251,7 +251,7 @@ export default async function ProductPage({ params }: PageProps) {
                     </span>
                   )}
                   {item.vegetarian && <Badge text="Végétarien" variant="vegetarian" />}
-                  {item.premium && <Badge text="Premium" variant="premium" />}
+                  {item.badgeLabel && <Badge text={item.badgeLabel} variant="premium" />}
                   {isChefPizza && <Badge text="🌟 Du Chef" variant="premium" className="bg-yellow-500 text-yellow-900" />}
                 </>
               }
