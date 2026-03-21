@@ -272,51 +272,74 @@ function ProductCreateModal({
           </div>
 
           {/* Toggles */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {([
-              { key: 'available',  label: 'Disponible', active: form.available },
-              { key: 'popular',    label: 'Populaire',  active: form.popular },
-              { key: 'vegetarian', label: 'Végétarien', active: form.vegetarian },
-              ...(isPizza ? [{ key: 'sauce_au_choix', label: 'Sauce au choix', active: form.sauce_au_choix }] : []),
-            ]).map(({ key, label, active }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setForm(f => ({ ...f, [key]: !(f as any)[key] }))}
-                className={`flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 font-bold text-xs transition-all ${
-                  active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                }`}
-              >
-                {active ? <Check size={18} /> : <X size={18} />}
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Badge */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Badge</label>
-            <select
-              value={form.badge_label}
-              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value, badge_label_custom: '' }))}
-              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
-            >
-              <option value="">Aucun badge</option>
-              {badgeCategories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {([
+                { key: 'available',  label: 'Disponible', active: form.available },
+                { key: 'popular',    label: 'Populaire',  active: form.popular },
+                { key: 'vegetarian', label: 'Végétarien', active: form.vegetarian },
+                ...(isPizza ? [{ key: 'sauce_au_choix', label: 'Sauce au choix', active: form.sauce_au_choix }] : []),
+              ]).map(({ key, label, active }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, [key]: !(f as any)[key] }))}
+                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  {active ? <Check size={18} /> : <X size={18} />}
+                  {label}
+                </button>
               ))}
-              <option value={CUSTOM_BADGE_KEY}>✏️ Personnalisé…</option>
-            </select>
-            {form.badge_label === CUSTOM_BADGE_KEY && (
-              <input
-                type="text"
-                value={form.badge_label_custom}
-                onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
-                placeholder="Tapez le badge personnalisé…"
-                autoFocus
-                className="w-full border border-coral/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
-              />
-            )}
+            </div>
+
+            {/* Badges — même style que les toggles, radio exclusif */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Badge affiché sur le site</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, badge_label: '', badge_label_custom: '' }))}
+                  className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    !form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  <X size={13} /> Aucun
+                </button>
+                {badgeCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
+                    className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                      form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                    }`}
+                  >
+                    <Tag size={13} /> {cat.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, badge_label: CUSTOM_BADGE_KEY, badge_label_custom: '' }))}
+                  className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    form.badge_label === CUSTOM_BADGE_KEY ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  <Edit2 size={13} /> Perso…
+                </button>
+              </div>
+              {form.badge_label === CUSTOM_BADGE_KEY && (
+                <input
+                  type="text"
+                  value={form.badge_label_custom}
+                  onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
+                  placeholder="Tapez le badge personnalisé…"
+                  autoFocus
+                  className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
+                />
+              )}
+            </div>
           </div>
 
           {error && (
@@ -660,59 +683,82 @@ function ProductEditModal({
             </div>
           )}
 
-          {/* Toggles */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {([
-              { key: 'available',  label: 'Disponible', icon: form.available  ? Eye    : EyeOff,  active: form.available },
-              { key: 'popular',    label: 'Populaire',  icon: Star,                               active: form.popular },
-              { key: 'vegetarian', label: 'Végétarien', icon: Leaf,                               active: form.vegetarian },
-              ...(product.type === 'pizza'
-                ? [
-                    { key: 'sauce_au_choix' as const, label: 'Sauce au choix', icon: Droplets, active: form.sauce_au_choix },
-                    { key: 'show_in_slider' as const, label: 'Dans le slider home', icon: Star, active: form.show_in_slider },
-                  ]
-                : []),
-            ]).map(({ key, label, active }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setForm(f => ({ ...f, [key]: !f[key as keyof typeof f] }))}
-                className={`flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 font-bold text-xs transition-all ${
-                  active
-                    ? 'border-coral bg-coral/5 text-coral'
-                    : 'border-slate-200 bg-slate-50 text-slate-400'
-                }`}
-              >
-                {active ? <Check size={18} /> : <X size={18} />}
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Badge */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Badge</label>
-            <select
-              value={form.badge_label}
-              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value, badge_label_custom: '' }))}
-              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
-            >
-              <option value="">Aucun badge</option>
-              {badgeCategories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
+          {/* Toggles + Badges */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {([
+                { key: 'available',  label: 'Disponible', icon: form.available  ? Eye    : EyeOff,  active: form.available },
+                { key: 'popular',    label: 'Populaire',  icon: Star,                               active: form.popular },
+                { key: 'vegetarian', label: 'Végétarien', icon: Leaf,                               active: form.vegetarian },
+                ...(product.type === 'pizza'
+                  ? [
+                      { key: 'sauce_au_choix' as const, label: 'Sauce au choix', icon: Droplets, active: form.sauce_au_choix },
+                      { key: 'show_in_slider' as const, label: 'Dans le slider home', icon: Star, active: form.show_in_slider },
+                    ]
+                  : []),
+              ]).map(({ key, label, active }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, [key]: !f[key as keyof typeof f] }))}
+                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    active
+                      ? 'border-coral bg-coral/5 text-coral'
+                      : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  {active ? <Check size={18} /> : <X size={18} />}
+                  {label}
+                </button>
               ))}
-              <option value={CUSTOM_BADGE_KEY}>✏️ Personnalisé…</option>
-            </select>
-            {form.badge_label === CUSTOM_BADGE_KEY && (
-              <input
-                type="text"
-                value={form.badge_label_custom}
-                onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
-                placeholder="Tapez le badge personnalisé…"
-                autoFocus
-                className="w-full border border-coral/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
-              />
-            )}
+            </div>
+
+            {/* Badges — même style, radio exclusif */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Badge affiché sur le site</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, badge_label: '', badge_label_custom: '' }))}
+                  className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    !form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  <X size={13} /> Aucun
+                </button>
+                {badgeCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
+                    className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                      form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                    }`}
+                  >
+                    <Tag size={13} /> {cat.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, badge_label: CUSTOM_BADGE_KEY, badge_label_custom: '' }))}
+                  className={`flex items-center gap-1 py-2 px-3 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    form.badge_label === CUSTOM_BADGE_KEY ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                  }`}
+                >
+                  <Edit2 size={13} /> Perso…
+                </button>
+              </div>
+              {form.badge_label === CUSTOM_BADGE_KEY && (
+                <input
+                  type="text"
+                  value={form.badge_label_custom}
+                  onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
+                  placeholder="Tapez le badge personnalisé…"
+                  autoFocus
+                  className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
+                />
+              )}
+            </div>
           </div>
 
           {error && (
