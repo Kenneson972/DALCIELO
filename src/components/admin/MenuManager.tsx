@@ -51,13 +51,16 @@ function ProductCreateModal({
   onClose,
   badgeCategories,
   onAddBadgeCategory,
+  onDeleteBadgeCategory,
 }: {
   onCreate: (data: ProductCreate) => Promise<void>
   onClose: () => void
   badgeCategories: { id: number; name: string }[]
-  onAddBadgeCategory: (name: string) => Promise<void>
+  onAddBadgeCategory: (name: string) => Promise<{ id: number; name: string }>
+  onDeleteBadgeCategory: (id: number) => Promise<void>
 }) {
   const [form, setForm] = useState({ ...EMPTY_FORM })
+  const [localCats, setLocalCats]         = useState<{ id: number; name: string }[]>(() => [...badgeCategories])
   const [saving, setSaving]               = useState(false)
   const [error, setError]                 = useState<string | null>(null)
   const [uploading, setUploading]         = useState(false)
@@ -73,7 +76,8 @@ function ProductCreateModal({
     setNewCatSaving(true)
     setNewCatError(null)
     try {
-      await onAddBadgeCategory(name)
+      const newCat = await onAddBadgeCategory(name)
+      setLocalCats(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)))
       setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
       setNewCatInput('')
       setAddingCat(false)
@@ -82,6 +86,13 @@ function ProductCreateModal({
     } finally {
       setNewCatSaving(false)
     }
+  }
+
+  const handleDeleteCat = async (id: number) => {
+    const catName = localCats.find(c => c.id === id)?.name
+    await onDeleteBadgeCategory(id)
+    setLocalCats(prev => prev.filter(c => c.id !== id))
+    if (catName && form.badge_label === catName) setForm(f => ({ ...f, badge_label: '' }))
   }
 
   const isPizza  = form.type === 'pizza'
@@ -327,18 +338,25 @@ function ProductCreateModal({
               >
                 <X size={18} /> Aucun badge
               </button>
-              {badgeCategories.map(cat => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
-                  className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                    form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                  }`}
-                >
-                  {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
-                  {cat.name}
-                </button>
+              {localCats.map(cat => (
+                <div key={cat.id} className="relative group/badge">
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
+                    className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                      form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
+                    }`}
+                  >
+                    {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
+                    {cat.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCat(cat.id)}
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] hidden group-hover/badge:flex items-center justify-center hover:bg-red-600 transition-colors"
+                    title="Supprimer"
+                  >×</button>
+                </div>
               ))}
               <button
                 type="button"
@@ -401,12 +419,14 @@ function ProductEditModal({
   onClose,
   badgeCategories,
   onAddBadgeCategory,
+  onDeleteBadgeCategory,
 }: {
   product: Product
   onSave: (patch: ProductUpdate) => Promise<void>
   onClose: () => void
   badgeCategories: { id: number; name: string }[]
-  onAddBadgeCategory: (name: string) => Promise<void>
+  onAddBadgeCategory: (name: string) => Promise<{ id: number; name: string }>
+  onDeleteBadgeCategory: (id: number) => Promise<void>
 }) {
   const initialImages = (product as { image_urls?: string[] | null }).image_urls?.length
     ? [...(product as { image_urls: string[] }).image_urls]
@@ -435,6 +455,7 @@ function ProductEditModal({
     })(),
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
+  const [localCats, setLocalCats]         = useState<{ id: number; name: string }[]>(() => [...badgeCategories])
   const [saving, setSaving]               = useState(false)
   const [error, setError]                 = useState<string | null>(null)
   const [uploading, setUploading]         = useState(false)
@@ -450,7 +471,8 @@ function ProductEditModal({
     setNewCatSaving(true)
     setNewCatError(null)
     try {
-      await onAddBadgeCategory(name)
+      const newCat = await onAddBadgeCategory(name)
+      setLocalCats(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)))
       setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
       setNewCatInput('')
       setAddingCat(false)
@@ -459,6 +481,13 @@ function ProductEditModal({
     } finally {
       setNewCatSaving(false)
     }
+  }
+
+  const handleDeleteCat = async (id: number) => {
+    const catName = localCats.find(c => c.id === id)?.name
+    await onDeleteBadgeCategory(id)
+    setLocalCats(prev => prev.filter(c => c.id !== id))
+    if (catName && form.badge_label === catName) setForm(f => ({ ...f, badge_label: '' }))
   }
 
   const isPizza = product.type === 'pizza'
@@ -763,11 +792,19 @@ function ProductEditModal({
               <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: '', badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${!form.badge_label ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
                 <X size={18} /> Aucun badge
               </button>
-              {badgeCategories.map(cat => (
-                <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
-                  {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
-                  {cat.name}
-                </button>
+              {localCats.map(cat => (
+                <div key={cat.id} className="relative group/badge">
+                  <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
+                    {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
+                    {cat.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCat(cat.id)}
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] hidden group-hover/badge:flex items-center justify-center hover:bg-red-600 transition-colors"
+                    title="Supprimer"
+                  >×</button>
+                </div>
               ))}
               <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: CUSTOM_BADGE_KEY, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === CUSTOM_BADGE_KEY ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
                 <Edit2 size={18} /> Perso…
@@ -913,7 +950,7 @@ export function MenuManager() {
     if (res.ok && Array.isArray(data.categories)) setBadgeCategories(data.categories)
   }, [])
 
-  const addBadgeCategory = async (name: string) => {
+  const addBadgeCategory = async (name: string): Promise<{ id: number; name: string }> => {
     const res = await fetch('/api/admin/badge-categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
@@ -921,7 +958,20 @@ export function MenuManager() {
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data.error || 'Erreur')
-    await loadBadges()
+    const cat = (data.category ?? { id: Date.now(), name }) as { id: number; name: string }
+    setBadgeCategories(prev =>
+      [...prev, cat].sort((a, b) => a.name.localeCompare(b.name))
+    )
+    return cat
+  }
+
+  const deleteBadgeCategory = async (id: number) => {
+    const res = await fetch(`/api/admin/badge-categories/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+    })
+    if (!res.ok) return
+    setBadgeCategories(prev => prev.filter(c => c.id !== id))
   }
 
   const handleAddBadge = async () => {
@@ -939,13 +989,7 @@ export function MenuManager() {
     }
   }
 
-  const handleDeleteBadge = async (id: number) => {
-    const res = await fetch(`/api/admin/badge-categories/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
-    })
-    if (res.ok) await loadBadges()
-  }
+  const handleDeleteBadge = (id: number) => deleteBadgeCategory(id)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1208,6 +1252,7 @@ export function MenuManager() {
           onClose={() => setCreating(false)}
           badgeCategories={badgeCategories}
           onAddBadgeCategory={addBadgeCategory}
+          onDeleteBadgeCategory={deleteBadgeCategory}
         />
       )}
 
@@ -1219,6 +1264,7 @@ export function MenuManager() {
           onClose={() => setEditing(null)}
           badgeCategories={badgeCategories}
           onAddBadgeCategory={addBadgeCategory}
+          onDeleteBadgeCategory={deleteBadgeCategory}
         />
       )}
     </div>
