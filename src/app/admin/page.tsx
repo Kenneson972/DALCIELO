@@ -206,6 +206,7 @@ export default function AdminPage() {
       const text = await res.text()
       let data: Record<string, unknown> = {}
       try { data = JSON.parse(text) } catch { console.error('[loadData] JSON parse failed:', text.slice(0, 200)) }
+      console.log('[loadData] status:', res.status, 'dbg:', data._dbg)
       if (!res.ok || !Array.isArray(data.orders)) {
         console.error('[loadData] unexpected response — status:', res.status, 'data:', JSON.stringify(data).slice(0, 300))
         setOrdersError(`⚠️ API erreur ${res.status} — voir console F12`)
