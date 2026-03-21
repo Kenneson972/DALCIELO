@@ -203,7 +203,15 @@ export default function AdminPage() {
         sessionStorage.removeItem('admin_pin')
         return
       }
-      const data = await res.json().catch(() => ({}))
+      const text = await res.text()
+      let data: Record<string, unknown> = {}
+      try { data = JSON.parse(text) } catch { console.error('[loadData] JSON parse failed:', text.slice(0, 200)) }
+      if (!res.ok || !Array.isArray(data.orders)) {
+        console.error('[loadData] unexpected response — status:', res.status, 'data:', JSON.stringify(data).slice(0, 300))
+        setOrdersError(`⚠️ API erreur ${res.status} — voir console F12`)
+        setLastSync(new Date())
+        return
+      }
       if (res.ok && Array.isArray(data.orders)) {
         const fetchedOrders = data.orders as Order[]
 
@@ -261,11 +269,11 @@ export default function AdminPage() {
         setLastSync(new Date())
         return
       }
-    } catch (_) {}
-    setOrders(getAllOrders())
-    setStats(getDashboardStats())
-    setOrdersError(null)
-    setLastSync(new Date())
+    } catch (e) {
+      console.error('[loadData] fetch error:', e)
+      setOrdersError('⚠️ Données hors-ligne — API indisponible')
+      setLastSync(new Date())
+    }
   }, [playSound])
 
   const handleOrderStatusChange = useCallback(
