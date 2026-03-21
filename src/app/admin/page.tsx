@@ -290,14 +290,17 @@ export default function AdminPage() {
         }
         const errBody = await res.json().catch(() => ({}))
         const details = (errBody.details as string) || (errBody.error as string)
+        if (res.status === 404) {
+          // Commande supprimée directement en base → resynchroniser
+          await loadData()
+          return
+        }
         const errMsg =
-          res.status === 404
-            ? 'Commande introuvable en base. Rafraîchissez la page (F5).'
-            : res.status === 500 || res.status === 503
-              ? details || 'Erreur serveur. Vérifiez Supabase (.env).'
-              : res.status === 429
-                ? 'Trop de tentatives. Réessayez dans quelques minutes.'
-                : details || `Erreur ${res.status}`
+          res.status === 500 || res.status === 503
+            ? details || 'Erreur serveur. Vérifiez Supabase (.env).'
+            : res.status === 429
+              ? 'Trop de tentatives. Réessayez dans quelques minutes.'
+              : details || `Erreur ${res.status}`
         setOrders((prev) => {
           const next = prev.map((o) =>
             o.id === id ? { ...o, status, ...(data || {}) } : o
