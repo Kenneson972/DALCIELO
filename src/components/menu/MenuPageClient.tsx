@@ -252,21 +252,16 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
         )}
 
         <div className="mt-24 p-12 bg-dark rounded-[3rem] text-white text-center">
-          <h2 className="text-3xl font-black mb-4">Envie de personnaliser ?</h2>
+          <h2 className="text-3xl font-black mb-4">Une question ? Appelez-nous !</h2>
           <p className="text-white/60 mb-8 max-w-xl mx-auto">
-            Vous pouvez composer votre pizza en choisissant votre base, votre sauce et vos garnitures préférées.
+            Pour toute commande ou information, contactez-nous directement.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/customize">
-              <Button className="w-full sm:w-auto py-4 px-10 text-lg">Créer ma Pizza</Button>
-            </Link>
-            <a
-              href="tel:+596696887270"
-              className="inline-flex items-center justify-center gap-3 bg-white/10 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all"
-            >
-              Appeler pour commander
-            </a>
-          </div>
+          <a
+            href="tel:+596696887270"
+            className="inline-flex items-center justify-center gap-3 bg-white/10 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all"
+          >
+            Appeler pour commander
+          </a>
         </div>
       </div>
     </div>

@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Complet - Pizza Dal Cielo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --coral: #E8614D;
+    --coral-light: #FCEAE7;
+    --green: #22C55E;
+    --green-light: #DCFCE7;
+    --amber: #F59E0B;
+    --amber-light: #FEF3C7;
+    --red: #EF4444;
+    --red-light: #FEE2E2;
+    --blue: #3B82F6;
+    --blue-light: #DBEAFE;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--gray-900), #1E293B);
+    color: white;
+    padding: 48px 40px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(232,97,77,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    color: #94A3B8;
+    position: relative;
+    z-index: 1;
+  }
+  .header .meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #CBD5E1;
+    position: relative;
+    z-index: 1;
+  }
+  .header .meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* SCORE GLOBAL */
+  .score-section {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .score-circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(var(--coral) 0deg, var(--coral) 306deg, var(--gray-200) 306deg);
+    position: relative;
+  }
+  .score-circle .inner {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .score-circle .number { font-size: 42px; font-weight: 800; color: var(--coral); }
+  .score-circle .label { font-size: 12px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; }
+  .score-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .score-item .cat { font-weight: 500; }
+  .score-item .val { font-weight: 700; padding: 2px 10px; border-radius: 20px; font-size: 13px; }
+  .val-a { background: var(--green-light); color: #166534; }
+  .val-b { background: var(--blue-light); color: #1E40AF; }
+  .val-c { background: var(--amber-light); color: #92400E; }
+  .val-d { background: var(--red-light); color: #991B1B; }
+
+  /* SECTIONS */
+  .section {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--gray-500);
+    margin-bottom: 24px;
+  }
+
+  /* PRIORITY BADGES */
+  .priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .p1 { background: var(--red-light); color: #991B1B; }
+  .p2 { background: var(--amber-light); color: #92400E; }
+  .p3 { background: var(--blue-light); color: #1E40AF; }
+
+  /* IMPROVEMENT CARDS */
+  .improvement {
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .improvement:hover { border-color: var(--coral); }
+  .improvement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .improvement-title {
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .improvement-body {
+    font-size: 14px;
+    color: var(--gray-700);
+    line-height: 1.7;
+  }
+  .improvement-body code {
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', Consolas, monospace;
+    color: var(--coral);
+  }
+  .improvement-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--gray-100);
+    color: var(--gray-500);
+  }
+
+  /* STATUS */
+  .status-ok { color: var(--green); }
+  .status-warn { color: var(--amber); }
+  .status-error { color: var(--red); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* SUMMARY TABLE */
+  .summary-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+  .summary-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    font-weight: 600;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .summary-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .summary-table tr:hover td { background: var(--gray-50); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 28px; font-weight: 800; }
+  .stat-card .lbl { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+
+  .print-break { page-break-before: always; }
+
+  @media print {
+    body { background: white; font-size: 12px; }
+    .container { padding: 0; }
+    .section, .score-section { box-shadow: none; break-inside: avoid; }
+    .improvement { break-inside: avoid; }
+  }
+
+  @media (max-width: 768px) {
+    .score-section { grid-template-columns: 1fr; justify-items: center; }
+    .score-grid { grid-template-columns: 1fr; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat-card { min-width: 45%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Audit Complet - pizzadalcielo.com</h1>
+  <p class="subtitle">Analyse exhaustive du code, de l'UI/UX, du SEO, de la securite, des performances et de la conformite RGPD</p>
+  <div class="meta">
+    <span>Date : 19 mars 2026</span>
+    <span>Stack : Next.js 14 + Supabase + Stripe + Tailwind</span>
+    <span>Referentiel : Karibloom Client Builder</span>
+  </div>
+</div>
+
+<!-- SCORE GLOBAL -->
+<div class="score-section">
+  <div class="score-circle">
+    <div class="inner">
+      <div class="number">85</div>
+      <div class="label">Score Global</div>
+    </div>
+  </div>
+  <div>
+    <h2 style="font-size:18px; margin-bottom:16px; font-weight:700;">Scores par domaine</h2>
+    <div class="score-grid">
+      <div class="score-item"><span class="cat">Architecture</span><span class="val val-a">A</span></div>
+      <div class="score-item"><span class="cat">SEO</span><span class="val val-a">A</span></div>
+      <div class="score-item"><span class="cat">Securite</span><span class="val val-a">A-</span></div>
+      <div class="score-item"><span class="cat">Performance</span><span class="val val-b">B+</span></div>
+      <div class="score-item"><span class="cat">UI / UX</span><span class="val val-b">B</span></div>
+      <div class="score-item"><span class="cat">Accessibilite</span><span class="val val-c">C+</span></div>
+      <div class="score-item"><span class="cat">RGPD / Cookies</span><span class="val val-c">C</span></div>
+      <div class="score-item"><span class="cat">TypeScript</span><span class="val val-b">B+</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-card" style="background:var(--red-light);">
+    <div class="num" style="color:#991B1B;">7</div>
+    <div class="lbl">P1 - Critiques</div>
+  </div>
+  <div class="stat-card" style="background:var(--amber-light);">
+    <div class="num" style="color:#92400E;">12</div>
+    <div class="lbl">P2 - Importants</div>
+  </div>
+  <div class="stat-card" style="background:var(--blue-light);">
+    <div class="num" style="color:#1E40AF;">15</div>
+    <div class="lbl">P3 - Nice-to-have</div>
+  </div>
+  <div class="stat-card" style="background:var(--green-light);">
+    <div class="num" style="color:#166534;">34</div>
+    <div class="lbl">Total ameliorations</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 1 : SECURITE -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">1. Securite</h2>
+  <p class="section-desc">Analyse des API routes, authentification admin, rate limiting, headers de securite, et protection Stripe</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> CSP headers complets dans next.config.js</li>
+    <li><span class="check status-ok">&#10003;</span> HSTS active en production (1 an + preload)</li>
+    <li><span class="check status-ok">&#10003;</span> X-Frame-Options SAMEORIGIN, X-Content-Type-Options nosniff</li>
+    <li><span class="check status-ok">&#10003;</span> Validation des prix cote serveur (anti-manipulation)</li>
+    <li><span class="check status-ok">&#10003;</span> Rate limiting sur /api/orders (10 req/60s)</li>
+    <li><span class="check status-ok">&#10003;</span> Rate limiting sur auth admin (15 fails = lockout 15min)</li>
+    <li><span class="check status-ok">&#10003;</span> Stripe webhook signature verification</li>
+    <li><span class="check status-ok">&#10003;</span> Endpoint /api/checkout deprecie (410 Gone)</li>
+    <li><span class="check status-warn">&#9888;</span> Rate limiting en memoire (non distribue)</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de CSRF token explicite sur les formulaires</li>
+    <li><span class="check status-warn">&#9888;</span> Admin PIN fallback "1234" en dev</li>
+    <li><span class="check status-error">&#10007;</span> Pas de logging des requetes pour audit trail</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Migrer le rate limiting vers une solution distribuee</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      Le rate limiting actuel utilise un <code>Map()</code> en memoire dans <code>src/lib/rateLimit.ts</code>. En cas de deploiement multi-instance (Vercel serverless), chaque instance a sa propre Map, rendant le rate limiting inefficace. Migrer vers Upstash Redis ou Supabase pour centraliser les compteurs IP.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">rateLimit.ts</span>
+      <span class="tag">kb-security.mdc</span>
+      <span class="tag">Production</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter un audit logging sur les endpoints admin</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Aucun log de securite n'est produit quand un admin valide, modifie ou supprime une commande. Ajouter un middleware de logging qui enregistre : IP, action, timestamp, et resultat dans Supabase (table <code>admin_audit_log</code>).
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">API routes /admin/*</span>
+      <span class="tag">kb-security.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter une protection CSRF</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Les formulaires POST (commandes, reviews) n'ont pas de token CSRF. Bien que Same-Origin soit en place, la regle <code>kb-forms.mdc</code> exige un CSRF token. Implementer via un cookie <code>SameSite=Strict</code> + header de verification, ou utiliser le pattern Double Submit Cookie.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">kb-forms.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Configurer CORS explicitement</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Aucun header CORS n'est configure dans les API routes. La regle <code>kb-backend.mdc</code> exige un whitelist CORS explicite (jamais <code>*</code>). Ajouter <code>Access-Control-Allow-Origin</code> avec le domaine pizzadalcielo.com uniquement.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">next.config.js</span>
+      <span class="tag">kb-backend.mdc</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2 : SEO -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">2. SEO & Referencement</h2>
+  <p class="section-desc">Metadata, JSON-LD schemas, sitemap, robots.txt et Open Graph</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Metadata complete dans layout.tsx (title, description, OG, Twitter)</li>
+    <li><span class="check status-ok">&#10003;</span> JSON-LD Restaurant schema avec horaires et adresse</li>
+    <li><span class="check status-ok">&#10003;</span> BreadcrumbList et WebSite schemas</li>
+    <li><span class="check status-ok">&#10003;</span> Sitemap dynamique avec slugs de produits</li>
+    <li><span class="check status-ok">&#10003;</span> Robots.ts bloque /admin/, /api/, /order/</li>
+    <li><span class="check status-ok">&#10003;</span> Locale fr_FR correctement defini</li>
+    <li><span class="check status-ok">&#10003;</span> Canonical URLs via metadataBase</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de schema FAQPage sur la page avec FAQ</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de schema Menu/Product sur les pages produit</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter un schema FAQPage sur les pages avec FAQ</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Le composant <code>FAQAccordion.tsx</code> affiche des questions/reponses mais aucun schema JSON-LD <code>FAQPage</code> n'est genere. La regle <code>kb-seo.mdc</code> exige un schema FAQ avec <code>mainEntity</code> de type <code>Question</code> pour chaque question. Cela ameliore la visibilite dans les resultats enrichis Google.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">FAQAccordion.tsx</span>
+      <span class="tag">kb-seo.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter des schemas Product sur les pages /menu/[slug]</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Les pages individuelles de pizza (<code>/menu/[slug]</code>) n'ont pas de schema <code>Product</code> ou <code>MenuItem</code> avec prix, disponibilite et notation. Ajouter un JSON-LD <code>Product</code> avec <code>offers.price</code>, <code>offers.availability</code>, et <code>aggregateRating</code> si des avis existent.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">/menu/[slug]/page.tsx</span>
+      <span class="tag">kb-seo.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter des metadata specifiques par page</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Les pages /about, /contact, /commander heritent du template layout mais pourraient avoir des descriptions uniques plus ciblees. La regle <code>kb-seo.mdc</code> demande un title + description unique par page.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">about/page.tsx</span>
+      <span class="tag">contact/page.tsx</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3 : PERFORMANCE -->
+<!-- ============================================ -->
+<div class="section print-break">
+  <h2 class="section-title">3. Performance</h2>
+  <p class="section-desc">Lazy loading, optimisation des images, bundle size, re-renders et Core Web Vitals</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Dynamic imports pour Chatbot, AnnouncementPopup, StickyCartBar</li>
+    <li><span class="check status-ok">&#10003;</span> next/image avec formats AVIF/WebP</li>
+    <li><span class="check status-ok">&#10003;</span> Font display: swap sur toutes les polices</li>
+    <li><span class="check status-ok">&#10003;</span> Background mobile optimise (webp dedie)</li>
+    <li><span class="check status-ok">&#10003;</span> removeConsole en production</li>
+    <li><span class="check status-ok">&#10003;</span> Zustand pour le state management (leger)</li>
+    <li><span class="check status-warn">&#9888;</span> 5 polices Google chargees (Inter, Poppins, Montserrat, Indie Flower, Playfair)</li>
+    <li><span class="check status-warn">&#9888;</span> Recharts dans l'admin non lazy-loaded</li>
+    <li><span class="check status-warn">&#9888;</span> Balises &lt;img&gt; raw au lieu de next/image (12 instances)</li>
+    <li><span class="check status-error">&#10007;</span> Pas de content-visibility sur les listes longues (menu)</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Reduire le nombre de polices Google Fonts</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      5 familles de polices sont chargees (Inter, Poppins, Montserrat, Indie Flower, Playfair Display). Chaque police ajoute ~20-40KB et bloque le rendu. La regle <code>kb-performance.mdc</code> recommande de minimiser les polices. Garder maximum 2-3 polices : une pour les titres, une pour le corps, une decorative si necessaire.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">layout.tsx</span>
+      <span class="tag">kb-performance.mdc</span>
+      <span class="tag">LCP</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Remplacer toutes les balises &lt;img&gt; par next/image</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      12 instances de <code>&lt;img&gt;</code> brutes trouvees (AnnouncementPopup, Footer, etc.). Cela bypasse l'optimisation automatique (lazy loading, formats modernes, responsive). Utiliser <code>next/image</code> avec les props <code>sizes</code>, <code>width</code>, <code>height</code> pour prevenir le CLS.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">AnnouncementPopup.tsx</span>
+      <span class="tag">Footer.tsx</span>
+      <span class="tag">kb-performance.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter content-visibility sur la liste du menu</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-server-fetching.mdc</code> recommande <code>content-visibility: auto; contain-intrinsic-size: 0 300px;</code> sur les elements de liste longue (PizzaCard dans le menu). Cela accelere le rendu initial jusqu'a 10x pour les listes de 50+ items.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">PizzaCard.tsx</span>
+      <span class="tag">MenuPageClient.tsx</span>
+      <span class="tag">kb-server-fetching.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Lazy-loader Recharts dans l'admin</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Le composant <code>RevenueChart.tsx</code> importe Recharts directement. La regle <code>kb-async-bundle.mdc</code> recommande un dynamic import avec <code>ssr: false</code> pour les librairies lourdes. Recharts ajoute ~200KB au bundle admin.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">RevenueChart.tsx</span>
+      <span class="tag">kb-async-bundle.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Optimiser les imports Framer Motion</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Verifier que les imports Framer Motion utilisent <code>import { motion } from "framer-motion"</code> et non le barrel import complet. Ajouter <code>framer-motion</code> dans <code>optimizePackageImports</code> de next.config.js pour le tree-shaking automatique.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">next.config.js</span>
+      <span class="tag">kb-async-bundle.mdc</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 4 : UI / UX -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">4. UI / UX</h2>
+  <p class="section-desc">Qualite de l'interface, animations, experience utilisateur, patterns de composants</p>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter un error.tsx global</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      Aucun fichier <code>error.tsx</code> n'existe a la racine de l'app. En cas d'erreur inattendue, l'utilisateur voit une page blanche ou l'erreur brute de Next.js. Creer un <code>src/app/error.tsx</code> avec un message convivial, un bouton "Reessayer" et un lien vers l'accueil.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">src/app/error.tsx</span>
+      <span class="tag">kb-components.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Creer une page 404 personnalisee</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      Seul <code>/menu/[slug]/not-found.tsx</code> existe pour les pizzas introuvables. Il manque un <code>src/app/not-found.tsx</code> global. Les URLs invalides affichent la 404 par defaut de Next.js. Creer une page 404 avec le branding Dal Cielo, des suggestions de navigation et un CTA vers le menu.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">src/app/not-found.tsx</span>
+      <span class="tag">kb-components.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter des skeleton loaders pour le menu</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Les donnees du menu sont chargees depuis Supabase. Pendant le chargement, l'utilisateur voit un ecran vide. Utiliser le skill <code>skeleton-generator</code> pour creer des skeletons pour PizzaCard et CategoryFilter, offrant un meilleur feedback visuel.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">PizzaCard.tsx</span>
+      <span class="tag">skeleton-generator</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ameliorer le feedback visuel du panier</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Quand un produit est ajoute au panier, il n'y a pas de micro-animation de confirmation visible (ex: badge du panier qui bounce, toast notification, ou animation de l'icone). Ajouter un feedback anime pour confirmer l'ajout au panier.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">AddToCartButton.tsx</span>
+      <span class="tag">Header.tsx</span>
+      <span class="tag">kb-animations.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter des etats vides (empty states) gracieux</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Quand le panier est vide, quand aucune pizza ne correspond au filtre, ou quand il n'y a pas d'avis, afficher un composant d'etat vide avec une illustration SVG, un message et un CTA (ex: "Decouvrir notre menu" si le panier est vide).
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">MenuPageClient.tsx</span>
+      <span class="tag">ProductReviews.tsx</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter prefers-reduced-motion aux animations</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Les animations Framer Motion ne verifient pas <code>prefers-reduced-motion</code>. La regle <code>kb-animations.mdc</code> exige de desactiver les animations WebGL/lourdes quand l'utilisateur a active cette preference. Ajouter un hook <code>useReducedMotion()</code> et conditionner les animations.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Hero.tsx</span>
+      <span class="tag">PizzaSlider.tsx</span>
+      <span class="tag">kb-animations.mdc</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 5 : ACCESSIBILITE -->
+<!-- ============================================ -->
+<div class="section print-break">
+  <h2 class="section-title">5. Accessibilite (WCAG)</h2>
+  <p class="section-desc">Conformite ARIA, semantique HTML, navigation au clavier, contrastes</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> aria-expanded, aria-controls sur FAQ Accordion</li>
+    <li><span class="check status-ok">&#10003;</span> aria-modal="true" et role="dialog" sur les modals</li>
+    <li><span class="check status-ok">&#10003;</span> aria-live="polite" pour le suivi de commande</li>
+    <li><span class="check status-ok">&#10003;</span> HTML semantique (main, nav, footer, section)</li>
+    <li><span class="check status-ok">&#10003;</span> Touch targets min 44x44px</li>
+    <li><span class="check status-error">&#10007;</span> Pas de lien "Skip to content"</li>
+    <li><span class="check status-error">&#10007;</span> Contrastes de couleurs non valides (coral sur fond clair)</li>
+    <li><span class="check status-warn">&#9888;</span> Focus management incomplete sur le menu mobile</li>
+    <li><span class="check status-warn">&#9888;</span> Labels de formulaire pas tous associes explicitement</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter un lien "Skip to content"</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      Aucun lien "Aller au contenu principal" n'est visible pour la navigation au clavier. C'est un critere WCAG 2.1 niveau A (2.4.1). Ajouter un <code>&lt;a href="#main-content"&gt;</code> visuellement cache sauf au focus, positionne avant le Header dans le layout.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">layout.tsx</span>
+      <span class="tag">LayoutSwitch.tsx</span>
+      <span class="tag">WCAG 2.4.1</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Corriger les contrastes de couleurs</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      La couleur corail (#E8614D) utilisee pour les CTAs et les liens sur fond clair risque de ne pas atteindre le ratio 4.5:1 exige par WCAG AA. La regle <code>kb-mobile-responsive.mdc</code> exige 4.5:1 minimum. Verifier avec un outil de contraste et ajuster les teintes si necessaire (ex: assombrir a #D4523F pour les textes).
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">globals.css</span>
+      <span class="tag">tailwind.config.js</span>
+      <span class="tag">WCAG 1.4.3</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ameliorer le focus trapping dans les modals</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Les modals (PizzaOptionsModal, CartDrawer, Menu mobile) doivent trapper le focus clavier a l'interieur quand elles sont ouvertes. Implementer un hook <code>useFocusTrap()</code> ou utiliser <code>@radix-ui/react-dialog</code> qui gere cela nativement.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Modal.tsx</span>
+      <span class="tag">PizzaOptionsModal.tsx</span>
+      <span class="tag">WCAG 2.4.3</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Associer tous les labels de formulaire</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Dans CartDrawer, certains champs utilisent des placeholders au lieu de labels associes via <code>htmlFor</code>/<code>id</code>. Les lecteurs d'ecran ne peuvent pas annoncer correctement ces champs. Ajouter des <code>&lt;label&gt;</code> visibles ou utiliser <code>aria-label</code>.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">WCAG 1.3.1</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter aria-hidden aux icones decoratives</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Certains SVG et icones (emojis, fleches decoratives) ne sont pas marques <code>aria-hidden="true"</code>, ce qui pollue la lecture par les lecteurs d'ecran.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Global</span>
+      <span class="tag">WCAG 1.1.1</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 6 : RGPD & COOKIES -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">6. RGPD & Cookie Consent</h2>
+  <p class="section-desc">Conformite au reglement europeen, consentement, transparence des donnees</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Page mentions legales existante (/mentions)</li>
+    <li><span class="check status-ok">&#10003;</span> Pas de tracking analytics externe actuellement</li>
+    <li><span class="check status-ok">&#10003;</span> localStorage technique uniquement (panier, chatbot)</li>
+    <li><span class="check status-error">&#10007;</span> Aucune banniere cookie consent</li>
+    <li><span class="check status-error">&#10007;</span> Pas de checkbox RGPD dans le formulaire de commande</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de lien vers la politique de confidentialite dans le formulaire</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Implementer une banniere cookie consent</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      Aucune banniere de consentement n'est presente. Meme sans analytics, le localStorage est utilise (panier, session chatbot). La regle <code>kb-cookie-consent.mdc</code> exige vanilla-cookieconsent v3 avec Google Consent Mode v2 par defaut a "denied". Implementer le skill <code>cookie-consent-setup</code> complet.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">cookie-consent-setup</span>
+      <span class="tag">kb-cookie-consent.mdc</span>
+      <span class="tag">RGPD</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter une checkbox RGPD obligatoire au formulaire de commande</span>
+      <span class="priority p1">P1</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-forms.mdc</code> exige une checkbox de consentement RGPD validee par Zod (<code>z.boolean().refine(val => val === true)</code>) avant toute soumission de donnees personnelles. Le CartDrawer collecte nom, telephone, adresse sans consentement explicite.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">kb-forms.mdc</span>
+      <span class="tag">RGPD Art. 7</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter un lien vers les mentions legales dans le formulaire</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Le formulaire de commande doit inclure un lien visible vers <code>/mentions</code> pres de la checkbox RGPD : "J'accepte la <a>politique de confidentialite</a>".
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">RGPD</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 7 : ARCHITECTURE & CODE -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">7. Architecture & Qualite du Code</h2>
+  <p class="section-desc">Structure du projet, TypeScript, patterns de composants, gestion d'erreurs</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> App Router bien structure avec layouts imbriques</li>
+    <li><span class="check status-ok">&#10003;</span> Separation claire client/server components</li>
+    <li><span class="check status-ok">&#10003;</span> Dynamic imports pour widgets non-critiques</li>
+    <li><span class="check status-ok">&#10003;</span> Zustand pour state management (leger et performant)</li>
+    <li><span class="check status-ok">&#10003;</span> TypeScript strict mode active</li>
+    <li><span class="check status-warn">&#9888;</span> 9 instances de type "any" dans le code</li>
+    <li><span class="check status-warn">&#9888;</span> Prop drilling dans certains composants admin</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de tests unitaires ou e2e</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Eliminer tous les types "any"</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      9 instances de <code>any</code> trouvees : <code>webhooks/stripe/route.ts</code> (err: any), <code>MenuManager.tsx</code> (2x catch), <code>OrdersList.tsx</code> (FilterButton props, GroupedItem), <code>QuickActions.tsx</code> (data param). Remplacer par <code>unknown</code> dans les catch blocks et creer des interfaces propres pour les composants admin.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">9 fichiers</span>
+      <span class="tag">TypeScript</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter des tests critiques (e2e ou integration)</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Aucun test n'existe. La regle <code>kb-workflow-orchestration.mdc</code> exige une verification avant completion. Au minimum, ajouter des tests pour : le flow de commande complet, la validation des prix serveur, l'authentification admin, et le formulaire de commande (Playwright ou Cypress).
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Nouveau : tests/</span>
+      <span class="tag">kb-workflow-orchestration.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Nettoyer les fichiers images a la racine</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      Plusieurs fichiers images et archives sont a la racine du projet (615852954_*.jpg, DALCIELO1.png, PIZZA DE DALCIELO.zip, etc.) au lieu d'etre dans <code>/public/images/</code>. Cela alourdit le repo et ne suit pas la structure recommandee par <code>kb-architecture.mdc</code>.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Racine du projet</span>
+      <span class="tag">kb-architecture.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter une documentation d'actions (ACTIONS_LOG)</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-action-documentation.mdc</code> exige un fichier <code>docs/ACTIONS_LOG.md</code> et des logs de session dans <code>docs/logs/</code>. Aucun de ces fichiers n'existe. Utiliser le skill <code>session-log</code> pour initialiser cette documentation.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">docs/ACTIONS_LOG.md</span>
+      <span class="tag">session-log</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 8 : FORMULAIRES -->
+<!-- ============================================ -->
+<div class="section print-break">
+  <h2 class="section-title">8. Formulaires & Validation</h2>
+  <p class="section-desc">Validation client/serveur, gestion des erreurs, UX des formulaires</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Zod pour la validation server-side</li>
+    <li><span class="check status-ok">&#10003;</span> Double validation client + serveur</li>
+    <li><span class="check status-ok">&#10003;</span> Debounce sur la validation d'adresse de livraison</li>
+    <li><span class="check status-ok">&#10003;</span> Bouton submit desactive jusqu'a validation</li>
+    <li><span class="check status-ok">&#10003;</span> Limites de longueur sur tous les champs</li>
+    <li><span class="check status-warn">&#9888;</span> Pas d'utilisation de react-hook-form (gestion manuelle)</li>
+    <li><span class="check status-warn">&#9888;</span> Types d'input non optimaux pour mobile</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Migrer le formulaire vers react-hook-form + Zod</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Le CartDrawer gere la validation manuellement avec des <code>useState</code> multiples. La regle <code>kb-forms.mdc</code> impose <code>react-hook-form</code> avec <code>zodResolver</code>. Cela simplifie la gestion d'erreurs, reduit les re-renders, et centralise la validation dans un schema Zod unique.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">kb-forms.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Optimiser les types d'input pour mobile</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-mobile-responsive.mdc</code> exige <code>type="tel"</code> pour le telephone (clavier numerique), <code>autocomplete="name"</code>/<code>autocomplete="tel"</code> pour aider le remplissage automatique. Verifier et corriger tous les champs du formulaire de commande.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">kb-mobile-responsive.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Ajouter le tracking UTM sur les commandes</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-forms.mdc</code> prevoit un tracking UTM optionnel stocke en localStorage pour les leads. Stocker les parametres UTM a l'arrivee et les envoyer avec la commande pour tracker l'acquisition.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">CartDrawer.tsx</span>
+      <span class="tag">kb-forms.mdc</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 9 : MOBILE & RESPONSIVE -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">9. Mobile & Responsive</h2>
+  <p class="section-desc">Adaptation mobile-first, breakpoints, touch targets, safe areas</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Breakpoints Tailwind correctement utilises (sm, md, lg)</li>
+    <li><span class="check status-ok">&#10003;</span> Header responsive avec menu hamburger</li>
+    <li><span class="check status-ok">&#10003;</span> Safe-area padding pour les notches iPhone</li>
+    <li><span class="check status-ok">&#10003;</span> Backdrop-filter desactive sur mobile (perf)</li>
+    <li><span class="check status-ok">&#10003;</span> Background image optimise pour mobile (webp)</li>
+    <li><span class="check status-ok">&#10003;</span> touch-action: manipulation sur les boutons</li>
+    <li><span class="check status-warn">&#9888;</span> Viewport meta sans maximum-scale=5.0</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Corriger le viewport meta</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-mobile-responsive.mdc</code> exige <code>maximum-scale=5.0, user-scalable=yes</code> dans le viewport meta pour l'accessibilite (les utilisateurs malvoyants doivent pouvoir zoomer). Verifier que le layout.tsx ne bloque pas le zoom.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">layout.tsx</span>
+      <span class="tag">kb-mobile-responsive.mdc</span>
+      <span class="tag">WCAG 1.4.4</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Verifier l'absence de scroll horizontal sur mobile</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      La checklist <code>kb-mobile-responsive.mdc</code> exige "pas de scroll horizontal". Verifier les composants avec des grilles ou des sliders (PizzaSlider, GallerySection) pour s'assurer qu'aucun overflow ne se produit sur les ecrans 375px.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">PizzaSlider.tsx</span>
+      <span class="tag">GallerySection.tsx</span>
+      <span class="tag">responsive-screenshot</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 10 : DEPLOIEMENT -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">10. Deploiement & Configuration</h2>
+  <p class="section-desc">Build, environnement, CDN, checklist de mise en production</p>
+
+  <ul class="checklist" style="margin-bottom:24px;">
+    <li><span class="check status-ok">&#10003;</span> Variables d'environnement separees (.env.local)</li>
+    <li><span class="check status-ok">&#10003;</span> .gitignore presente</li>
+    <li><span class="check status-ok">&#10003;</span> Headers de securite dans next.config.js</li>
+    <li><span class="check status-warn">&#9888;</span> .env.local contient des cles sensibles (verifier le .gitignore)</li>
+    <li><span class="check status-warn">&#9888;</span> Pas de .htaccess (normal si Vercel, manquant si o2switch)</li>
+    <li><span class="check status-warn">&#9888;</span> Fichier next-build.zip dans le repo</li>
+  </ul>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Supprimer le fichier next-build.zip du repo</span>
+      <span class="priority p2">P2</span>
+    </div>
+    <div class="improvement-body">
+      Un fichier <code>next-build.zip</code> est present a la racine. Les artefacts de build ne doivent jamais etre commites. L'ajouter au <code>.gitignore</code> et le supprimer du repo.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">.gitignore</span>
+      <span class="tag">kb-deployment.mdc</span>
+    </div>
+  </div>
+
+  <div class="improvement">
+    <div class="improvement-header">
+      <span class="improvement-title">Configurer le caching Cloudflare / CDN</span>
+      <span class="priority p3">P3</span>
+    </div>
+    <div class="improvement-body">
+      La regle <code>kb-deployment.mdc</code> recommande de configurer Cloudflare avec : SSL Full (strict), cache bypass pour HTML, cache immutable pour les assets statiques, HSTS et Always HTTPS.
+    </div>
+    <div class="improvement-tags">
+      <span class="tag">Cloudflare</span>
+      <span class="tag">kb-deployment.mdc</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- TABLEAU RECAPITULATIF -->
+<!-- ============================================ -->
+<div class="section print-break">
+  <h2 class="section-title">Tableau Recapitulatif des Ameliorations</h2>
+  <p class="section-desc">Vue d'ensemble de toutes les ameliorations classees par priorite</p>
+
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th style="width:60px;">Prio</th>
+        <th>Amelioration</th>
+        <th style="width:140px;">Domaine</th>
+        <th style="width:100px;">Effort</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- P1 -->
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Implementer une banniere cookie consent (vanilla-cookieconsent v3)</td>
+        <td>RGPD</td>
+        <td>~2h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Ajouter checkbox RGPD dans le formulaire de commande</td>
+        <td>RGPD</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Creer error.tsx global (error boundary)</td>
+        <td>UI/UX</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Creer not-found.tsx global (page 404 brandee)</td>
+        <td>UI/UX</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Ajouter un lien "Skip to content" (WCAG 2.4.1)</td>
+        <td>A11y</td>
+        <td>~15min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Corriger les contrastes de couleurs (WCAG 1.4.3)</td>
+        <td>A11y</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p1">P1</span></td>
+        <td>Migrer le rate limiting vers Redis/distribue</td>
+        <td>Securite</td>
+        <td>~2h</td>
+      </tr>
+      <!-- P2 -->
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Remplacer les 12 balises &lt;img&gt; par next/image</td>
+        <td>Perf</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Reduire de 5 a 2-3 polices Google Fonts</td>
+        <td>Perf</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter schema FAQPage JSON-LD</td>
+        <td>SEO</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter schema Product sur /menu/[slug]</td>
+        <td>SEO</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Migrer CartDrawer vers react-hook-form + Zod</td>
+        <td>Formulaires</td>
+        <td>~2h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter protection CSRF</td>
+        <td>Securite</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter audit logging admin</td>
+        <td>Securite</td>
+        <td>~1h30</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Skeleton loaders pour le menu</td>
+        <td>UI/UX</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Focus trapping dans les modals</td>
+        <td>A11y</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Associer tous les labels de formulaire</td>
+        <td>A11y</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter prefers-reduced-motion</td>
+        <td>UI/UX</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Optimiser les types d'input pour mobile</td>
+        <td>Mobile</td>
+        <td>~20min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Corriger le viewport meta (maximum-scale)</td>
+        <td>Mobile</td>
+        <td>~5min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Verifier scroll horizontal mobile (375px)</td>
+        <td>Mobile</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Supprimer next-build.zip du repo</td>
+        <td>Deploy</td>
+        <td>~5min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter content-visibility sur les listes</td>
+        <td>Perf</td>
+        <td>~20min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Eliminer les 9 types "any"</td>
+        <td>Code</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Ajouter des tests critiques (e2e)</td>
+        <td>Code</td>
+        <td>~4h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Feedback visuel ajout au panier</td>
+        <td>UI/UX</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p2">P2</span></td>
+        <td>Lien mentions legales dans le formulaire</td>
+        <td>RGPD</td>
+        <td>~10min</td>
+      </tr>
+      <!-- P3 -->
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Lazy-loader Recharts dans l'admin</td>
+        <td>Perf</td>
+        <td>~15min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Optimiser les imports Framer Motion</td>
+        <td>Perf</td>
+        <td>~15min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Configurer CORS explicitement</td>
+        <td>Securite</td>
+        <td>~20min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Metadata specifiques par page (about, contact)</td>
+        <td>SEO</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Etats vides gracieux (panier, filtres, avis)</td>
+        <td>UI/UX</td>
+        <td>~1h</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Nettoyer les images a la racine du repo</td>
+        <td>Code</td>
+        <td>~15min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Initialiser ACTIONS_LOG.md et docs/logs/</td>
+        <td>Code</td>
+        <td>~20min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Ajouter aria-hidden aux icones decoratives</td>
+        <td>A11y</td>
+        <td>~20min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Tracking UTM sur les commandes</td>
+        <td>Formulaires</td>
+        <td>~30min</td>
+      </tr>
+      <tr>
+        <td><span class="priority p3">P3</span></td>
+        <td>Configurer caching Cloudflare/CDN</td>
+        <td>Deploy</td>
+        <td>~30min</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:32px; padding:20px; background:var(--gray-50); border-radius:12px; border-left:4px solid var(--coral);">
+    <p style="font-weight:700; margin-bottom:8px;">Estimation totale :</p>
+    <p style="font-size:14px; color:var(--gray-700);">
+      <strong>P1 (critiques)</strong> : ~7h &mdash; A traiter avant la prochaine mise en production<br>
+      <strong>P2 (importants)</strong> : ~16h &mdash; A planifier sur les 2 prochaines semaines<br>
+      <strong>P3 (nice-to-have)</strong> : ~4h &mdash; A integrer progressivement<br>
+      <strong>Total estime</strong> : ~27 heures de travail
+    </p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center; padding:32px 0; color:var(--gray-500); font-size:13px;">
+  <p>Audit realise le 19 mars 2026 par Karibloom Client Builder</p>
+  <p>Referentiel : 19 regles .mdc + 12 skills specialises</p>
+</div>
+
+</div>
+</body>
+</html>

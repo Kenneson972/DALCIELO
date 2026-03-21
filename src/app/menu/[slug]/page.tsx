@@ -316,16 +316,6 @@ export default async function ProductPage({ params }: PageProps) {
               <div className="mb-7" />
             )}
 
-            {(isPizza || isFriand) && (
-              <div className="mb-6 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                <p className="text-sm text-[#7a5540] leading-relaxed">
-                  {item.varianteChoix
-                    ? <>💡 <strong>Personnalisation incluse :</strong> Vous choisirez vos ingrédients lors de la commande.</>
-                    : <>💡 <strong>Astuce :</strong> Vous pouvez personnaliser votre commande (suppléments, ingrédients) lors de la commande.</>
-                  }
-                </p>
-              </div>
-            )}
             {isDessert && (
               <div className="mb-6 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                 <p className="text-sm text-[#7a5540] leading-relaxed">
@@ -391,13 +381,6 @@ export default async function ProductPage({ params }: PageProps) {
                   Voir tout le menu
                 </Button>
               </Link>
-              {(isPizza || isFriand) && (
-                <Link href="/customize">
-                  <Button variant="secondary" size="lg">
-                    Créer ma pizza personnalisée
-                  </Button>
-                </Link>
-              )}
               {isDessert && (
                 <Link href="/menu">
                   <Button variant="secondary" size="lg">

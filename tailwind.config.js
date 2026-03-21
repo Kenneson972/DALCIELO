@@ -11,6 +11,7 @@ module.exports = {
           DEFAULT: '#E17B5F',
           light: '#D4633F',
           lighter: '#F4D06F',
+          text: '#C54A35',
         },
         secondary: {
           DEFAULT: '#D4633F',
@@ -31,7 +32,7 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['Poppins', 'Quicksand', 'sans-serif'],
-        accent: ['Montserrat', 'sans-serif'],
+        accent: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
       borderRadius: {

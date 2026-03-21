@@ -254,11 +254,6 @@ export function ChefPizzaPage({ item, images }: ChefPizzaPageProps) {
                         Tout le menu
                       </Button>
                     </Link>
-                    <Link href="/customize" className="min-h-[48px] flex items-center justify-center">
-                      <Button variant="secondary" size="lg" className="min-h-[48px] w-full sm:w-auto bg-amber-500/15 text-amber-300 border border-amber-500/25 hover:bg-amber-500/25 px-8 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
-                        Ma pizza perso
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               </div>

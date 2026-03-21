@@ -126,11 +126,6 @@ export const Hero = () => {
                 Découvrir le menu <ArrowRight size={22} className="ml-2" />
               </Button>
             </Link>
-            <Link href="/customize">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 py-6 text-lg bg-white/80 backdrop-blur-md border-white/50 hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-xl">
-                Personnaliser ma pizza
-              </Button>
-            </Link>
           </div>
 
           {/* Barre statut + TripAdvisor — cibles ≥ 44px, focus visible (kb-ui-ux-pro-max) */}
