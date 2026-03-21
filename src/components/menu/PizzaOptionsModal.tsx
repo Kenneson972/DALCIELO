@@ -22,8 +22,6 @@ export interface PizzaOptionItem {
   extraBases?: { id: number; name: string; price: number }[]
 }
 
-const SAUCE_INCLUSE = { id: 0, name: 'Sauce incluse', price: 0 }
-
 const SUPPLEMENT_CATEGORIES = ['Fromages', 'Légumes', 'Viandes', 'Produits de la mer'] as const
 
 interface PizzaOptionsModalProps {
@@ -39,7 +37,7 @@ interface PizzaOptionsModalProps {
 
 export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsModalProps) {
   const [base, setBase] = useState(menuData.bases[0])
-  const [sauce, setSauce] = useState<{ id: number; name: string; price: number }>(SAUCE_INCLUSE)
+  const [sauce, setSauce] = useState<{ id: number; name: string; price: number }>(menuData.sauces[0])
   const [selectedSupplements, setSelectedSupplements] = useState<Set<number>>(new Set())
   const [selectedVariante, setSelectedVariante] = useState<Set<string>>(new Set())
   const [varianteError, setVarianteError] = useState(false)
@@ -67,11 +65,12 @@ export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsM
   const hasSauceChoice = pizza.sauceAuChoix === true
   const bases = [...menuData.bases, ...(pizza.extraBases ?? [])]
   const showSupplements = pizza.category !== 'Friands'
-  const sauceOptions = [SAUCE_INCLUSE, ...menuData.sauces]
+  // Sauce incluse dans le prix pizza — seul le choix de laquelle est demandé
+  const sauceOptions = menuData.sauces
 
   const activeSups = menuData.supplements.filter(s => selectedSupplements.has(s.id))
   const suppTotal = activeSups.reduce((sum, s) => sum + s.price, 0)
-  const totalPrice = pizza.price + (hasSauceChoice ? sauce.price : 0)
+  const totalPrice = pizza.price // sauce toujours incluse, pas de surcoût
   const varianteOk = !pizza.varianteChoix || selectedVariante.size === pizza.varianteChoix.count
 
   const toggleSupplement = (id: number) => {
@@ -214,7 +213,6 @@ export function PizzaOptionsModal({ open, onClose, pizza, onAdd }: PizzaOptionsM
                         )}
                       >
                         <span className="font-bold text-sm">{s.name}</span>
-                        {s.price > 0 && <span className="text-xs font-black text-primary">+{s.price}€</span>}
                       </button>
                     ))}
                   </div>
