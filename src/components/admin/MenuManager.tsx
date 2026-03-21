@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   RefreshCw, Search, Edit2, Check, X, Loader2, Upload,
-  Eye, EyeOff, Star, Leaf, Droplets, ChevronDown, ChevronUp, Plus,
+  Eye, EyeOff, Star, Leaf, Droplets, ChevronDown, ChevronUp, Plus, Tag,
 } from 'lucide-react'
 import type { Product, ProductUpdate, ProductCreate } from '@/lib/productsStore'
 import { ChefPizzaEditor } from './ChefPizzaEditor'
@@ -46,9 +46,11 @@ const EMPTY_FORM = {
 function ProductCreateModal({
   onCreate,
   onClose,
+  badgeCategories,
 }: {
   onCreate: (data: ProductCreate) => Promise<void>
   onClose: () => void
+  badgeCategories: { id: number; name: string }[]
 }) {
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [saving, setSaving]       = useState(false)
@@ -288,16 +290,19 @@ function ProductCreateModal({
             ))}
           </div>
 
-          {/* Badge personnalisé */}
+          {/* Badge */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge personnalisé</label>
-            <input
-              type="text"
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge</label>
+            <select
               value={form.badge_label}
               onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
-              placeholder="Ex: Produits de la mer, Épicé, Nouveau... (vide = aucun badge)"
-              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10"
-            />
+              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
+            >
+              <option value="">Aucun badge</option>
+              {badgeCategories.map(cat => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
           </div>
 
           {error && (
@@ -330,10 +335,12 @@ function ProductEditModal({
   product,
   onSave,
   onClose,
+  badgeCategories,
 }: {
   product: Product
   onSave: (patch: ProductUpdate) => Promise<void>
   onClose: () => void
+  badgeCategories: { id: number; name: string }[]
 }) {
   const initialImages = (product as { image_urls?: string[] | null }).image_urls?.length
     ? [...(product as { image_urls: string[] }).image_urls]
@@ -661,16 +668,19 @@ function ProductEditModal({
             ))}
           </div>
 
-          {/* Badge personnalisé */}
+          {/* Badge */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge personnalisé</label>
-            <input
-              type="text"
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge</label>
+            <select
               value={form.badge_label}
               onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
-              placeholder="Ex: Produits de la mer, Épicé, Nouveau... (vide = aucun badge)"
-              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10"
-            />
+              className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
+            >
+              <option value="">Aucun badge</option>
+              {badgeCategories.map(cat => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
           </div>
 
           {error && (
@@ -774,14 +784,49 @@ function ProductCard({ product, onEdit, onToggleAvailable }: {
 // ─── MenuManager principal ────────────────────────────────────────────────────
 
 export function MenuManager() {
-  const [products, setProducts]        = useState<Product[]>([])
-  const [loading, setLoading]          = useState(true)
-  const [seeding, setSeeding]          = useState(false)
-  const [searchTerm, setSearchTerm]    = useState('')
-  const [editingProduct, setEditing]   = useState<Product | null>(null)
-  const [creating, setCreating]        = useState(false)
-  const [error, setError]              = useState<string | null>(null)
-  const [collapsedTypes, setCollapsed] = useState<Set<string>>(new Set())
+  const [products, setProducts]          = useState<Product[]>([])
+  const [loading, setLoading]            = useState(true)
+  const [seeding, setSeeding]            = useState(false)
+  const [searchTerm, setSearchTerm]      = useState('')
+  const [editingProduct, setEditing]     = useState<Product | null>(null)
+  const [creating, setCreating]          = useState(false)
+  const [error, setError]                = useState<string | null>(null)
+  const [collapsedTypes, setCollapsed]   = useState<Set<string>>(new Set())
+  const [badgeCategories, setBadgeCategories] = useState<{ id: number; name: string }[]>([])
+  const [badgesSectionOpen, setBadgesSectionOpen] = useState(false)
+  const [newBadgeInput, setNewBadgeInput] = useState('')
+  const [badgeSaving, setBadgeSaving]    = useState(false)
+  const [badgeError, setBadgeError]      = useState<string | null>(null)
+
+  const loadBadges = useCallback(async () => {
+    const res = await fetch('/api/admin/badge-categories', { headers: { 'x-admin-pin': getAdminPin() } })
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && Array.isArray(data.categories)) setBadgeCategories(data.categories)
+  }, [])
+
+  const handleAddBadge = async () => {
+    const name = newBadgeInput.trim()
+    if (!name) return
+    setBadgeSaving(true)
+    setBadgeError(null)
+    const res = await fetch('/api/admin/badge-categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+      body: JSON.stringify({ name }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (res.ok) { setNewBadgeInput(''); await loadBadges() }
+    else setBadgeError(data.error || 'Erreur')
+    setBadgeSaving(false)
+  }
+
+  const handleDeleteBadge = async (id: number) => {
+    const res = await fetch(`/api/admin/badge-categories/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+    })
+    if (res.ok) await loadBadges()
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -803,7 +848,7 @@ export function MenuManager() {
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(); loadBadges() }, [load, loadBadges])
 
   const handleSeed = async () => {
     setSeeding(true)
@@ -934,6 +979,59 @@ export function MenuManager() {
         </div>
       )}
 
+      {/* Gestion des badges */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <button
+          onClick={() => setBadgesSectionOpen(v => !v)}
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Tag size={18} className="text-coral" />
+            <span className="font-bold text-slate-800">Gestion des badges</span>
+            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">{badgeCategories.length}</span>
+          </div>
+          {badgesSectionOpen ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+        </button>
+        {badgesSectionOpen && (
+          <div className="px-6 pb-6 border-t border-slate-100 pt-4 space-y-4">
+            <p className="text-xs text-slate-400">Ces badges s'affichent sur les fiches produits du site. Ajoutez ou supprimez selon vos besoins.</p>
+            <div className="flex flex-wrap gap-2">
+              {badgeCategories.map(cat => (
+                <div key={cat.id} className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 rounded-full px-3 py-1.5">
+                  <span className="text-xs font-bold text-purple-700">{cat.name}</span>
+                  <button
+                    onClick={() => handleDeleteBadge(cat.id)}
+                    className="text-purple-400 hover:text-red-500 transition-colors"
+                    title="Supprimer"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+              {badgeCategories.length === 0 && <p className="text-sm text-slate-400">Aucun badge défini</p>}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newBadgeInput}
+                onChange={e => setNewBadgeInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddBadge()}
+                placeholder="Nouveau badge (ex: Épicé, Nouveauté…)"
+                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-coral/50"
+              />
+              <button
+                onClick={handleAddBadge}
+                disabled={!newBadgeInput.trim() || badgeSaving}
+                className="flex items-center gap-1.5 bg-coral text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors"
+              >
+                {badgeSaving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Ajouter
+              </button>
+            </div>
+            {badgeError && <p className="text-xs text-red-600">{badgeError}</p>}
+          </div>
+        )}
+      </div>
+
       {/* Pizza du Chef en haut */}
       {chefProduct && (
         <ChefPizzaEditor
@@ -989,6 +1087,7 @@ export function MenuManager() {
         <ProductCreateModal
           onCreate={handleCreateProduct}
           onClose={() => setCreating(false)}
+          badgeCategories={badgeCategories}
         />
       )}
 
@@ -998,6 +1097,7 @@ export function MenuManager() {
           product={editingProduct}
           onSave={patch => handleSaveProduct(editingProduct, patch)}
           onClose={() => setEditing(null)}
+          badgeCategories={badgeCategories}
         />
       )}
     </div>
