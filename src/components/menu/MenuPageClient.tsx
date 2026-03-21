@@ -31,7 +31,7 @@ export interface MenuPageItem {
   extraBases?: { id: number; name: string; price: number }[]
 }
 
-const CATEGORIES = ['Classiques', 'Pizzas du Chef', 'Friands', 'Végétariennes', 'Desserts', 'Boissons']
+// Catégories calculées dynamiquement depuis les items réels (see MenuPageClient)
 
 const DISPLAY_ORDER: Record<string, number> = {
   'Du Chef': 0,
@@ -133,6 +133,16 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
   const [activeCategory, setActiveCategory] = useState('Tous')
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Catégories visibles : on/off automatique selon les items présents
+  const visibleCategories = useMemo(() => {
+    const cats: string[] = ['Classiques']
+    if (items.some(i => i.category === 'Du Chef'))  cats.push('Pizzas du Chef')
+    if (items.some(i => i.type === 'Friand'))        cats.push('Friands')
+    if (items.some(i => i.type === 'Dessert'))       cats.push('Desserts')
+    if (items.some(i => i.type === 'Drink'))         cats.push('Boissons')
+    return cats
+  }, [items])
+
   const filteredItems = useMemo(() => {
     const list = items.filter(item => {
       const matchesSearch =
@@ -185,7 +195,7 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
             />
           </div>
           <CategoryFilter
-            categories={CATEGORIES}
+            categories={visibleCategories}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
           />
