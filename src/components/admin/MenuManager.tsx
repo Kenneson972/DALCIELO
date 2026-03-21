@@ -50,16 +50,39 @@ function ProductCreateModal({
   onCreate,
   onClose,
   badgeCategories,
+  onAddBadgeCategory,
 }: {
   onCreate: (data: ProductCreate) => Promise<void>
   onClose: () => void
   badgeCategories: { id: number; name: string }[]
+  onAddBadgeCategory: (name: string) => Promise<void>
 }) {
   const [form, setForm] = useState({ ...EMPTY_FORM })
-  const [saving, setSaving]       = useState(false)
-  const [error, setError]         = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [saving, setSaving]               = useState(false)
+  const [error, setError]                 = useState<string | null>(null)
+  const [uploading, setUploading]         = useState(false)
+  const [uploadError, setUploadError]     = useState<string | null>(null)
+  const [addingCat, setAddingCat]         = useState(false)
+  const [newCatInput, setNewCatInput]     = useState('')
+  const [newCatSaving, setNewCatSaving]   = useState(false)
+  const [newCatError, setNewCatError]     = useState<string | null>(null)
+
+  const handleAddCat = async () => {
+    const name = newCatInput.trim()
+    if (!name) return
+    setNewCatSaving(true)
+    setNewCatError(null)
+    try {
+      await onAddBadgeCategory(name)
+      setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
+      setNewCatInput('')
+      setAddingCat(false)
+    } catch (e: unknown) {
+      setNewCatError(e instanceof Error ? e.message : 'Erreur')
+    } finally {
+      setNewCatSaving(false)
+    }
+  }
 
   const isPizza  = form.type === 'pizza'
   const isDrink  = form.type === 'drink'
@@ -339,6 +362,31 @@ function ProductCreateModal({
                   className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
                 />
               )}
+              {/* Ajouter une nouvelle catégorie inline */}
+              {!addingCat ? (
+                <button type="button" onClick={() => setAddingCat(true)} className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-coral transition-colors font-semibold">
+                  <Plus size={12} /> Ajouter une catégorie
+                </button>
+              ) : (
+                <div className="mt-2 flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={newCatInput}
+                    onChange={e => setNewCatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddCat()}
+                    placeholder="Nom de la catégorie…"
+                    autoFocus
+                    className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-coral/50"
+                  />
+                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
+                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} OK
+                  </button>
+                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+              {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
             </div>
           </div>
 
@@ -373,11 +421,13 @@ function ProductEditModal({
   onSave,
   onClose,
   badgeCategories,
+  onAddBadgeCategory,
 }: {
   product: Product
   onSave: (patch: ProductUpdate) => Promise<void>
   onClose: () => void
   badgeCategories: { id: number; name: string }[]
+  onAddBadgeCategory: (name: string) => Promise<void>
 }) {
   const initialImages = (product as { image_urls?: string[] | null }).image_urls?.length
     ? [...(product as { image_urls: string[] }).image_urls]
@@ -406,10 +456,31 @@ function ProductEditModal({
     })(),
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [saving, setSaving]               = useState(false)
+  const [error, setError]                 = useState<string | null>(null)
+  const [uploading, setUploading]         = useState(false)
+  const [uploadError, setUploadError]     = useState<string | null>(null)
+  const [addingCat, setAddingCat]         = useState(false)
+  const [newCatInput, setNewCatInput]     = useState('')
+  const [newCatSaving, setNewCatSaving]   = useState(false)
+  const [newCatError, setNewCatError]     = useState<string | null>(null)
+
+  const handleAddCat = async () => {
+    const name = newCatInput.trim()
+    if (!name) return
+    setNewCatSaving(true)
+    setNewCatError(null)
+    try {
+      await onAddBadgeCategory(name)
+      setForm(f => ({ ...f, badge_label: name, badge_label_custom: '' }))
+      setNewCatInput('')
+      setAddingCat(false)
+    } catch (e: unknown) {
+      setNewCatError(e instanceof Error ? e.message : 'Erreur')
+    } finally {
+      setNewCatSaving(false)
+    }
+  }
 
   const isPizza = product.type === 'pizza'
   const images = isPizza ? form.image_urls : (form.image_url ? [form.image_url] : [])
@@ -758,6 +829,31 @@ function ProductEditModal({
                   className="mt-2 w-full border border-coral/40 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
                 />
               )}
+              {/* Ajouter une nouvelle catégorie inline */}
+              {!addingCat ? (
+                <button type="button" onClick={() => setAddingCat(true)} className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-coral transition-colors font-semibold">
+                  <Plus size={12} /> Ajouter une catégorie
+                </button>
+              ) : (
+                <div className="mt-2 flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={newCatInput}
+                    onChange={e => setNewCatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddCat()}
+                    placeholder="Nom de la catégorie…"
+                    autoFocus
+                    className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-coral/50"
+                  />
+                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
+                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} OK
+                  </button>
+                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+              {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
             </div>
           </div>
 
@@ -882,20 +978,30 @@ export function MenuManager() {
     if (res.ok && Array.isArray(data.categories)) setBadgeCategories(data.categories)
   }, [])
 
-  const handleAddBadge = async () => {
-    const name = newBadgeInput.trim()
-    if (!name) return
-    setBadgeSaving(true)
-    setBadgeError(null)
+  const addBadgeCategory = async (name: string) => {
     const res = await fetch('/api/admin/badge-categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
       body: JSON.stringify({ name }),
     })
     const data = await res.json().catch(() => ({}))
-    if (res.ok) { setNewBadgeInput(''); await loadBadges() }
-    else setBadgeError(data.error || 'Erreur')
-    setBadgeSaving(false)
+    if (!res.ok) throw new Error(data.error || 'Erreur')
+    await loadBadges()
+  }
+
+  const handleAddBadge = async () => {
+    const name = newBadgeInput.trim()
+    if (!name) return
+    setBadgeSaving(true)
+    setBadgeError(null)
+    try {
+      await addBadgeCategory(name)
+      setNewBadgeInput('')
+    } catch (e: unknown) {
+      setBadgeError(e instanceof Error ? e.message : 'Erreur')
+    } finally {
+      setBadgeSaving(false)
+    }
   }
 
   const handleDeleteBadge = async (id: number) => {
@@ -1166,6 +1272,7 @@ export function MenuManager() {
           onCreate={handleCreateProduct}
           onClose={() => setCreating(false)}
           badgeCategories={badgeCategories}
+          onAddBadgeCategory={addBadgeCategory}
         />
       )}
 
@@ -1176,6 +1283,7 @@ export function MenuManager() {
           onSave={patch => handleSaveProduct(editingProduct, patch)}
           onClose={() => setEditing(null)}
           badgeCategories={badgeCategories}
+          onAddBadgeCategory={addBadgeCategory}
         />
       )}
     </div>
