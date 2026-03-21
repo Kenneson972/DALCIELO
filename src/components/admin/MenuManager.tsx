@@ -375,7 +375,7 @@ function ProductCreateModal({
                 </button>
               ) : (
                 <div className="flex items-center gap-1.5 py-1">
-                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
+                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCat() } }} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
                   <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
                     {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                   </button>
@@ -393,10 +393,11 @@ function ProductCreateModal({
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-white rounded-b-3xl px-6 py-4 border-t border-slate-100 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">
+          <button type="button" onClick={onClose} className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">
             Annuler
           </button>
           <button
+            type="button"
             onClick={handleCreate}
             disabled={saving}
             className="flex-1 py-3 rounded-2xl bg-coral text-white font-black hover:bg-burnt-orange disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
@@ -825,7 +826,7 @@ function ProductEditModal({
                 </button>
               ) : (
                 <div className="flex items-center gap-1.5 py-1">
-                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCat()} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
+                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCat() } }} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
                   <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
                     {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                   </button>
@@ -844,12 +845,14 @@ function ProductEditModal({
         {/* Footer modal */}
         <div className="sticky bottom-0 bg-white rounded-b-3xl px-6 py-4 border-t border-slate-100 flex gap-3">
           <button
+            type="button"
             onClick={onClose}
             className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
           >
             Annuler
           </button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="flex-1 py-3 rounded-2xl bg-coral text-white font-black hover:bg-burnt-orange disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
