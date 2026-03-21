@@ -61,14 +61,39 @@ export function JsonLd() {
     ].filter(Boolean),
   }
 
+  // Nom de site dans Google : https://developers.google.com/search/docs/appearance/site-names
+  const siteDisplayName = contactInfo.name
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${BASE_URL}/#organization`,
+    name: siteDisplayName,
+    url: BASE_URL,
+    logo: {
+      '@type': 'ImageObject' as const,
+      url: logoUrl,
+    },
+    sameAs: [
+      GBP_URL,
+      contactInfo.socials.instagram,
+      contactInfo.socials.facebook,
+      contactInfo.socials.tripadvisor,
+    ].filter(Boolean),
+  }
+
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${BASE_URL}/#website`,
     url: BASE_URL,
-    name: contactInfo.name,
-    publisher: { '@id': `${BASE_URL}/#restaurant` },
+    name: siteDisplayName,
+    /** Variantes reconnues par Google (évite de n’afficher que le domaine). */
+    alternateName: ['Pizzadalcielo', 'Dal Cielo'],
     inLanguage: 'fr-FR',
+    publisher: { '@id': `${BASE_URL}/#organization` },
+    /** Lien explicite vers l’entité locale (cohérence marque + lieu). */
+    about: { '@id': `${BASE_URL}/#restaurant` },
   }
 
   const breadcrumbSchema = {
@@ -83,15 +108,19 @@ export function JsonLd() {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </>
   )

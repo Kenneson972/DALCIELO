@@ -37,6 +37,13 @@ export const viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  /** Nom d’application / marque (signal pour Google « site name » + barres UI). */
+  applicationName: 'Pizza Dal Cielo',
+  appleWebApp: {
+    capable: true,
+    title: 'Pizza Dal Cielo',
+    statusBarStyle: 'default',
+  },
   title: {
     default: 'Pizza Dal Cielo — Pizzeria artisanale à Fort-de-France, Martinique',
     template: '%s | Pizza Dal Cielo',
