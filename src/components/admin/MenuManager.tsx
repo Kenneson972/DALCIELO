@@ -70,6 +70,8 @@ function ProductCreateModal({
   const [newCatSaving, setNewCatSaving]   = useState(false)
   const [newCatError, setNewCatError]     = useState<string | null>(null)
 
+  useEffect(() => { setLocalCats(badgeCategories) }, [badgeCategories])
+
   const handleAddCat = async () => {
     const name = newCatInput.trim()
     if (!name) return
@@ -339,7 +341,7 @@ function ProductCreateModal({
                 <X size={18} /> Aucun badge
               </button>
               {localCats.map(cat => (
-                <div key={cat.id} className="relative group/badge">
+                <div key={cat.id} className="relative group">
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))}
@@ -353,7 +355,7 @@ function ProductCreateModal({
                   <button
                     type="button"
                     onClick={() => handleDeleteCat(cat.id)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] hidden group-hover/badge:flex items-center justify-center hover:bg-red-600 transition-colors"
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
                     title="Supprimer"
                   >×</button>
                 </div>
@@ -464,6 +466,8 @@ function ProductEditModal({
   const [newCatInput, setNewCatInput]     = useState('')
   const [newCatSaving, setNewCatSaving]   = useState(false)
   const [newCatError, setNewCatError]     = useState<string | null>(null)
+
+  useEffect(() => { setLocalCats(badgeCategories) }, [badgeCategories])
 
   const handleAddCat = async () => {
     const name = newCatInput.trim()
@@ -793,7 +797,7 @@ function ProductEditModal({
                 <X size={18} /> Aucun badge
               </button>
               {localCats.map(cat => (
-                <div key={cat.id} className="relative group/badge">
+                <div key={cat.id} className="relative group">
                   <button type="button" onClick={() => setForm(f => ({ ...f, badge_label: cat.name, badge_label_custom: '' }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_label === cat.name ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
                     {form.badge_label === cat.name ? <Check size={18} /> : <Tag size={18} />}
                     {cat.name}
@@ -801,7 +805,7 @@ function ProductEditModal({
                   <button
                     type="button"
                     onClick={() => handleDeleteCat(cat.id)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] hidden group-hover/badge:flex items-center justify-center hover:bg-red-600 transition-colors"
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
                     title="Supprimer"
                   >×</button>
                 </div>
