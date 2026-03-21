@@ -27,6 +27,8 @@ const CATEGORY_ORDER = [
 
 // ─── ProductCreateModal ───────────────────────────────────────────────────────
 
+const CUSTOM_BADGE_KEY = '__custom__'
+
 const EMPTY_FORM = {
   type:        'pizza' as 'pizza' | 'friand' | 'drink' | 'dessert',
   name:        '',
@@ -40,6 +42,7 @@ const EMPTY_FORM = {
   popular:     false,
   vegetarian:  false,
   badge_label: '',
+  badge_label_custom: '',
   sauce_au_choix: false,
 }
 
@@ -116,7 +119,7 @@ function ProductCreateModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  form.badge_label.trim() || null,
+        badge_label:  (form.badge_label === CUSTOM_BADGE_KEY ? form.badge_label_custom.trim() : form.badge_label.trim()) || null,
         ...(isPizza && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -291,18 +294,29 @@ function ProductCreateModal({
           </div>
 
           {/* Badge */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Badge</label>
             <select
               value={form.badge_label}
-              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value, badge_label_custom: '' }))}
               className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
             >
               <option value="">Aucun badge</option>
               {badgeCategories.map(cat => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
               ))}
+              <option value={CUSTOM_BADGE_KEY}>✏️ Personnalisé…</option>
             </select>
+            {form.badge_label === CUSTOM_BADGE_KEY && (
+              <input
+                type="text"
+                value={form.badge_label_custom}
+                onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
+                placeholder="Tapez le badge personnalisé…"
+                autoFocus
+                className="w-full border border-coral/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
+              />
+            )}
           </div>
 
           {error && (
@@ -359,7 +373,14 @@ function ProductEditModal({
     available:   product.available,
     popular:     product.popular,
     vegetarian:  product.vegetarian,
-    badge_label: (product as any).badge_label ?? '',
+    badge_label: (() => {
+      const v = (product as any).badge_label ?? ''
+      return v !== '' && !badgeCategories.some(c => c.name === v) ? CUSTOM_BADGE_KEY : v
+    })(),
+    badge_label_custom: (() => {
+      const v = (product as any).badge_label ?? ''
+      return v !== '' && !badgeCategories.some(c => c.name === v) ? v : ''
+    })(),
     sauce_au_choix: product.type === 'pizza' ? (product.sauce_au_choix ?? false) : false,
   })
   const [saving, setSaving] = useState(false)
@@ -443,7 +464,7 @@ function ProductEditModal({
         available:   form.available,
         popular:     form.popular,
         vegetarian:  form.vegetarian,
-        badge_label:  form.badge_label.trim() || null,
+        badge_label:  (form.badge_label === CUSTOM_BADGE_KEY ? form.badge_label_custom.trim() : form.badge_label.trim()) || null,
         ...(product.type === 'pizza' && { sauce_au_choix: form.sauce_au_choix }),
       })
       onClose()
@@ -669,18 +690,29 @@ function ProductEditModal({
           </div>
 
           {/* Badge */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Badge</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Badge</label>
             <select
               value={form.badge_label}
-              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, badge_label: e.target.value, badge_label_custom: '' }))}
               className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/50 focus:ring-2 focus:ring-coral/10 bg-white"
             >
               <option value="">Aucun badge</option>
               {badgeCategories.map(cat => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
               ))}
+              <option value={CUSTOM_BADGE_KEY}>✏️ Personnalisé…</option>
             </select>
+            {form.badge_label === CUSTOM_BADGE_KEY && (
+              <input
+                type="text"
+                value={form.badge_label_custom}
+                onChange={e => setForm(f => ({ ...f, badge_label_custom: e.target.value }))}
+                placeholder="Tapez le badge personnalisé…"
+                autoFocus
+                className="w-full border border-coral/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral/60 focus:ring-2 focus:ring-coral/10"
+              />
+            )}
           </div>
 
           {error && (
