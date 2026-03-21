@@ -44,7 +44,7 @@ const steps = [
   {
     number: '06',
     icon: <ChefHat className="text-primary" size={28} />,
-    title: 'Un seul maître à bord',
+    title: 'Une vraie pizzeria, pas une chaîne',
     description:
       "L'équipe de Dal Cielo fait tout — la pâte, les garnitures, la cuisson. Ce n'est pas une chaîne, c'est une pizzeria artisanale. Ça se voit dans chaque pizza.",
   },
