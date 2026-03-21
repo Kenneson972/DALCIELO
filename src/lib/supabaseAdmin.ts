@@ -5,7 +5,11 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export const supabaseAdmin: SupabaseClient | null =
   supabaseUrl && serviceRoleKey
-    ? createClient(supabaseUrl, serviceRoleKey)
+    ? createClient(supabaseUrl, serviceRoleKey, {
+        global: {
+          fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }),
+        },
+      })
     : null
 
 /** Lance une erreur si Supabase n'est pas configuré (pour les stores qui en dépendent). */

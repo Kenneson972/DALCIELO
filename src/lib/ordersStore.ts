@@ -43,8 +43,36 @@ function parseItems(items: unknown): OrderItem[] {
   return []
 }
 
+const KNOWN_ORDER_STATUSES: OrderStatus[] = [
+  'pending_validation',
+  'waiting_payment',
+  'paid',
+  'in_preparation',
+  'ready',
+  'in_delivery',
+  'completed',
+  'cancelled',
+  'refused',
+]
+const KNOWN_STATUS_SET = new Set<string>(KNOWN_ORDER_STATUSES)
+
+/**
+ * Anciennes lignes ou imports peuvent avoir un statut vide / typo / valeur hors CHECK.
+ * Avant : tout inconnu → `pending_validation` → fausses commandes « à valider » dans l’admin.
+ * Maintenant : inconnu → `completed` (archivé côté affichage) pour ne pas bloquer la file.
+ */
+function normalizeStatusFromRow(raw: unknown): OrderStatus {
+  if (raw == null) return 'pending_validation'
+  const s = String(raw).trim()
+  if (s === '') return 'completed'
+  if (KNOWN_STATUS_SET.has(s)) return s as OrderStatus
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[ordersStore] Statut commande inconnu en base, traité comme completed:', raw)
+  }
+  return 'completed'
+}
+
 function rowToOrder(row: OrderRow): Order {
-  const status = (row?.status ?? 'pending_validation') as OrderStatus
   const total = Number(row?.total)
   return {
     id: String(row?.id ?? ''),
@@ -57,9 +85,7 @@ function rowToOrder(row: OrderRow): Order {
     heure_souhaitee: String(row?.heure_souhaitee ?? ''),
     items: parseItems(row?.items),
     total: Number.isFinite(total) ? total : 0,
-    status: ['pending_validation', 'waiting_payment', 'paid', 'in_preparation', 'ready', 'in_delivery', 'completed', 'cancelled', 'refused'].includes(status)
-      ? status
-      : 'pending_validation',
+    status: normalizeStatusFromRow(row?.status),
     estimated_ready_time: row?.estimated_ready_time ?? undefined,
     actual_ready_time: row?.actual_ready_time ?? undefined,
     preparation_started_at: row?.preparation_started_at ?? undefined,
@@ -92,7 +118,16 @@ export async function getOrders(filter: OrderFilter = 'all'): Promise<Order[]> {
 
   const { data, error } = await query
   if (error) throw error
-  return (data ?? []).map((row) => rowToOrder(row))
+  const rows = (data ?? []).filter((row) => row && String((row as OrderRow).id ?? '').length > 0)
+  // Dédupliquer par id (sécurité si doublon côté jointure / vue)
+  const seen = new Set<string>()
+  const unique = rows.filter((row) => {
+    const id = String((row as OrderRow).id)
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+  return unique.map((row) => rowToOrder(row as OrderRow))
 }
 
 export async function getOrderByToken(token: string): Promise<Order | null> {
