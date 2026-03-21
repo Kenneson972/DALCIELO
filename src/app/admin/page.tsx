@@ -71,7 +71,7 @@ function computeDashboardStats(orders: Order[]): DashboardStats {
     ['paid', 'in_preparation', 'ready', 'in_delivery', 'completed'].includes(o.status)
   )
   const activeOrders = orders.filter((o) =>
-    ['paid', 'in_preparation', 'ready', 'in_delivery'].includes(o.status)
+    ['pending_validation', 'paid', 'in_preparation', 'ready', 'in_delivery'].includes(o.status)
   )
   const today_revenue = paidOrders.reduce((sum, o) => sum + o.total, 0)
   const completedWithTimes = paidOrders.filter(
@@ -206,10 +206,23 @@ export default function AdminPage() {
       if (res.ok && Array.isArray(data.orders)) {
         const fetchedOrders = data.orders as Order[]
 
-        // Detect new pending_validation orders (skip on first load to avoid false alerts)
-        if (!isFirstLoadRef.current) {
-          const newPending = fetchedOrders.filter(
-            (o) => o.status === 'pending_validation' && !prevPendingIdsRef.current.has(o.id)
+        // Detect pending_validation orders
+        const pendingOrders = fetchedOrders.filter((o) => o.status === 'pending_validation')
+        if (isFirstLoadRef.current) {
+          // Premier chargement : afficher la bannière si des commandes attendent déjà (sans son)
+          if (pendingOrders.length > 0) {
+            setNewOrderAlert({
+              name: pendingOrders[0].client_name,
+              time: pendingOrders[0].heure_souhaitee,
+              count: pendingOrders.length,
+            })
+            if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current)
+            alertTimeoutRef.current = setTimeout(() => setNewOrderAlert(null), 12000)
+          }
+        } else {
+          // Polls suivants : détecter les nouvelles commandes
+          const newPending = pendingOrders.filter(
+            (o) => !prevPendingIdsRef.current.has(o.id)
           )
           if (newPending.length > 0) {
             playSound('new_order')
@@ -854,7 +867,7 @@ function DashboardView({
           color="green"
         />
         <KPICard title="Commandes payées" value={stats.today_orders} icon={ShoppingBag} color="blue" />
-        <KPICard title="En cours" value={stats.active_orders} icon={ChefHat} color="orange" />
+        <KPICard title="À traiter" value={stats.active_orders} icon={ChefHat} color="orange" />
         <KPICard
           title="Temps moyen"
           value={`${stats.avg_preparation_time} min`}
