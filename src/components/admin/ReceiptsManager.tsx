@@ -97,8 +97,7 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
 
   const kpis = useMemo(() => {
     const total = filteredOrders.reduce((s, o) => s + o.total, 0)
-    const withPdf = filteredOrders.filter((o) => o.receipt_pdf_url).length
-    return { count: filteredOrders.length, total, withPdf, withoutPdf: filteredOrders.length - withPdf }
+    return { count: filteredOrders.length, total }
   }, [filteredOrders])
 
   const handleCategoryChange = async (order: Order, newCategory: string) => {
@@ -250,11 +249,9 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
       </div>
 
       {/* KPI banner */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard label="Commandes" value={String(kpis.count)} color="slate" />
         <KpiCard label="CA total" value={`${kpis.total.toFixed(2)} €`} color="green" />
-        <KpiCard label="Avec reçu PDF" value={String(kpis.withPdf)} color="orange" />
-        <KpiCard label="Sans reçu PDF" value={String(kpis.withoutPdf)} color="red" />
       </div>
 
       {/* Table */}
@@ -457,19 +454,6 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
 }
 
 function ReceiptBadge({ order }: { order: Order }) {
-  if (order.receipt_pdf_url) {
-    return (
-      <a
-        href={order.receipt_pdf_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold hover:bg-emerald-200 transition-colors"
-      >
-        <FileText size={12} />
-        PDF
-      </a>
-    )
-  }
   return (
     <a
       href={`/order/${order.token}/receipt`}
@@ -478,7 +462,7 @@ function ReceiptBadge({ order }: { order: Order }) {
       className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
     >
       <ExternalLink size={11} />
-      HTML
+      Reçu
     </a>
   )
 }

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const supabase = getSupabase()
   let query = supabase
     .from('orders')
-    .select('id, created_at, client_name, client_phone, type_service, heure_souhaitee, items, total, status, token, receipt_pdf_url, receipt_category')
+    .select('id, created_at, client_name, client_phone, type_service, heure_souhaitee, items, total, status, token, receipt_category')
     .order('created_at', { ascending: false })
 
   if (from) query = query.gte('created_at', `${from}T00:00:00.000Z`)
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const rows = data ?? []
 
-  const header = ['id', 'date', 'client_nom', 'client_telephone', 'service', 'heure_souhaitee', 'nb_articles', 'total', 'statut', 'recu_pdf_url', 'categorie']
+  const header = ['id', 'date', 'client_nom', 'client_telephone', 'service', 'heure_souhaitee', 'nb_articles', 'total', 'statut', 'categorie']
 
   const csvLines = [
     header.join(';'),
@@ -52,7 +52,6 @@ export async function GET(req: NextRequest) {
         nbArticles,
         Number(r.total).toFixed(2),
         r.status ?? '',
-        r.receipt_pdf_url ?? '',
         r.receipt_category ?? '',
       ]
       return cols.join(';')

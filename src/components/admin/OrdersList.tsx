@@ -232,9 +232,6 @@ function OrderCard({
           <div className="text-right shrink-0">
             <div className="flex items-center justify-end gap-2 mb-1">
               <p className="text-2xl font-black text-coral">{order.total.toFixed(2)}€</p>
-              {order.receipt_pdf_url && (
-                <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-semibold">📄 PDF</span>
-              )}
             </div>
             <div className="flex items-center justify-end gap-1 text-xs text-slate-400">
               <Calendar size={12} />
@@ -356,25 +353,14 @@ function OrderCard({
               )}
 
               <div className="flex flex-wrap gap-2 mb-2">
-                {order.receipt_pdf_url ? (
-                  <a
-                    href={order.receipt_pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-sm font-medium hover:bg-orange-100 transition-colors touch-manipulation"
-                  >
-                    📄 Voir le reçu PDF
-                  </a>
-                ) : (
-                  <a
-                    href={`/order/${order.token}/receipt`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-100 transition-colors touch-manipulation"
-                  >
-                    🖨️ Reçu HTML
-                  </a>
-                )}
+                <a
+                  href={`/order/${order.token}/receipt`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-100 transition-colors touch-manipulation"
+                >
+                  🖨️ Voir le reçu
+                </a>
               </div>
               <div className="pt-2">
                 <QuickActions
