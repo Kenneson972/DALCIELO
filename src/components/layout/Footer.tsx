@@ -181,6 +181,8 @@ export const Footer = () => {
             <span className="hidden md:inline">·</span>
             <Link href="/mentions" className="hover:text-white transition-colors">Mentions légales</Link>
             <span className="hidden md:inline">·</span>
+            <Link href="/cgv" className="hover:text-white transition-colors">CGV</Link>
+            <span className="hidden md:inline">·</span>
             <Link href="/mentions#cookies" className="hover:text-white transition-colors">Cookies</Link>
             <span className="hidden md:inline">·</span>
             <a href="https://karibloom.net" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Site créé par Karibloom</a>
