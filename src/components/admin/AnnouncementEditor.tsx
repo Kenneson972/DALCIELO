@@ -7,6 +7,7 @@ import type { Popup, PopupType, DismissMode } from '@/types/popup'
 import { getCsrfToken } from '@/lib/csrf'
 import { cn } from '@/lib/utils'
 import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
+import { useAdminToast } from '@/components/admin/AdminToast'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -134,21 +135,16 @@ function popupToForm(p: Popup): FormState {
 // ─── Main component ─────────────────────────────────────────────────────────────
 
 export function AnnouncementEditor() {
+  const { showToast } = useAdminToast()
   const [popups, setPopups] = useState<Popup[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
-
-  const showToast = (type: 'success' | 'error', msg: string) => {
-    setToast({ type, msg })
-    setTimeout(() => setToast(null), 3500)
-  }
 
   const loadPopups = () => {
     const pin = getAdminPin()
@@ -322,14 +318,6 @@ export function AnnouncementEditor() {
           </button>
         )}
       </div>
-
-      {/* Toast */}
-      {toast && (
-        <div className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl border ${toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-          {toast.type === 'success' ? <Check size={16} className="shrink-0 text-green-600" /> : <X size={16} className="shrink-0" />}
-          {toast.msg}
-        </div>
-      )}
 
       {/* Form */}
       {editingId !== null && (

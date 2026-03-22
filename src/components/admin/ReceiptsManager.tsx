@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Order } from '@/types/order'
 import { getCsrfToken } from '@/lib/csrf'
+import { useAdminToast } from '@/components/admin/AdminToast'
 
 interface ReceiptsManagerProps {
   orders: Order[]
@@ -44,6 +45,7 @@ function toMartiniqueDate(iso: string) {
 }
 
 export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManagerProps) {
+  const { showToast } = useAdminToast()
   const [period, setPeriod] = useState<Period>('month')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -121,10 +123,10 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
         onRefresh?.()
       } else {
         const data = await res.json().catch(() => ({}))
-        alert(data?.error || 'Erreur lors de la mise à jour de la catégorie.')
+        showToast('error', data?.error || 'Erreur lors de la mise à jour de la catégorie.')
       }
     } catch {
-      alert('Erreur réseau.')
+      showToast('error', 'Erreur réseau.')
     } finally {
       setUpdatingCategoryOrderId(null)
     }
@@ -169,7 +171,7 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch {
-      alert('Erreur lors de l\'export. Réessayez.')
+      showToast('error', "Erreur lors de l'export. Réessayez.")
     } finally {
       setIsExporting(false)
     }

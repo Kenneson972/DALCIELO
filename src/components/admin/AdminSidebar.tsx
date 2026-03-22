@@ -84,7 +84,6 @@ export function AdminSidebar({
               key={item.id}
               type="button"
               onClick={() => onChangeView(item.id as ViewMode)}
-              title={isCollapsed ? item.label : undefined}
               className={cn(
                 'group relative flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-200 touch-manipulation',
                 adminFocusRingDark,
@@ -133,6 +132,13 @@ export function AdminSidebar({
               {isCollapsed && item.badge ? (
                 <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-slate-900 bg-coral" />
               ) : null}
+              {/* Tooltip visible uniquement en mode réduit */}
+              {isCollapsed && (
+                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+                  {item.label}
+                  {item.badge ? <span className="ml-1.5 rounded-md bg-coral/30 px-1.5 py-0.5 text-[10px] text-coral">{item.badge}</span> : null}
+                </span>
+              )}
             </button>
           )
         })}
@@ -142,15 +148,19 @@ export function AdminSidebar({
         <button
           type="button"
           onClick={onLogout}
-          title={isCollapsed ? 'Déconnexion' : undefined}
           className={cn(
-            'flex w-full min-h-[44px] items-center rounded-xl px-3 py-2.5 text-slate-400 transition-colors hover:bg-red-950/40 hover:text-red-300 touch-manipulation',
+            'group relative flex w-full min-h-[44px] items-center rounded-xl px-3 py-2.5 text-slate-400 transition-colors hover:bg-red-950/40 hover:text-red-300 touch-manipulation',
             isCollapsed ? 'justify-center' : 'gap-3',
             adminFocusRingDark
           )}
         >
           <LogOut size={20} className="shrink-0" />
           {!isCollapsed && <span className="text-sm font-medium">Déconnexion</span>}
+          {isCollapsed && (
+            <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+              Déconnexion
+            </span>
+          )}
         </button>
         <button
           type="button"

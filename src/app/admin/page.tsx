@@ -71,6 +71,7 @@ import {
 } from '@/components/admin/adminUi'
 import { AdminCard } from '@/components/admin/ui/AdminCard'
 import { AdminSectionHeader } from '@/components/admin/ui/AdminSectionHeader'
+import { AdminToastProvider } from '@/components/admin/AdminToast'
 import type { Order, DashboardStats } from '@/types/order'
 
 type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews'
@@ -520,6 +521,7 @@ export default function AdminPage() {
   }
 
   return (
+    <AdminToastProvider>
     <div className={cn(adminPageBg, 'min-h-screen min-h-[100dvh]')}>
       {/* Desktop Sidebar */}
       <AdminSidebar
@@ -795,6 +797,7 @@ export default function AdminPage() {
         )}
       </AnimatePresence>
     </div>
+    </AdminToastProvider>
   )
 }
 

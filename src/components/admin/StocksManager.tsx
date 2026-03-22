@@ -20,6 +20,7 @@ import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Stock } from '@/lib/stocksStore'
 import { menuData } from '@/data/menuData'
 import { getCsrfToken } from '@/lib/csrf'
+import { useAdminToast } from '@/components/admin/AdminToast'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -39,6 +40,7 @@ function getMenuInfo(itemId: string) {
 }
 
 export function StocksManager() {
+  const { showToast } = useAdminToast()
   const [stocks, setStocks] = useState<Stock[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +82,7 @@ export function StocksManager() {
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
         await loadStocks()
-        alert(data.message || 'Synchronisation réussie')
+        showToast('success', data.message || 'Stocks synchronisés')
       } else {
         setError(data.error || 'Erreur lors de l\'initialisation')
       }

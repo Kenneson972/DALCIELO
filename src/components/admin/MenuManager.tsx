@@ -10,6 +10,7 @@ import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Product, ProductUpdate, ProductCreate } from '@/lib/productsStore'
 import { ChefPizzaEditor } from './ChefPizzaEditor'
 import { getCsrfToken } from '@/lib/csrf'
+import { useAdminToast } from '@/components/admin/AdminToast'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -1088,6 +1089,7 @@ function ProductCard({ product, onEdit, onToggleAvailable }: {
 // ─── MenuManager principal ────────────────────────────────────────────────────
 
 export function MenuManager() {
+  const { showToast } = useAdminToast()
   const [products, setProducts]          = useState<Product[]>([])
   const [loading, setLoading]            = useState(true)
   const [seeding, setSeeding]            = useState(false)
@@ -1179,7 +1181,7 @@ export function MenuManager() {
         headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
       })
       const data = await res.json().catch(() => ({}))
-      if (res.ok) { await load(); alert(data.message || 'Synchronisé') }
+      if (res.ok) { await load(); showToast('success', data.message || 'Catalogue synchronisé') }
       else setError(data.error || 'Erreur seed')
     } finally {
       setSeeding(false)
