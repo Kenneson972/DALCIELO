@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function CgvPage() {
   return (
     <div className="pt-28 pb-24 px-6 min-h-screen">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto bg-white/82 backdrop-blur-sm rounded-3xl px-8 py-10 shadow-sm">
         <h1 className="text-4xl md:text-5xl font-black text-[#3D2418] mb-4">
           Conditions Générales de Vente
         </h1>

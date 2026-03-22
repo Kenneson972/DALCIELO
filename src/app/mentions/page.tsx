@@ -9,7 +9,7 @@ export default function MentionsPage() {
 
   return (
     <div className="pt-28 pb-24 px-6 min-h-screen">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto bg-white/82 backdrop-blur-sm rounded-3xl px-8 py-10 shadow-sm">
         <h1 className="text-4xl md:text-5xl font-black text-[#3D2418] mb-8">Mentions légales</h1>
         <p className="text-[#3D2418]/80 mb-10">
           Conformément aux dispositions de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l&apos;économie numérique,
