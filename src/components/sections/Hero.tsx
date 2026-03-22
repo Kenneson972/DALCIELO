@@ -31,18 +31,33 @@ export const Hero = () => {
       aria-labelledby="hero-heading"
     >
 
-      {/* ── Layer 0 : Glow background (parallax) ────────────────── */}
+      {/* ── Layer 0 : Photo pizza (hero uniquement) ────────────────── */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1920&auto=format&fit=crop"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
+          priority
+          aria-hidden
+        />
+        {/* Overlay chaud — assure la lisibilité sur fond photo, fond tropical reprend ensuite */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF8F0]/80 via-[#FFF8F0]/60 to-[#FFF8F0]/15" />
+      </div>
+
+      {/* ── Layer 1 : Glow parallax (au-dessus de la photo) ──────── */}
       <motion.div
         style={{ y: glowY }}
-        className="hidden sm:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/8 rounded-full blur-[140px] pointer-events-none"
+        className="hidden sm:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/8 rounded-full blur-[140px] pointer-events-none z-[1]"
       />
       <motion.div
         style={{ y: glowY }}
-        className="hidden sm:block absolute bottom-0 right-0 w-[450px] h-[450px] bg-yellow-400/5 rounded-full blur-[110px] pointer-events-none"
+        className="hidden sm:block absolute bottom-0 right-0 w-[450px] h-[450px] bg-yellow-400/5 rounded-full blur-[110px] pointer-events-none z-[1]"
       />
 
       {/* ── Contenu principal ─────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 w-full min-h-0">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 w-full min-h-0">
       <div className="container max-w-4xl mx-auto relative z-10 flex flex-col items-center text-center">
 
         {/* Logo — parallax + float continu + fade-in mount */}
