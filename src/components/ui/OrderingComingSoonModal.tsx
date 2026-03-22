@@ -46,11 +46,11 @@ export function OrderingComingSoonModal({ onClose, reason = 'monday' }: Ordering
             <div className="text-5xl mb-4">🔒</div>
             {reason === 'sunday' ? (
               <>
-                <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé le dimanche</h2>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">Fermé dimanche &amp; lundi</h2>
                 <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-                  La pizzeria est fermée tous les dimanches.
+                  La pizzeria est fermée le <strong>dimanche</strong> et le <strong>lundi</strong>.
                   <br />
-                  Revenez à partir de lundi !
+                  Commande en ligne à partir de <strong>mardi</strong> (18h–22h).
                 </p>
               </>
             ) : (
@@ -59,7 +59,7 @@ export function OrderingComingSoonModal({ onClose, reason = 'monday' }: Ordering
                 <p className="text-gray-500 text-sm mb-8 leading-relaxed">
                   La pizzeria est fermée tous les lundis.
                   <br />
-                  Revenez à partir de mardi !
+                  Commande en ligne à partir de <strong>mardi</strong> (18h–22h).
                 </p>
               </>
             )}

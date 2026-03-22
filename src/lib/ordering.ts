@@ -23,8 +23,9 @@ export function isSundayClosed(): boolean {
 
 /**
  * Raison pour laquelle les commandes sont bloquées côté UI.
- * - 'monday' → pizzeria fermée le lundi
- * - 'sunday' → pizzeria fermée le dimanche
+ * Horaires : fermé dimanche + lundi ; ouvert mar–sam 18h–22h.
+ * - 'monday' → fermé ce jour-là
+ * - 'sunday' → fermé le dimanche (message UX : lundi aussi fermé → réouverture mardi)
  * - null     → commandes autorisées (sous réserve four / API)
  */
 export function orderingBlockReason(): 'monday' | 'sunday' | null {

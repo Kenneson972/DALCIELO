@@ -4,11 +4,11 @@ import { ContactSection } from "@/components/sections/ContactSection";
 import { GallerySection } from "@/components/sections/GallerySection";
 import { PizzaSlider } from "@/components/sections/PizzaSlider";
 import { WaveDivider } from "@/components/ui/WaveDivider";
+import { ClosedDayOrderingBanner } from "@/components/ui/ClosedDayOrderingBanner";
 import { getChefProduct, getProducts } from "@/lib/productsStore";
 import { getHomepageSettings } from "@/lib/homepageSettingsStore";
 import { menuData } from "@/data/menuData";
 import { generateSlug } from "@/lib/utils";
-import { orderingBlockReason } from "@/lib/ordering";
 import type { Metadata } from "next";
 import { absoluteUrl, getDefaultOgImageUrl } from "@/lib/seo";
 
@@ -85,18 +85,11 @@ export default async function Home() {
     ? chefProduct
     : (chefProduct ?? menuData.pizzas.find((p) => p.category === "Du Chef") ?? null);
 
-  const blockReason = orderingBlockReason();
-
   return (
     <>
-      {blockReason && (
-        <div className="bg-red-600 text-white text-center text-sm font-bold py-2.5 px-4">
-          {blockReason === 'sunday'
-            ? '🔒 Pizzeria fermée le dimanche — Revenez à partir de lundi !'
-            : '🔒 Pizzeria fermée le lundi — Revenez à partir de mardi !'}
-        </div>
-      )}
       <Hero />
+
+      <ClosedDayOrderingBanner />
 
       {/* Pizza du Chef */}
       <WaveDivider fill="rgba(255,248,240,0.0)" />
