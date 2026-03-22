@@ -11,7 +11,10 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { BarChart3 } from 'lucide-react'
 import type { Order } from '@/types/order'
+import { cn } from '@/lib/utils'
+import { adminCard } from '@/components/admin/adminUi'
 
 interface RevenueChartProps {
   orders: Order[]
@@ -70,21 +73,21 @@ export function RevenueChart({ orders }: RevenueChartProps) {
   const maxRevenue = Math.max(...slotData.map((d) => d.revenue), 1)
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 h-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className={cn(adminCard, 'h-full p-5 md:p-6')}>
+      <div className="mb-6 flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-slate-900">
           Revenus par créneau (15 min)
         </h3>
-        <span className="text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-lg">
+        <span className="rounded-lg bg-slate-50 px-2 py-1 text-xs font-medium text-slate-500">
           {todayOrders.length} cmd{todayOrders.length > 1 ? 's' : ''}
         </span>
       </div>
 
       {todayOrders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[280px] text-slate-400">
-          <p className="text-4xl mb-3">📊</p>
-          <p className="text-sm font-medium">Aucune commande payée aujourd'hui</p>
-          <p className="text-xs text-slate-300 mt-1">Les commandes apparaîtront ici en temps réel</p>
+        <div className="flex h-[280px] flex-col items-center justify-center text-slate-400">
+          <BarChart3 className="mb-3 h-12 w-12 opacity-40" strokeWidth={1.25} aria-hidden />
+          <p className="text-sm font-medium">Aucune commande payée aujourd&apos;hui</p>
+          <p className="mt-1 text-xs text-slate-400">Les commandes apparaîtront ici en temps réel</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={280}>
@@ -120,7 +123,7 @@ export function RevenueChart({ orders }: RevenueChartProps) {
               formatter={(value: unknown, name?: string): [ReactNode, string] => {
                 if (name === 'revenue')
                   return [
-                    <span className="font-bold text-orange-600">{String(value)}€</span>,
+                    <span className="font-bold text-coral">{String(value)}€</span>,
                     'Revenus',
                   ]
                 return [String(value), name ?? '']
@@ -133,7 +136,7 @@ export function RevenueChart({ orders }: RevenueChartProps) {
               {slotData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.revenue >= maxRevenue * 0.8 ? '#ea580c' : '#f97316'}
+                  fill={entry.revenue >= maxRevenue * 0.8 ? '#D4633F' : '#E17B5F'}
                   fillOpacity={entry.revenue > 0 ? 1 : 0.15}
                 />
               ))}

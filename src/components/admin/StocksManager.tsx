@@ -1,7 +1,22 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Minus, Package, RefreshCw, Search, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import {
+  Plus,
+  Minus,
+  Package,
+  RefreshCw,
+  Search,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Pizza,
+  CupSoda,
+  Cookie,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Stock } from '@/lib/stocksStore'
 import { menuData } from '@/data/menuData'
 import { getCsrfToken } from '@/lib/csrf'
@@ -163,46 +178,69 @@ export function StocksManager() {
   if (loading && stocks.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin text-coral text-4xl">🍕</div>
+        <Loader2 className="h-10 w-10 animate-spin text-coral" aria-label="Chargement" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-6 pb-20 md:space-y-8">
       {/* Header Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div
+        className={cn(
+          adminCard,
+          'flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6'
+        )}
+      >
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gestion des Stocks</h2>
-          <p className="text-slate-500 text-sm">Gérez la disponibilité des pizzas et boissons</p>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+            Gestion des stocks
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">Disponibilité des pizzas et boissons</p>
         </div>
-        
-        <div className="flex flex-wrap gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Rechercher..." 
+
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+              aria-hidden
+            />
+            <input
+              type="text"
+              placeholder="Rechercher…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral w-full md:w-64"
+              className={cn(
+                'w-full min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-4 text-base text-slate-900 placeholder:text-slate-400',
+                adminFocusRing,
+                'focus:border-coral'
+              )}
             />
           </div>
 
           <button
+            type="button"
             onClick={handleSeed}
             disabled={seeding}
-            className="flex items-center gap-2 bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 disabled:opacity-50 transition-colors"
+            className={cn(
+              'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-100 px-4 font-semibold text-slate-800 transition-colors hover:bg-slate-200 disabled:opacity-50 sm:px-5',
+              adminFocusRing
+            )}
           >
-            <RefreshCw size={18} className={seeding ? 'animate-spin' : ''} />
-            {seeding ? 'Sync...' : 'Sync Menu'}
+            <RefreshCw size={18} className={seeding ? 'animate-spin' : ''} aria-hidden />
+            {seeding ? 'Sync…' : 'Sync menu'}
           </button>
-          
+
           <button
+            type="button"
             onClick={() => setShowCreate(!showCreate)}
-            className="flex items-center gap-2 bg-coral text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-burnt-orange transition-colors shadow-lg shadow-coral/25"
+            className={cn(
+              'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-coral to-burnt-orange px-4 font-semibold text-white shadow-md shadow-coral/20 transition hover:brightness-[1.03] sm:px-5',
+              adminFocusRing
+            )}
           >
-            <Plus size={18} /> Nouvel article
+            <Plus size={18} aria-hidden /> Nouvel article
           </button>
         </div>
       </div>
@@ -216,7 +254,13 @@ export function StocksManager() {
 
       {/* Create Form */}
       {showCreate && (
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-4">
+        <form
+          onSubmit={handleCreate}
+          className={cn(
+            adminCard,
+            'space-y-4 border-slate-200 shadow-md animate-in fade-in slide-in-from-top-4'
+          )}
+        >
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-bold text-slate-900">Créer un article manuel</h3>
             <button type="button" onClick={() => setShowCreate(false)} className="text-slate-400 hover:text-slate-600">
@@ -291,9 +335,9 @@ export function StocksManager() {
 
       {/* Empty State */}
       {stocks.length === 0 && !showCreate && (
-        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="text-slate-400" size={32} />
+        <div className={cn(adminCard, 'p-10 text-center md:p-12')}>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+            <Package className="text-slate-400" size={32} aria-hidden />
           </div>
           <h3 className="text-lg font-bold text-slate-900 mb-2">Aucun stock</h3>
           <p className="text-slate-500 max-w-md mx-auto mb-6">
@@ -313,8 +357,16 @@ export function StocksManager() {
       {sortedCategories.map((category) => (
         <div key={category} className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">
-              {category === 'Pizzas' ? '🍕' : category === 'Boissons' ? '🥤' : category === 'Friands' ? '🥟' : '📦'}
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-coral/10 text-coral ring-1 ring-coral/15">
+              {category === 'Pizzas' ? (
+                <Pizza size={20} aria-hidden />
+              ) : category === 'Boissons' ? (
+                <CupSoda size={20} aria-hidden />
+              ) : category === 'Friands' ? (
+                <Cookie size={20} aria-hidden />
+              ) : (
+                <Package size={20} aria-hidden />
+              )}
             </span>
             <h3 className="text-xl font-bold text-slate-800">{category}</h3>
             <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full text-xs font-bold">

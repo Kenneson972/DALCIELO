@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   RefreshCw, Search, Edit2, Check, X, Loader2, Upload,
-  Eye, EyeOff, Star, Leaf, Droplets, ChevronDown, ChevronUp, Plus, Tag,
+  Eye, EyeOff, Star, Leaf, Droplets, ChevronDown, ChevronUp, Plus, Tag, Tags, Download,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Product, ProductUpdate, ProductCreate } from '@/lib/productsStore'
 import { ChefPizzaEditor } from './ChefPizzaEditor'
 import { getCsrfToken } from '@/lib/csrf'
@@ -25,9 +27,178 @@ const CATEGORY_ORDER = [
   'Friands', 'Desserts', 'Boissons',
 ]
 
-// ─── ProductCreateModal ───────────────────────────────────────────────────────
+type AdminOptionToggleItem = { key: string; label: string; active: boolean; onToggle: () => void }
 
-const CUSTOM_BADGE_KEY = '__custom__'
+/** Grille d’options booléennes (dispo, populaire, etc.) — séparée des étiquettes carte. */
+function AdminProductOptionTogglesSection({ toggles }: { toggles: AdminOptionToggleItem[] }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/90 p-4 shadow-sm">
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Options du produit</h4>
+      <p className="mt-1 mb-3 text-xs text-slate-500 leading-snug">
+        Disponibilité, mise en avant et caractéristiques. « Recette végétarienne » est une propriété du produit, pas une étiquette affichée comme badge.
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+        {toggles.map(({ key, label, active, onToggle }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={onToggle}
+            className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-2 py-2 text-center text-[11px] font-bold leading-tight transition-all ${
+              active
+                ? 'border-coral bg-white text-coral shadow-sm ring-1 ring-coral/15'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+            }`}
+          >
+            <span
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                active ? 'bg-coral/15 text-coral' : 'bg-slate-100 text-slate-400'
+              }`}
+            >
+              {active ? <Check size={15} strokeWidth={2.5} /> : <X size={15} strokeWidth={2} />}
+            </span>
+            <span className="px-0.5">{label}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function AdminBadgeLabelsSection({
+  badgeLabels,
+  onClearBadges,
+  localCats,
+  onToggleBadge,
+  onDeleteCategory,
+  addingCat,
+  setAddingCat,
+  newCatInput,
+  setNewCatInput,
+  newCatError,
+  onAddCat,
+  onCancelAddCat,
+  newCatSaving,
+}: {
+  badgeLabels: string[]
+  onClearBadges: () => void
+  localCats: { id: number; name: string }[]
+  onToggleBadge: (name: string, currentlySelected: boolean) => void
+  onDeleteCategory: (id: number) => void
+  addingCat: boolean
+  setAddingCat: (v: boolean) => void
+  newCatInput: string
+  setNewCatInput: (v: string) => void
+  newCatError: string | null
+  onAddCat: () => void
+  onCancelAddCat: () => void
+  newCatSaving: boolean
+}) {
+  const noBadges = badgeLabels.length === 0
+  return (
+    <section className="rounded-2xl border border-amber-100/90 bg-gradient-to-b from-amber-50/50 to-white p-4 shadow-sm ring-1 ring-slate-100/80">
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Étiquettes sur la carte</h4>
+      <p className="mt-1 mb-3 text-xs text-slate-500 leading-snug">
+        Badges optionnels (Nouveauté, Épicé…). Ils sont indépendants des options ci-dessus (un libellé peut ressembler sans être la même chose).
+      </p>
+      <div className="mb-3">
+        <button
+          type="button"
+          onClick={onClearBadges}
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-3 py-2.5 text-xs font-bold transition-all sm:w-auto ${
+            noBadges
+              ? 'border-coral bg-coral/5 text-coral ring-1 ring-coral/15'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+          }`}
+        >
+          {noBadges ? <Check size={16} strokeWidth={2.5} /> : <Tags size={16} className="text-slate-400" />}
+          Aucune étiquette sur la carte
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+        {localCats.map(cat => {
+          const active = badgeLabels.includes(cat.name)
+          return (
+            <div key={cat.id} className="relative group min-w-0">
+              <button
+                type="button"
+                onClick={() => onToggleBadge(cat.name, active)}
+                className={`flex min-h-[4.5rem] w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-2 py-2 text-center text-[11px] font-bold leading-tight transition-all ${
+                  active
+                    ? 'border-coral bg-white text-coral shadow-sm ring-1 ring-coral/15'
+                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    active ? 'bg-coral/15 text-coral' : 'bg-slate-100 text-slate-400'
+                  }`}
+                >
+                  {active ? <Check size={15} strokeWidth={2.5} /> : <Tag size={15} strokeWidth={2} />}
+                </span>
+                <span className="line-clamp-2 px-0.5">{cat.name}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteCategory(cat.id)}
+                className="absolute -top-1.5 -right-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-black text-white opacity-0 shadow-sm transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                title="Supprimer cette étiquette (liste globale)"
+              >
+                ×
+              </button>
+            </div>
+          )
+        })}
+        {!addingCat ? (
+          <button
+            type="button"
+            onClick={() => setAddingCat(true)}
+            className="flex min-h-[4.5rem] flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-white px-2 py-2 text-center text-[11px] font-bold text-slate-400 transition-all hover:border-coral/50 hover:text-coral"
+          >
+            <Plus size={18} />
+            Ajouter une étiquette
+          </button>
+        ) : (
+          <div className="col-span-full flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/90 p-3">
+            <input
+              type="text"
+              value={newCatInput}
+              onChange={e => setNewCatInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onAddCat()
+                }
+              }}
+              placeholder="Nom de la nouvelle étiquette…"
+              autoFocus
+              className="min-w-[10rem] flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-coral/50 focus:outline-none focus:ring-2 focus:ring-coral/10"
+            />
+            <button
+              type="button"
+              onClick={onAddCat}
+              disabled={!newCatInput.trim() || newCatSaving}
+              className="flex items-center gap-1 rounded-xl bg-coral px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-burnt-orange disabled:opacity-40"
+            >
+              {newCatSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              OK
+            </button>
+            <button
+              type="button"
+              onClick={onCancelAddCat}
+              className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-white hover:text-red-500"
+              aria-label="Annuler"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+      {newCatError && <p className="mt-2 text-xs text-red-500">{newCatError}</p>}
+    </section>
+  )
+}
+
+// ─── ProductCreateModal ───────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
   type:        'pizza' as 'pizza' | 'friand' | 'drink' | 'dessert',
@@ -306,84 +477,60 @@ function ProductCreateModal({
             </div>
           </div>
 
-          {/* Toggles + Badges — grille unifiée */}
-          <div>
-            <div className="flex flex-wrap gap-3">
-              {([
-                { key: 'available',  label: 'Disponible', active: form.available },
-                { key: 'popular',    label: 'Populaire',  active: form.popular },
-                { key: 'vegetarian', label: 'Végétarien', active: form.vegetarian },
-                ...(isPizza ? [{ key: 'sauce_au_choix', label: 'Sauce au choix', active: form.sauce_au_choix }] : []),
-              ]).map(({ key, label, active }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, [key]: !(f as any)[key] }))}
-                  className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                    active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                  }`}
-                >
-                  {active ? <Check size={18} /> : <X size={18} />}
-                  {label}
-                </button>
-              ))}
-              <div className="w-px bg-slate-200 self-stretch mx-1" />
-              <button
-                type="button"
-                onClick={() => setForm(f => ({ ...f, badge_labels: [] }))}
-                className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                  form.badge_labels.length === 0 ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                }`}
-              >
-                <X size={18} /> Aucun badge
-              </button>
-              {localCats.map(cat => {
-                const active = form.badge_labels.includes(cat.name)
-                return (
-                  <div key={cat.id} className="relative group">
-                    <button
-                      type="button"
-                      onClick={() => setForm(f => ({
-                        ...f,
-                        badge_labels: active
-                          ? f.badge_labels.filter(l => l !== cat.name)
-                          : [...f.badge_labels, cat.name],
-                      }))}
-                      className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                        active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                      }`}
-                    >
-                      {active ? <Check size={18} /> : <Tag size={18} />}
-                      {cat.name}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCat(cat.id)}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
-                      title="Supprimer"
-                    >×</button>
-                  </div>
-                )
-              })}
-              {!addingCat ? (
-                <button
-                  type="button"
-                  onClick={() => setAddingCat(true)}
-                  className="flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-coral hover:text-coral font-bold text-xs transition-all"
-                >
-                  <Plus size={18} /> Nouveau
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5 py-1">
-                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCat() } }} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
-                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
-                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
-                  </button>
-                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
-                </div>
-              )}
-            </div>
-            {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
+          {/* Options produit + étiquettes carte — sections séparées */}
+          <div className="space-y-4">
+            <AdminProductOptionTogglesSection
+              toggles={[
+                {
+                  key: 'available',
+                  label: 'Disponible',
+                  active: form.available,
+                  onToggle: () => setForm(f => ({ ...f, available: !f.available })),
+                },
+                {
+                  key: 'popular',
+                  label: 'Populaire',
+                  active: form.popular,
+                  onToggle: () => setForm(f => ({ ...f, popular: !f.popular })),
+                },
+                {
+                  key: 'vegetarian',
+                  label: 'Recette végétarienne',
+                  active: form.vegetarian,
+                  onToggle: () => setForm(f => ({ ...f, vegetarian: !f.vegetarian })),
+                },
+                ...(isPizza
+                  ? [
+                      {
+                        key: 'sauce_au_choix',
+                        label: 'Sauce au choix',
+                        active: form.sauce_au_choix,
+                        onToggle: () => setForm(f => ({ ...f, sauce_au_choix: !f.sauce_au_choix })),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+            <AdminBadgeLabelsSection
+              badgeLabels={form.badge_labels}
+              onClearBadges={() => setForm(f => ({ ...f, badge_labels: [] }))}
+              localCats={localCats}
+              onToggleBadge={(name, active) =>
+                setForm(f => ({
+                  ...f,
+                  badge_labels: active ? f.badge_labels.filter(l => l !== name) : [...f.badge_labels, name],
+                }))
+              }
+              onDeleteCategory={id => { void handleDeleteCat(id) }}
+              addingCat={addingCat}
+              setAddingCat={setAddingCat}
+              newCatInput={newCatInput}
+              setNewCatInput={setNewCatInput}
+              newCatError={newCatError}
+              onAddCat={() => { void handleAddCat() }}
+              onCancelAddCat={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }}
+              newCatSaving={newCatSaving}
+            />
           </div>
 
           {error && (
@@ -760,81 +907,82 @@ function ProductEditModal({
                     </button>
                   </div>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, show_in_slider: !f.show_in_slider }))}
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm font-bold transition-all ${
+                    form.show_in_slider
+                      ? 'border-coral bg-white text-coral shadow-sm ring-1 ring-coral/15'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  <span className="leading-snug">Afficher cette pizza dans le slider d&apos;accueil</span>
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                      form.show_in_slider ? 'bg-coral/15 text-coral' : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    {form.show_in_slider ? <Check size={16} strokeWidth={2.5} /> : <X size={16} />}
+                  </span>
+                </button>
               </div>
             </div>
           )}
 
-          {/* Toggles + Badges — grille unifiée */}
-          <div>
-            <div className="flex flex-wrap gap-3">
-              {([
-                { key: 'available',  label: 'Disponible',        active: form.available },
-                { key: 'popular',    label: 'Populaire',          active: form.popular },
-                { key: 'vegetarian', label: 'Végétarien',         active: form.vegetarian },
+          {/* Options produit + étiquettes carte — sections séparées */}
+          <div className="space-y-4">
+            <AdminProductOptionTogglesSection
+              toggles={[
+                {
+                  key: 'available',
+                  label: 'Disponible',
+                  active: form.available,
+                  onToggle: () => setForm(f => ({ ...f, available: !f.available })),
+                },
+                {
+                  key: 'popular',
+                  label: 'Populaire',
+                  active: form.popular,
+                  onToggle: () => setForm(f => ({ ...f, popular: !f.popular })),
+                },
+                {
+                  key: 'vegetarian',
+                  label: 'Recette végétarienne',
+                  active: form.vegetarian,
+                  onToggle: () => setForm(f => ({ ...f, vegetarian: !f.vegetarian })),
+                },
                 ...(product.type === 'pizza'
                   ? [
-                      { key: 'sauce_au_choix' as const, label: 'Sauce au choix',      active: form.sauce_au_choix },
-                      { key: 'show_in_slider' as const, label: 'Dans le slider home', active: form.show_in_slider },
+                      {
+                        key: 'sauce_au_choix',
+                        label: 'Sauce au choix',
+                        active: form.sauce_au_choix,
+                        onToggle: () => setForm(f => ({ ...f, sauce_au_choix: !f.sauce_au_choix })),
+                      },
                     ]
                   : []),
-              ]).map(({ key, label, active }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, [key]: !f[key as keyof typeof f] }))}
-                  className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                    active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'
-                  }`}
-                >
-                  {active ? <Check size={18} /> : <X size={18} />}
-                  {label}
-                </button>
-              ))}
-              <div className="w-px bg-slate-200 self-stretch mx-1" />
-              <button type="button" onClick={() => setForm(f => ({ ...f, badge_labels: [] }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${form.badge_labels.length === 0 ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
-                <X size={18} /> Aucun badge
-              </button>
-              {localCats.map(cat => {
-                const active = form.badge_labels.includes(cat.name)
-                return (
-                  <div key={cat.id} className="relative group">
-                    <button type="button" onClick={() => setForm(f => ({
-                      ...f,
-                      badge_labels: active
-                        ? f.badge_labels.filter(l => l !== cat.name)
-                        : [...f.badge_labels, cat.name],
-                    }))} className={`flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${active ? 'border-coral bg-coral/5 text-coral' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
-                      {active ? <Check size={18} /> : <Tag size={18} />}
-                      {cat.name}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCat(cat.id)}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-red-600 transition-opacity"
-                      title="Supprimer"
-                    >×</button>
-                  </div>
-                )
-              })}
-              {!addingCat ? (
-                <button
-                  type="button"
-                  onClick={() => setAddingCat(true)}
-                  className="flex flex-col items-center gap-1 py-3 px-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-coral hover:text-coral font-bold text-xs transition-all"
-                >
-                  <Plus size={18} /> Nouveau
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5 py-1">
-                  <input type="text" value={newCatInput} onChange={e => setNewCatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCat() } }} placeholder="Nom du badge…" autoFocus className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-coral/50 w-32" />
-                  <button type="button" onClick={handleAddCat} disabled={!newCatInput.trim() || newCatSaving} className="bg-coral text-white px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-burnt-orange disabled:opacity-40 transition-colors flex items-center gap-1">
-                    {newCatSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
-                  </button>
-                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }} className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
-                </div>
-              )}
-            </div>
-            {newCatError && <p className="text-xs text-red-500 mt-1">{newCatError}</p>}
+              ]}
+            />
+            <AdminBadgeLabelsSection
+              badgeLabels={form.badge_labels}
+              onClearBadges={() => setForm(f => ({ ...f, badge_labels: [] }))}
+              localCats={localCats}
+              onToggleBadge={(name, active) =>
+                setForm(f => ({
+                  ...f,
+                  badge_labels: active ? f.badge_labels.filter(l => l !== name) : [...f.badge_labels, name],
+                }))
+              }
+              onDeleteCategory={id => { void handleDeleteCat(id) }}
+              addingCat={addingCat}
+              setAddingCat={setAddingCat}
+              newCatInput={newCatInput}
+              setNewCatInput={setNewCatInput}
+              newCatError={newCatError}
+              onAddCat={() => { void handleAddCat() }}
+              onCancelAddCat={() => { setAddingCat(false); setNewCatInput(''); setNewCatError(null) }}
+              newCatSaving={newCatSaving}
+            />
           </div>
 
           {error && (
@@ -1093,48 +1241,77 @@ export function MenuManager() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-24">
-      <div className="text-5xl animate-spin" style={{ animationDuration: '3s' }}>🍕</div>
+      <Loader2 className="h-10 w-10 animate-spin text-coral" aria-label="Chargement" />
     </div>
   )
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-6 pb-20 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div
+        className={cn(
+          adminCard,
+          'flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6'
+        )}
+      >
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gestion du Menu</h2>
-          <p className="text-slate-500 text-sm">{products.length} produits · modifiez les infos affichées sur le site</p>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+            Gestion du menu
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {products.length} produits · infos affichées sur le site
+          </p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          <div className="relative min-w-0 sm:max-w-xs">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+              aria-hidden
+            />
             <input
               type="text"
               placeholder="Rechercher…"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral w-56"
+              className={cn(
+                'w-full min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-9 pr-4 text-base text-slate-900 sm:w-56',
+                adminFocusRing,
+                'focus:border-coral'
+              )}
             />
           </div>
           <button
+            type="button"
             onClick={load}
-            className="flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+            className={cn(
+              'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-100 px-4 font-semibold text-slate-800 transition-colors hover:bg-slate-200',
+              adminFocusRing
+            )}
           >
-            <RefreshCw size={16} /> Actualiser
+            <RefreshCw size={16} aria-hidden /> Actualiser
           </button>
           <button
+            type="button"
             onClick={() => setCreating(true)}
-            className="flex items-center gap-2 bg-coral text-white px-4 py-2.5 rounded-xl font-bold hover:bg-burnt-orange transition-colors shadow-lg shadow-coral/25"
+            className={cn(
+              'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-coral to-burnt-orange px-4 font-bold text-white shadow-md shadow-coral/20 transition hover:brightness-[1.03]',
+              adminFocusRing
+            )}
           >
-            <Plus size={16} /> Nouveau produit
+            <Plus size={16} aria-hidden /> Nouveau produit
           </button>
           {products.length === 0 && (
             <button
+              type="button"
               onClick={handleSeed}
               disabled={seeding}
-              className="flex items-center gap-2 bg-coral text-white px-4 py-2.5 rounded-xl font-bold hover:bg-burnt-orange transition-colors shadow-lg shadow-coral/25"
+              className={cn(
+                'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-coral to-burnt-orange px-4 font-bold text-white shadow-md shadow-coral/20 transition hover:brightness-[1.03] disabled:opacity-60',
+                adminFocusRing
+              )}
             >
-              {seeding ? <Loader2 size={16} className="animate-spin" /> : '📥'}
+              {seeding ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Download size={16} aria-hidden />}
               {seeding ? 'Import…' : 'Importer le catalogue'}
             </button>
           )}

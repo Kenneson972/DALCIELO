@@ -133,12 +133,12 @@ export function ChefPizzaEditor({ product, onUpdated }: ChefPizzaEditorProps) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-400 rounded-3xl p-6 md:p-8 shadow-lg">
+    <div className="rounded-3xl border border-amber-200/90 bg-gradient-to-br from-amber-50/95 to-orange-50/80 p-6 shadow-lg ring-1 ring-amber-100/80 md:p-8">
       {/* En-tête */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center text-2xl shadow">
-            🌟
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-amber-950 shadow-md ring-1 ring-amber-300/50">
+            <Sparkles className="h-6 w-6" strokeWidth={2} aria-hidden />
           </div>
           <div>
             <h2 className="text-xl font-black text-yellow-900">Pizza du Chef</h2>

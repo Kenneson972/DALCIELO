@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Star, Check, X, RefreshCw, Filter } from 'lucide-react'
+import { Star, Check, X, RefreshCw, MessageCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Review, ReviewStatus } from '@/types/review'
 
 function StarDisplay({ rating }: { rating: number }) {
@@ -105,20 +107,27 @@ export function ReviewsManager() {
         ] as const).map(({ value, label }) => (
           <button
             key={value}
+            type="button"
             onClick={() => setFilter(value)}
-            className={`px-4 py-2 min-h-[40px] rounded-xl text-sm font-medium border transition-all touch-manipulation ${
+            className={cn(
+              'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold transition-colors touch-manipulation',
+              adminFocusRing,
               filter === value
-                ? 'bg-coral text-white border-coral shadow-sm'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
+                ? 'border-coral bg-gradient-to-r from-coral to-burnt-orange text-white shadow-sm'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            )}
           >
             {label}
           </button>
         ))}
 
         <button
+          type="button"
           onClick={fetchReviews}
-          className="ml-auto flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl text-sm text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 transition-colors touch-manipulation"
+          className={cn(
+            'ml-auto flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 touch-manipulation',
+            adminFocusRing
+          )}
           title="Actualiser"
         >
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
@@ -138,9 +147,9 @@ export function ReviewsManager() {
           <div className="w-8 h-8 rounded-full border-2 border-coral border-t-transparent animate-spin" />
         </div>
       ) : displayed.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-          <p className="text-3xl mb-2">💬</p>
-          <p className="text-slate-500 font-medium">Aucun avis dans cette catégorie.</p>
+        <div className={cn(adminCard, 'py-14 text-center')}>
+          <MessageCircle className="mx-auto mb-3 h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden />
+          <p className="font-medium text-slate-600">Aucun avis dans cette catégorie.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -156,7 +165,7 @@ export function ReviewsManager() {
             return (
               <div
                 key={review.id}
-                className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm"
+                className={cn(adminCard, 'p-4 sm:p-5')}
               >
                 <div className="flex flex-wrap items-start gap-3 justify-between mb-2">
                   <div className="flex flex-col gap-0.5 min-w-0">

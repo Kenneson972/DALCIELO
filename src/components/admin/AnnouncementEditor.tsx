@@ -5,6 +5,8 @@ import { Loader2, Check, Megaphone, X, Upload, Plus, Pencil, Trash2, ChevronDown
 import type { Popup, PopupType, DismissMode } from '@/types/popup'
 
 import { getCsrfToken } from '@/lib/csrf'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -308,8 +310,12 @@ export function AnnouncementEditor() {
         </div>
         {editingId === null && (
           <button
+            type="button"
             onClick={openNew}
-            className="flex items-center gap-1.5 bg-coral text-white font-bold px-4 py-2.5 rounded-xl hover:bg-coral/90 active:scale-95 transition-all shadow-lg shadow-coral/20 text-sm"
+            className={cn(
+              'flex min-h-[44px] items-center gap-1.5 rounded-xl bg-gradient-to-r from-coral to-burnt-orange px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-coral/25 transition hover:brightness-[1.03] active:scale-[0.99]',
+              adminFocusRing
+            )}
           >
             <Plus size={16} />
             Nouveau popup
@@ -327,7 +333,7 @@ export function AnnouncementEditor() {
 
       {/* Form */}
       {editingId !== null && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className={cn(adminCard, 'overflow-hidden p-0 shadow-md')}>
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
             <p className="font-bold text-slate-800">{editingId === 'new' ? 'Nouveau popup' : 'Modifier le popup'}</p>
             <button onClick={closeForm} className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors">

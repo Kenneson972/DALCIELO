@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, User, MapPin, ChevronRight } from 'lucide-react'
+import { Clock, User, MapPin, ChevronRight, Pizza } from 'lucide-react'
 import type { Order, OrderStatus } from '@/types/order'
 
 type KitchenStatus = 'ready' | 'in_preparation'
@@ -42,11 +42,13 @@ export function KitchenMode({
 
   if (orders.length === 0) {
     return (
-      <div className="min-h-[70vh] bg-slate-900 rounded-3xl flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-8xl mb-6">🍕</div>
-          <p className="text-3xl text-white font-bold">Aucune commande en cours</p>
-          <p className="text-lg text-slate-400 mt-3">En attente de nouvelles commandes...</p>
+      <div className="flex min-h-[70vh] items-center justify-center rounded-3xl bg-slate-900 ring-1 ring-white/10">
+        <div className="text-center px-4">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-white/5 text-coral ring-1 ring-white/10">
+            <Pizza className="h-14 w-14" strokeWidth={1.25} aria-hidden />
+          </div>
+          <p className="text-2xl font-bold text-white md:text-3xl">Aucune commande en cours</p>
+          <p className="mt-3 text-lg text-slate-400">En attente de nouvelles commandes…</p>
         </div>
       </div>
     )
@@ -81,17 +83,17 @@ export function KitchenMode({
   const clockDisplay = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="bg-slate-900 text-white rounded-2xl md:rounded-3xl p-4 md:p-6">
+    <div className="rounded-2xl bg-slate-900 p-4 text-white ring-1 ring-white/10 md:rounded-3xl md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-4 md:mb-6">
+      <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Mode Cuisine</h1>
-          <p className="text-base md:text-lg text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Mode cuisine</h1>
+          <p className="mt-1 text-base text-slate-400 md:text-lg">
             Commande {currentIndex + 1} / {orders.length}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-4xl md:text-5xl font-bold text-orange-500 tabular-nums">
+          <p className="text-4xl font-bold tabular-nums text-coral md:text-5xl">
             {clockDisplay}
           </p>
         </div>

@@ -1,6 +1,8 @@
 'use client'
 
-import { AlertTriangle, AlertCircle } from 'lucide-react'
+import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard } from '@/components/admin/adminUi'
 import { useEffect, useState } from 'react'
 import type { Stock } from '@/lib/stocksStore'
 
@@ -68,14 +70,14 @@ export function StockAlerts() {
 
   if (alerts.length === 0) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+      <div className={cn(adminCard, 'border-emerald-100 bg-emerald-50/80 p-5 md:p-6')}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
-            ✅
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
+            <CheckCircle size={22} aria-hidden />
           </div>
           <div>
-            <p className="font-semibold text-green-900">Stocks OK</p>
-            <p className="text-sm text-green-700">Aucune alerte stock pour le moment</p>
+            <p className="font-semibold text-emerald-900">Stocks OK</p>
+            <p className="text-sm text-emerald-800/90">Aucune alerte stock pour le moment</p>
           </div>
         </div>
       </div>
@@ -84,9 +86,9 @@ export function StockAlerts() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-        <AlertTriangle className="text-orange-500" size={20} />
-        Alertes Stocks ({alerts.length})
+      <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <AlertTriangle className="text-coral" size={20} aria-hidden />
+        Alertes stocks ({alerts.length})
       </h3>
 
       {alerts.map((alert, index) => (

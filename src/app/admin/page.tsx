@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Package,
   ChefHat,
-  BarChart3,
+  LayoutDashboard,
   Download,
   Menu,
   X,
@@ -25,6 +25,11 @@ import {
   FileText,
   Home,
   Loader2,
+  Pizza,
+  LineChart as LineChartIcon,
+  BarChart3 as BarChart3Icon,
+  PieChart,
+  IceCream,
 } from 'lucide-react'
 import {
   BarChart,
@@ -56,6 +61,16 @@ import { AnnouncementEditor } from '@/components/admin/AnnouncementEditor'
 import { ReviewsManager } from '@/components/admin/ReviewsManager'
 import { ReceiptsManager } from '@/components/admin/ReceiptsManager'
 import { getCsrfToken } from '@/lib/csrf'
+import { cn } from '@/lib/utils'
+import {
+  adminPageBg,
+  adminToolbarChip,
+  adminFocusRing,
+  adminSectionLabel,
+  adminBtnSecondary,
+} from '@/components/admin/adminUi'
+import { AdminCard } from '@/components/admin/ui/AdminCard'
+import { AdminSectionHeader } from '@/components/admin/ui/AdminSectionHeader'
 import type { Order, DashboardStats } from '@/types/order'
 
 type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews'
@@ -418,40 +433,65 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-coral to-burnt-orange flex items-center justify-center p-4 md:p-8">
+      <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 p-4 md:p-8">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white/95 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-2xl max-w-md w-full border border-white/50"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl shadow-slate-900/20 md:p-10"
         >
-          <div className="text-center mb-6 md:mb-8">
-            <div className="text-5xl md:text-6xl mb-4 animate-bounce">🍕</div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
-            <p className="text-slate-600">Pizza Dal Cielo</p>
+          <div className="mb-8 text-center">
+            <div
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-coral/10 text-coral ring-1 ring-coral/20"
+              aria-hidden
+            >
+              <Pizza className="h-9 w-9" strokeWidth={1.75} />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              Espace administration
+            </h1>
+            <p className="mt-1 text-base text-slate-600">Pizza Dal Cielo</p>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Code PIN (4 à 12 chiffres)</label>
+              <label
+                htmlFor="admin-pin"
+                className="mb-2 block text-sm font-semibold text-slate-700"
+              >
+                Code PIN (4 à 12 chiffres)
+              </label>
               <input
+                id="admin-pin"
                 type="password"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                className="w-full px-4 py-4 min-h-[56px] border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-coral focus:ring-4 focus:ring-coral/10 text-center text-2xl md:text-3xl tracking-[0.5em] transition-all touch-manipulation"
+                className={cn(
+                  'w-full min-h-[56px] rounded-2xl border-2 border-slate-200 px-4 py-4 text-center text-2xl tracking-[0.5em] text-slate-900 transition-all placeholder:text-slate-300 md:text-3xl',
+                  'touch-manipulation',
+                  adminFocusRing,
+                  'focus:border-coral'
+                )}
                 placeholder="••••"
                 minLength={4}
                 maxLength={12}
                 autoFocus
                 autoComplete="one-time-code"
               />
-              <p className="text-xs text-slate-500 mt-1.5 text-center">En production : 6 chiffres minimum recommandé</p>
+              <p className="mt-2 text-center text-xs text-slate-500">
+                En production : 6 chiffres minimum recommandé
+              </p>
             </div>
 
             <button
               type="submit"
-              className="w-full min-h-[52px] bg-gradient-to-r from-coral to-burnt-orange text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-coral/30 hover:shadow-xl md:hover:scale-[1.02] transition-all active:scale-95 touch-manipulation"
+              className={cn(
+                'w-full min-h-[52px] rounded-2xl bg-gradient-to-r from-coral to-burnt-orange py-4 text-lg font-bold text-white shadow-lg shadow-coral/25 transition hover:brightness-[1.03] active:scale-[0.99]',
+                adminFocusRing,
+                'touch-manipulation'
+              )}
             >
               Se connecter
             </button>
@@ -465,7 +505,7 @@ export default function AdminPage() {
     ['pending_validation', 'paid', 'in_preparation'].includes(o.status)
   ).length
 
-  const sidebarWidth = isSidebarCollapsed ? 'md:pl-36' : 'md:pl-80'
+  const sidebarWidth = isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
 
   const headerTitle: Record<ViewMode, string> = {
     dashboard: "Vue d'ensemble",
@@ -480,7 +520,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className={cn(adminPageBg, 'min-h-screen min-h-[100dvh]')}>
       {/* Desktop Sidebar */}
       <AdminSidebar
         currentView={view}
@@ -496,31 +536,50 @@ export default function AdminPage() {
       />
 
       {/* Mobile Header (phones only; tablet uses sidebar) */}
-      <div className="md:hidden bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🍕</span>
-          <span className="font-bold text-slate-900">Dal Cielo Admin</span>
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200/90 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-md md:hidden">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral/10 text-coral ring-1 ring-coral/20">
+            <Pizza className="h-5 w-5" strokeWidth={2} aria-hidden />
+          </div>
+          <span className="truncate font-bold tracking-tight text-slate-900">Dal Cielo Admin</span>
         </div>
         <button
+          type="button"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-slate-100 rounded-xl text-slate-600 touch-manipulation active:bg-slate-200"
+          className={cn(
+            'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-slate-100 text-slate-700 touch-manipulation active:bg-slate-200',
+            adminFocusRing
+          )}
+          aria-expanded={isMobileMenuOpen}
           aria-label="Menu"
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay (phones only) */}
+      {/* Mobile scrim + menu (phones only) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden fixed inset-0 top-[56px] bg-white z-30 p-4 space-y-2 overflow-y-auto"
-          >
+          <>
+            <motion.button
+              type="button"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 top-14 z-30 bg-slate-900/45 backdrop-blur-sm md:hidden"
+              aria-label="Fermer le menu"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 top-14 z-40 max-h-[calc(100dvh-3.5rem)] space-y-2 overflow-y-auto overscroll-contain bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-xl md:hidden"
+            >
             {[
-              { id: 'dashboard', label: "Vue d'ensemble", icon: BarChart3 },
+              { id: 'dashboard', label: "Vue d'ensemble", icon: LayoutDashboard },
               { id: 'orders', label: 'Commandes', icon: ShoppingBag, badge: activeOrdersCount },
               { id: 'receipts', label: 'Reçus', icon: FileText },
               { id: 'kitchen', label: 'Cuisine', icon: ChefHat },
@@ -528,19 +587,24 @@ export default function AdminPage() {
               { id: 'announcement', label: 'Annonce', icon: Megaphone },
               { id: 'reviews', label: 'Avis clients', icon: Star },
               { id: 'stocks', label: 'Stocks', icon: Package },
-              { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+              { id: 'analytics', label: 'Analytics', icon: BarChart3Icon },
             ].map((item) => {
               const Icon = item.icon
               return (
                 <button
                   key={item.id}
+                  type="button"
                   onClick={() => {
                     handleViewChange(item.id as ViewMode)
                     setIsMobileMenuOpen(false)
                   }}
-                  className={`w-full flex items-center justify-between min-h-[48px] p-4 rounded-xl font-medium touch-manipulation ${
-                    view === item.id ? 'bg-coral text-white' : 'bg-slate-50 text-slate-700 active:bg-slate-100'
-                  }`}
+                  className={cn(
+                    'flex min-h-[48px] w-full items-center justify-between rounded-xl border p-4 text-left font-medium touch-manipulation transition-colors',
+                    view === item.id
+                      ? 'border-coral/30 bg-coral text-white shadow-sm'
+                      : 'border-slate-100 bg-slate-50 text-slate-800 active:bg-slate-100',
+                    adminFocusRing
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <Icon size={20} />
@@ -555,17 +619,19 @@ export default function AdminPage() {
               )
             })}
             <button
+              type="button"
               onClick={() => {
                 setIsAuthenticated(false)
                 localStorage.removeItem('admin_auth')
                 localStorage.removeItem('admin_pin')
               }}
-              className="w-full flex items-center gap-3 min-h-[48px] p-4 rounded-xl font-medium text-red-600 bg-red-50 mt-4 touch-manipulation active:bg-red-100"
+              className="mt-4 flex min-h-[48px] w-full items-center gap-3 rounded-xl bg-red-50 p-4 font-medium text-red-700 touch-manipulation active:bg-red-100"
             >
               <LogOut size={20} />
               Déconnexion
             </button>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -595,10 +661,12 @@ export default function AdminPage() {
         )}
         <div className="max-w-7xl mx-auto">
           {/* Page header (tablet + desktop) */}
-          <div className="hidden md:flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">{headerTitle[view]}</h2>
-              <p className="text-slate-500 mt-1 font-medium">
+          <div className="mb-6 hidden items-center justify-between gap-4 md:flex lg:mb-8">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 lg:text-3xl">
+                {headerTitle[view]}
+              </h2>
+              <p className="mt-1 font-medium capitalize text-slate-500">
                 {new Date().toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   day: 'numeric',
@@ -607,22 +675,38 @@ export default function AdminPage() {
                 })}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
               {lastSync && (
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
-                  <RefreshCw size={12} className="text-emerald-500" />
+                <div
+                  className={cn(
+                    adminToolbarChip,
+                    'text-slate-500'
+                  )}
+                >
+                  <RefreshCw size={14} className="shrink-0 text-emerald-600" aria-hidden />
                   <span>Mis à jour il y a {syncAge}s</span>
                 </div>
               )}
               {ordersError && (
-                <div className="bg-red-50 px-3 py-2 rounded-xl border border-red-100 text-red-600 text-xs font-bold flex items-center gap-2">
-                  <AlertCircle size={14} />
-                  {ordersError}
+                <div className="flex max-w-xs items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                  <AlertCircle size={14} className="shrink-0" aria-hidden />
+                  <span className="truncate">{ordersError}</span>
                 </div>
               )}
-              <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                <span className="text-sm font-semibold text-slate-700">En ligne</span>
+              <div
+                className={cn(
+                  adminToolbarChip,
+                  'border-emerald-100 bg-emerald-50/80 text-emerald-900'
+                )}
+              >
+                <span
+                  className="relative flex h-2.5 w-2.5 shrink-0"
+                  aria-hidden
+                >
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-40" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]" />
+                </span>
+                <span className="text-sm font-semibold">En ligne</span>
               </div>
             </div>
           </div>
@@ -674,10 +758,12 @@ export default function AdminPage() {
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className="fixed bottom-6 right-4 md:bottom-auto md:top-6 md:right-6 z-50 bg-coral text-white rounded-2xl shadow-2xl p-4 w-[300px] md:w-[320px]"
+            className="fixed bottom-6 right-4 z-50 w-[min(100vw-2rem,320px)] rounded-2xl border border-white/10 bg-gradient-to-br from-coral to-burnt-orange p-4 text-white shadow-2xl shadow-coral/30 md:bottom-auto md:right-6 md:top-6"
           >
             <div className="flex items-start gap-3">
-              <div className="text-2xl shrink-0">🍕</div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+                <Pizza className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm leading-snug">
                   {newOrderAlert.count > 1
@@ -888,18 +974,23 @@ function DashboardView({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="flex justify-end">
         <button
+          type="button"
           onClick={() => exportOrdersToCSV(orders)}
-          className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm active:scale-95"
+          className={cn(
+            adminBtnSecondary,
+            'gap-2 px-4 py-2.5 text-sm shadow-sm',
+            adminFocusRing
+          )}
         >
-          <Download size={16} />
+          <Download size={16} aria-hidden />
           Exporter CSV
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
         <KPICard
           title="CA du jour"
           value={`${stats.today_revenue.toFixed(2)}€`}
@@ -918,107 +1009,97 @@ function DashboardView({
       </div>
 
       {/* Page d'accueil — slider pizzas */}
-      <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-5 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">
-              Page d&apos;accueil
-            </p>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Home size={18} className="text-orange-500" />
-              Slider des pizzas
-            </h3>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
+      <AdminCard>
+        <AdminSectionHeader
+          label="Page d'accueil"
+          title="Slider des pizzas"
+          icon={Home}
+        />
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={() => saveHomepageSlider(!sliderEnabled)}
             disabled={loadingHomepageSettings || savingHomepageSettings}
-            className={`h-11 px-5 rounded-lg font-semibold text-sm border transition-colors ${
+            className={cn(
+              'min-h-[44px] rounded-xl border px-5 text-sm font-semibold transition-colors disabled:opacity-60',
               sliderEnabled
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-slate-100 text-slate-600 border-slate-200'
-            }`}
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                : 'border-slate-200 bg-slate-100 text-slate-700',
+              adminFocusRing
+            )}
           >
             {savingHomepageSettings ? 'Enregistrement...' : sliderEnabled ? 'Slider activé' : 'Slider désactivé'}
           </button>
-          <p className="text-sm text-slate-500">
+          <p className="min-w-0 flex-1 text-sm leading-relaxed text-slate-600">
             {sliderEnabled ? 'Le carousel des pizzas s\'affiche sur la page d\'accueil.' : 'Le carousel est masqué sur la page d\'accueil.'}
           </p>
           {homepageSettingsNotice && (
-            <p className="text-sm font-medium text-slate-600 w-full">{homepageSettingsNotice}</p>
+            <p className="w-full text-sm font-medium text-slate-700">{homepageSettingsNotice}</p>
           )}
         </div>
-      </div>
+      </AdminCard>
 
       {/* Section Desserts */}
-      <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-5 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">
-              Carte du menu
-            </p>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span className="text-lg">🍮</span>
-              Section Desserts
-            </h3>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
+      <AdminCard>
+        <AdminSectionHeader
+          label="Carte du menu"
+          title="Section desserts"
+          icon={IceCream}
+        />
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={() => saveDessertsToggle(!dessertsEnabled)}
             disabled={loadingHomepageSettings || savingDesserts}
-            className={`h-11 px-5 rounded-lg font-semibold text-sm border transition-colors ${
+            className={cn(
+              'min-h-[44px] rounded-xl border px-5 text-sm font-semibold transition-colors disabled:opacity-60',
               dessertsEnabled
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-slate-100 text-slate-600 border-slate-200'
-            }`}
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                : 'border-slate-200 bg-slate-100 text-slate-700',
+              adminFocusRing
+            )}
           >
             {savingDesserts ? 'Enregistrement...' : dessertsEnabled ? 'Desserts activés' : 'Desserts masqués'}
           </button>
-          <p className="text-sm text-slate-500">
+          <p className="min-w-0 flex-1 text-sm leading-relaxed text-slate-600">
             {dessertsEnabled
               ? 'La section desserts est visible sur le menu. Gérez les articles dans Menu & Produits.'
               : 'La section desserts est masquée. Activez-la une fois les articles ajoutés dans Menu & Produits.'}
           </p>
         </div>
-      </div>
+      </AdminCard>
 
-      <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-5 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">
-              Pilotage four & attente
-            </p>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <SlidersHorizontal size={18} className="text-orange-500" />
-              Contrôle manuel
-            </h3>
-          </div>
-          <div className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
-            Actuel public :{' '}
-            {!estimate.ovenAvailable
-              ? 'Four indisponible'
-              : `~${estimate.estimatedMinutes} min (${estimate.estimateSource === 'manual' ? 'manuel' : 'auto'})`}
-          </div>
-        </div>
+      <AdminCard>
+        <AdminSectionHeader
+          label="Pilotage four & attente"
+          title="Contrôle manuel"
+          icon={SlidersHorizontal}
+          action={
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">
+              Actuel public :{' '}
+              {!estimate.ovenAvailable
+                ? 'Four indisponible'
+                : `~${estimate.estimatedMinutes} min (${estimate.estimateSource === 'manual' ? 'manuel' : 'auto'})`}
+            </div>
+          }
+        />
 
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="md:col-span-1 bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-4">
+            <p className={cn(adminSectionLabel, 'mb-3')}>
               Disponibilité du four
             </p>
             <button
               type="button"
               onClick={autoSaveOven}
               disabled={loadingQueueSettings || savingOven}
-              className={`w-full h-11 rounded-lg font-semibold text-sm border transition-colors ${
+              className={cn(
+                'flex min-h-[44px] w-full items-center justify-center rounded-xl border text-sm font-semibold transition-colors disabled:opacity-60',
                 ovenAvailable
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-red-50 text-red-700 border-red-200'
-              } disabled:opacity-60`}
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                  : 'border-red-200 bg-red-50 text-red-800',
+                adminFocusRing
+              )}
             >
               <span className="inline-flex items-center gap-2">
                 {savingOven
@@ -1030,20 +1111,22 @@ function DashboardView({
             </button>
           </div>
 
-          <div className="md:col-span-1 bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              Source du temps d'attente
+          <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-4 md:col-span-1">
+            <p className={cn(adminSectionLabel, 'mb-3')}>
+              Source du temps d&apos;attente
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setQueueMode('auto')}
                 disabled={loadingQueueSettings || savingQueueSettings}
-                className={`h-11 rounded-lg text-sm font-semibold border ${
+                className={cn(
+                  'min-h-[44px] rounded-xl border text-sm font-semibold transition-colors disabled:opacity-60',
                   queueMode === 'auto'
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : 'bg-white text-slate-600 border-slate-200'
-                }`}
+                    ? 'border-blue-200 bg-blue-50 text-blue-800'
+                    : 'border-slate-200 bg-white text-slate-700',
+                  adminFocusRing
+                )}
               >
                 Auto
               </button>
@@ -1051,19 +1134,21 @@ function DashboardView({
                 type="button"
                 onClick={() => setQueueMode('manual')}
                 disabled={loadingQueueSettings || savingQueueSettings}
-                className={`h-11 rounded-lg text-sm font-semibold border ${
+                className={cn(
+                  'min-h-[44px] rounded-xl border text-sm font-semibold transition-colors disabled:opacity-60',
                   queueMode === 'manual'
-                    ? 'bg-orange-50 text-orange-700 border-orange-200'
-                    : 'bg-white text-slate-600 border-slate-200'
-                }`}
+                    ? 'border-coral/40 bg-coral/10 text-coral'
+                    : 'border-slate-200 bg-white text-slate-700',
+                  adminFocusRing
+                )}
               >
                 Manuel
               </button>
             </div>
           </div>
 
-          <div className="md:col-span-1 bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+          <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-4 md:col-span-1">
+            <p className={cn(adminSectionLabel, 'mb-3')}>
               Temps manuel (minutes)
             </p>
             <input
@@ -1073,7 +1158,11 @@ function DashboardView({
               value={manualMinutes}
               onChange={(e) => setManualMinutes(Math.max(5, Math.min(180, Number(e.target.value) || 5)))}
               disabled={queueMode !== 'manual' || loadingQueueSettings || savingQueueSettings}
-              className="w-full h-11 px-3 rounded-lg border border-slate-200 bg-white text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+              className={cn(
+                'min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-base font-semibold text-slate-900',
+                adminFocusRing,
+                'focus:border-coral'
+              )}
             />
           </div>
         </div>
@@ -1083,7 +1172,10 @@ function DashboardView({
             type="button"
             onClick={saveQueueSettings}
             disabled={loadingQueueSettings || savingQueueSettings}
-            className="h-11 px-5 rounded-lg bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            className={cn(
+              'min-h-[44px] rounded-xl bg-gradient-to-r from-coral to-burnt-orange px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-[1.03] disabled:opacity-50',
+              adminFocusRing
+            )}
           >
             {savingQueueSettings ? 'Enregistrement...' : 'Enregistrer les réglages'}
           </button>
@@ -1091,21 +1183,22 @@ function DashboardView({
             <p className="text-sm font-medium text-slate-600">{queueSettingsNotice}</p>
           )}
         </div>
-      </div>
+      </AdminCard>
 
       {/* Bannière file d'attente four */}
       <div
-        className={`flex items-center gap-5 rounded-xl p-1 border-l-4 shadow-sm bg-white ${
+        className={cn(
+          'flex items-center gap-5 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm',
           !estimate.ovenAvailable
-            ? 'border-red-500'
+            ? 'border-l-4 border-l-red-500'
             : estimate.totalItems === 0
-            ? 'border-emerald-500'
-            : estimate.estimatedMinutes <= 20
-            ? 'border-emerald-500'
-            : estimate.estimatedMinutes <= 40
-            ? 'border-orange-500'
-            : 'border-red-500'
-        }`}
+              ? 'border-l-4 border-l-emerald-500'
+              : estimate.estimatedMinutes <= 20
+                ? 'border-l-4 border-l-emerald-500'
+                : estimate.estimatedMinutes <= 40
+                  ? 'border-l-4 border-l-orange-500'
+                  : 'border-l-4 border-l-red-500'
+        )}
       >
         <div className="flex-1 py-4 pl-5">
           <div className="flex items-center gap-3 mb-1">
@@ -1243,9 +1336,9 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
   const totalTerminal = statusDist.completed + statusDist.cancelled + statusDist.refused
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KPICard
           title="CA 7 jours"
           value={`${revenue7d.toFixed(2)}€`}
@@ -1268,11 +1361,12 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
       </div>
 
       {/* Charts row */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
         {/* CA 7 derniers jours */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="text-xl">📈</span> CA 7 derniers jours
+        <AdminCard>
+          <h3 className="mb-6 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <BarChart3Icon className="h-5 w-5 text-coral" aria-hidden />
+            CA 7 derniers jours
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={revenueByDay} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -1303,15 +1397,16 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
                   padding: '10px 14px'
                 }}
               />
-              <Bar dataKey="revenue" fill="#fb923c" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="revenue" fill="#E17B5F" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </AdminCard>
 
         {/* Commandes 7 derniers jours */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="text-xl">📦</span> Commandes 7 derniers jours
+        <AdminCard>
+          <h3 className="mb-6 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <LineChartIcon className="h-5 w-5 text-coral" aria-hidden />
+            Commandes 7 derniers jours
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={revenueByDay} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -1351,19 +1446,19 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </AdminCard>
       </div>
 
       {/* Today's hourly revenue */}
       <RevenueChart orders={orders} />
 
       {/* Top pizzas + status distribution */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
         {/* Top pizzas all-time */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
-            <TrendingUp size={20} className="text-orange-500" />
-            Top Pizzas (tous temps)
+        <AdminCard>
+          <h3 className="mb-6 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <TrendingUp size={20} className="text-coral" aria-hidden />
+            Top pizzas (tous temps)
           </h3>
           {topPizzasAllTime.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-slate-400">
@@ -1373,24 +1468,23 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
           ) : (
             <div className="space-y-5">
               {topPizzasAllTime.map((pizza, i) => {
-                const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣']
                 const maxCount = topPizzasAllTime[0].count
                 return (
                   <div key={pizza.name} className="group">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <span className="text-lg w-6 text-center font-medium text-slate-400">
-                          {medals[i]}
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500 tabular-nums">
+                          {i + 1}
                         </span>
                         <span className="font-medium text-slate-700 text-sm">
                           {pizza.name}
                         </span>
                       </div>
-                      <span className="font-bold text-orange-600 text-sm">{pizza.count}</span>
+                      <span className="text-sm font-bold tabular-nums text-coral">{pizza.count}</span>
                     </div>
-                    <div className="w-full bg-slate-50 rounded-full h-2 overflow-hidden pl-9">
+                    <div className="w-full bg-slate-50 rounded-full h-2 overflow-hidden pl-10">
                       <div
-                        className="h-full bg-orange-500 rounded-full transition-all duration-500 group-hover:bg-orange-600"
+                        className="h-full rounded-full bg-coral transition-all duration-500 group-hover:bg-burnt-orange"
                         style={{ width: `${(pizza.count / maxCount) * 100}%` }}
                       />
                     </div>
@@ -1399,11 +1493,14 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
               })}
             </div>
           )}
-        </div>
+        </AdminCard>
 
         {/* Status distribution */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-base font-semibold text-slate-900 mb-6">📊 Distribution statuts</h3>
+        <AdminCard>
+          <h3 className="mb-6 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <PieChart className="h-5 w-5 text-coral" aria-hidden />
+            Distribution des statuts
+          </h3>
           {totalTerminal === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-slate-400">
               <Clock size={32} className="mb-2 opacity-50" />
@@ -1445,7 +1542,7 @@ function AnalyticsView({ orders, stats }: { orders: Order[]; stats: DashboardSta
               </div>
             </div>
           )}
-        </div>
+        </AdminCard>
       </div>
     </div>
   )

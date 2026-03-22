@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { Download, FileText, ExternalLink, X, Eye } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import type { Order } from '@/types/order'
 import { getCsrfToken } from '@/lib/csrf'
 
@@ -24,11 +26,11 @@ const RECEIPT_CATEGORIES = [
 const RECEIPT_STATUSES = new Set(['paid', 'in_preparation', 'ready', 'in_delivery', 'completed'])
 
 const statusLabels: Record<string, string> = {
-  paid: '✅ Payée',
-  in_preparation: '👨‍🍳 En préparation',
-  ready: '🎉 Prête',
-  in_delivery: '🚗 En livraison',
-  completed: '✔️ Terminée',
+  paid: 'Payée',
+  in_preparation: 'En préparation',
+  ready: 'Prête',
+  in_delivery: 'En livraison',
+  completed: 'Terminée',
 }
 
 function startOfDay(d: Date) {
@@ -187,21 +189,28 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
           ] as { id: Period; label: string }[]).map((p) => (
             <button
               key={p.id}
+              type="button"
               onClick={() => setPeriod(p.id)}
-              className={`min-h-[40px] px-4 py-2 rounded-xl text-sm font-medium transition-all touch-manipulation ${
+              className={cn(
+                'min-h-[44px] rounded-xl px-4 py-2 text-sm font-semibold transition-colors touch-manipulation',
+                adminFocusRing,
                 period === p.id
-                  ? 'bg-coral text-white shadow-md shadow-coral/25'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
-              }`}
+                  ? 'bg-gradient-to-r from-coral to-burnt-orange text-white shadow-md shadow-coral/20'
+                  : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+              )}
             >
               {p.label}
             </button>
           ))}
         </div>
         <button
+          type="button"
           onClick={handleExport}
           disabled={isExporting || filteredOrders.length === 0}
-          className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-semibold text-sm hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation shrink-0"
+          className={cn(
+            'flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation',
+            adminFocusRing
+          )}
         >
           <Download size={16} />
           {isExporting ? 'Export…' : 'Exporter CSV'}
@@ -256,16 +265,16 @@ export function ReceiptsManager({ orders, adminPin, onRefresh }: ReceiptsManager
 
       {/* Table */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="text-slate-400" size={32} />
+        <div className={cn(adminCard, 'p-10 text-center md:p-12')}>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+            <FileText className="text-slate-400" size={32} aria-hidden />
           </div>
-          <p className="text-slate-500 text-lg font-medium">Aucune commande sur cette période</p>
+          <p className="text-lg font-medium text-slate-600">Aucune commande sur cette période</p>
         </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className={cn(adminCard, 'hidden overflow-hidden p-0 md:block')}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>

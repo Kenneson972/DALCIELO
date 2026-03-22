@@ -1,7 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard } from '@/components/admin/adminUi'
 
 interface KPICardProps {
   title: string
@@ -17,34 +19,24 @@ interface KPICardProps {
 
 const colorStyles = {
   blue: {
-    text: 'text-blue-600',
     bg: 'bg-blue-50',
-    icon: 'text-blue-500',
-    trend: 'bg-blue-100 text-blue-700',
+    icon: 'text-blue-600',
   },
   green: {
-    text: 'text-emerald-600',
     bg: 'bg-emerald-50',
-    icon: 'text-emerald-500',
-    trend: 'bg-emerald-100 text-emerald-700',
+    icon: 'text-emerald-600',
   },
   orange: {
-    text: 'text-orange-600',
     bg: 'bg-orange-50',
-    icon: 'text-orange-500',
-    trend: 'bg-orange-100 text-orange-700',
+    icon: 'text-orange-600',
   },
   red: {
-    text: 'text-red-600',
     bg: 'bg-red-50',
-    icon: 'text-red-500',
-    trend: 'bg-red-100 text-red-700',
+    icon: 'text-red-600',
   },
   purple: {
-    text: 'text-purple-600',
-    bg: 'bg-purple-50',
-    icon: 'text-purple-500',
-    trend: 'bg-purple-100 text-purple-700',
+    bg: 'bg-violet-50',
+    icon: 'text-violet-600',
   },
 }
 
@@ -57,39 +49,56 @@ export function KPICard({
   loading = false,
 }: KPICardProps) {
   const styles = colorStyles[color]
+  const reduceMotion = useReducedMotion()
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300"
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.22, ease: 'easeOut' }}
+      className={cn(
+        adminCard,
+        'border-slate-200/90 p-5 transition-shadow duration-200 hover:shadow-md md:p-6'
+      )}
     >
-      <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-xl ${styles.bg} ${styles.icon}`}>
-          <Icon size={22} />
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-xl',
+            styles.bg,
+            styles.icon
+          )}
+        >
+          <Icon size={22} strokeWidth={2} aria-hidden />
         </div>
         {trend && !loading && (
-          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${
-            trend.value >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-          }`}>
-            <span>{trend.value >= 0 ? '+' : ''}{trend.value}%</span>
+          <div
+            className={cn(
+              'flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold tabular-nums',
+              trend.value >= 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'
+            )}
+          >
+            <span>
+              {trend.value >= 0 ? '+' : ''}
+              {trend.value}%
+            </span>
           </div>
         )}
       </div>
 
       <div>
-        <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
-        
+        <p className="mb-1 text-sm font-medium text-slate-500">{title}</p>
+
         {loading ? (
-          <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
+          <div className="h-9 w-28 animate-pulse rounded-lg bg-slate-100" />
         ) : (
-          <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <p className={cn('text-3xl font-bold tabular-nums tracking-tight text-slate-900')}>
             {value}
-          </h3>
+          </p>
         )}
-        
+
         {trend && !loading && (
-          <p className="text-xs text-slate-400 mt-1">{trend.label}</p>
+          <p className="mt-1 text-xs font-medium text-slate-400">{trend.label}</p>
         )}
       </div>
     </motion.div>

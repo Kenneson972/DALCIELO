@@ -2,7 +2,21 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, MapPin, User, Phone, ChevronDown, ChevronUp, ShoppingBag, Calendar, Search, X } from 'lucide-react'
+import {
+  Clock,
+  MapPin,
+  User,
+  Phone,
+  ChevronDown,
+  ChevronUp,
+  ShoppingBag,
+  Calendar,
+  Search,
+  X,
+  Printer,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import { updateOrderStatus } from '@/lib/localStore'
 import { QuickActions } from './QuickActions'
 import type { Order, OrderStatus } from '@/types/order'
@@ -14,15 +28,15 @@ interface OrdersListProps {
 }
 
 const statusLabels: Record<OrderStatus, string> = {
-  pending_validation: '⏳ À valider',
-  waiting_payment: '💳 Attente paiement',
-  paid: '✅ Payée',
-  in_preparation: '👨‍🍳 En préparation',
-  ready: '🎉 Prête',
-  in_delivery: '🚗 En livraison',
-  completed: '✔️ Terminée',
-  cancelled: '❌ Annulée',
-  refused: '🚫 Refusée',
+  pending_validation: 'À valider',
+  waiting_payment: 'Attente paiement',
+  paid: 'Payée',
+  in_preparation: 'En préparation',
+  ready: 'Prête',
+  in_delivery: 'En livraison',
+  completed: 'Terminée',
+  cancelled: 'Annulée',
+  refused: 'Refusée',
 }
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -81,13 +95,18 @@ export function OrdersList({ orders, onRefresh, onStatusChange }: OrdersListProp
     <div className="space-y-6 pb-20">
       {/* Search input */}
       <div className="relative">
-        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Rechercher par nom ou téléphone..."
-          className="w-full pl-10 pr-10 py-3 min-h-[48px] bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/10 text-slate-800 placeholder:text-slate-400 transition-all text-sm md:text-base touch-manipulation"
+          className={cn(
+            'w-full min-h-[48px] rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-10 text-base text-slate-800 placeholder:text-slate-400 transition-colors',
+            adminFocusRing,
+            'focus:border-coral',
+            'touch-manipulation'
+          )}
         />
         {searchQuery && (
           <button
@@ -100,7 +119,7 @@ export function OrdersList({ orders, onRefresh, onStatusChange }: OrdersListProp
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3 sticky top-4 md:top-4 z-20 bg-slate-50/95 backdrop-blur py-2 -mx-4 px-4 md:static md:bg-transparent md:py-0 md:px-0">
+      <div className="sticky top-4 z-20 -mx-4 flex flex-wrap gap-2 bg-slate-100/90 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:bg-transparent md:px-0 md:py-0">
         <FilterButton
           active={filter === 'active'}
           onClick={() => setFilter('active')}
@@ -127,11 +146,11 @@ export function OrdersList({ orders, onRefresh, onStatusChange }: OrdersListProp
 
       <div className="space-y-4">
         {sortedOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShoppingBag className="text-slate-400" size={32} />
+          <div className={cn(adminCard, 'p-10 text-center md:p-12')}>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+              <ShoppingBag className="text-slate-400" size={32} aria-hidden />
             </div>
-            <p className="text-slate-500 text-lg font-medium">Aucune commande</p>
+            <p className="text-lg font-medium text-slate-600">Aucune commande</p>
           </div>
         ) : (
           sortedOrders.map((order) => (
@@ -152,15 +171,15 @@ export function OrdersList({ orders, onRefresh, onStatusChange }: OrdersListProp
 function FilterButton({ active, onClick, label, count }: any) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`
-        min-h-[44px] px-5 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm touch-manipulation
-        ${
-          active
-            ? 'bg-coral text-white shadow-lg shadow-coral/25 md:scale-105'
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 active:bg-slate-200'
-        }
-      `}
+      className={cn(
+        'min-h-[44px] rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors touch-manipulation sm:px-5',
+        adminFocusRing,
+        active
+          ? 'bg-gradient-to-r from-coral to-burnt-orange text-white shadow-md shadow-coral/20'
+          : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 active:bg-slate-100'
+      )}
     >
       {label} {count !== undefined && <span className={`ml-1 opacity-80 ${active ? 'text-white' : 'text-slate-400'}`}>({count})</span>}
     </button>
@@ -182,17 +201,28 @@ function OrderCard({
   const isPending = order.status === 'pending_validation'
   
   return (
-    <motion.div 
-      layout 
+    <motion.div
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`
-        bg-white rounded-2xl border overflow-hidden transition-all duration-300
-        ${expanded ? 'shadow-xl ring-1 ring-coral/20 border-coral/30' : 'shadow-sm hover:shadow-md border-slate-200'}
-        ${isPending ? 'border-l-4 border-l-yellow-400' : ''}
-      `}
+      className={cn(
+        'overflow-hidden rounded-2xl border border-slate-200/90 bg-white transition-shadow duration-300',
+        expanded ? 'shadow-lg ring-1 ring-coral/15' : 'shadow-sm hover:shadow-md',
+        isPending && 'border-l-4 border-l-amber-400'
+      )}
     >
-      <div onClick={onToggle} className="p-5 cursor-pointer hover:bg-slate-50/50 transition-colors">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onToggle()
+          }
+        }}
+        className="cursor-pointer p-5 transition-colors hover:bg-slate-50/80"
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -357,9 +387,13 @@ function OrderCard({
                   href={`/order/${order.token}/receipt`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-100 transition-colors touch-manipulation"
+                  className={cn(
+                    'inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 touch-manipulation',
+                    adminFocusRing
+                  )}
                 >
-                  🖨️ Voir le reçu
+                  <Printer size={16} aria-hidden />
+                  Voir le reçu
                 </a>
               </div>
               <div className="pt-2">

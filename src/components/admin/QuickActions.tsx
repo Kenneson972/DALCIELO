@@ -84,7 +84,7 @@ export function QuickActions({ order, onStatusChange }: QuickActionsProps) {
 
   const handleCustomMessage = () => {
     if (!customMessage.trim()) return
-    sendWhatsApp(`Bonjour ${order.client_name},\n\n${customMessage}\n\n- Pizza Dal Cielo 🍕`)
+    sendWhatsApp(`Bonjour ${order.client_name},\n\n${customMessage}\n\n— Pizza Dal Cielo`)
     setCustomMessage('')
     setShowCustomMessage(false)
   }
