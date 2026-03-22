@@ -43,6 +43,9 @@ const PIZZA_IDS_SAUCE_AU_CHOIX = new Set([201, 202, 203, 204, 205, 206, 207, 208
 const VARIANTE_CHOIX_MAP = new Map<number, { count: number; options: string[] }>()
 for (const p of menuData.pizzas)  { if (p.varianteChoix) VARIANTE_CHOIX_MAP.set(p.id, p.varianteChoix) }
 for (const f of menuData.friands) { if (f.varianteChoix) VARIANTE_CHOIX_MAP.set(f.id, f.varianteChoix) }
+
+const EXTRA_BASES_MAP = new Map<number, { id: number; name: string; price: number }[]>()
+for (const p of menuData.pizzas) { if (p.extraBases) EXTRA_BASES_MAP.set(p.id, p.extraBases) }
 const BASE_URL = absoluteUrl('/')
 
 interface PageProps {
@@ -74,6 +77,7 @@ async function getItem(slug: string): Promise<(MenuItem & { images?: string[] })
         size: product.size ?? undefined,
         sauceAuChoix: isPizza && PIZZA_IDS_SAUCE_AU_CHOIX.has(product.menu_id),
         varianteChoix: VARIANTE_CHOIX_MAP.get(product.menu_id),
+        extraBases: EXTRA_BASES_MAP.get(product.menu_id),
         chef_valid_until: product.chef_valid_until ?? undefined,
       }
     }

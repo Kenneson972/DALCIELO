@@ -20,6 +20,8 @@ export interface MenuItem {
   sauceAuChoix?: boolean
   /** Choix obligatoire d'ingrédients parmi une liste (ex. : 3 viandes pour le Suprême) */
   varianteChoix?: { count: number; options: string[] }
+  /** Bases supplémentaires spécifiques à cette pizza (ex. : base Colombo pour la Colombo) */
+  extraBases?: { id: number; name: string; price: number }[]
   /** Date de fin de validité (Pizza du Chef), format YYYY-MM-DD */
   chef_valid_until?: string | null
 }
