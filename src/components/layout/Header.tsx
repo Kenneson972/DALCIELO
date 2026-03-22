@@ -122,7 +122,7 @@ export const Header = () => {
           <nav className="flex-1 hidden md:flex items-center justify-center gap-4 min-w-0">
             <div
               ref={navPillContainerRef}
-              className="relative flex items-center rounded-full border border-white/25 bg-white/30 p-1 shadow-sm backdrop-blur-sm max-md:bg-white/80"
+              className="relative flex items-center gap-1.5 md:gap-3 rounded-full border border-white/25 bg-white/30 px-1.5 py-1 md:px-2 md:py-1 shadow-sm backdrop-blur-sm max-md:bg-white/80"
             >
               <motion.div
                 aria-hidden
@@ -145,7 +145,7 @@ export const Header = () => {
                     href={link.href}
                     data-nav-pill-link={index}
                     className={cn(
-                      'relative z-10 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-200',
+                      'relative z-10 inline-flex items-center justify-center rounded-full px-4 py-2 md:px-6 md:py-2.5 text-sm font-bold uppercase tracking-wider transition-colors duration-200',
                       isActive
                         ? 'text-white'
                         : scrolled

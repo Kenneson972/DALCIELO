@@ -506,7 +506,7 @@ export default function AdminPage() {
     ['pending_validation', 'paid', 'in_preparation'].includes(o.status)
   ).length
 
-  const sidebarWidth = isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
+  const sidebarWidth = isSidebarCollapsed ? 'md:pl-20 lg:pl-20' : 'md:pl-64 lg:pl-64'
 
   const headerTitle: Record<ViewMode, string> = {
     dashboard: "Vue d'ensemble",

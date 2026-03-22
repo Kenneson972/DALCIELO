@@ -32,9 +32,9 @@ export const Hero = () => {
     >
 
       {/* ── Layer 0 : Photo pizza (hero uniquement) ────────────────── */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 bg-[#FFF8F0]">
         <Image
-          src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1920&auto=format&fit=crop"
+          src="/images/hero-pizza.webp"
           alt=""
           fill
           sizes="100vw"
@@ -43,7 +43,7 @@ export const Hero = () => {
           aria-hidden
         />
         {/* Overlay chaud — assure la lisibilité sur fond photo, fond tropical reprend ensuite */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF8F0]/80 via-[#FFF8F0]/60 to-[#FFF8F0]/15" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#E17B5F]/55 via-[#E17B5F]/30 to-[#E17B5F]/10" />
       </div>
 
       {/* ── Layer 1 : Glow parallax (au-dessus de la photo) ──────── */}
