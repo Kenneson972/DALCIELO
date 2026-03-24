@@ -528,6 +528,26 @@ export const OrderTrackingClient = () => {
     }
   }, [order?.status])
 
+  const itemsSubtotal = useMemo(() => {
+    const items = order?.items ?? []
+    return (
+      Math.round(
+        items.reduce(
+          (sum, item) => sum + Number(item.price) * Number(item.quantity ?? 1),
+          0
+        ) * 100
+      ) / 100
+    )
+  }, [order?.items])
+
+  /** Écart total − articles = frais de livraison (non stockés séparément en base) */
+  const deliveryFeeLine = useMemo(() => {
+    if (!order || order.type_service !== 'delivery') return null
+    const diff = Math.round((Number(order.total) - itemsSubtotal) * 100) / 100
+    if (diff < 0.01) return null
+    return diff
+  }, [order, itemsSubtotal])
+
   if (loading && !order) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream/40">
@@ -790,18 +810,33 @@ export const OrderTrackingClient = () => {
               <span className="text-sm text-gray-text">{formatDateTime(order.created_at)}</span>
             </div>
             <div className="space-y-2 text-sm">
-              {order.items.map((item) => (
-                <div key={`${order.id}-${item.id}`} className="flex justify-between">
-                  <span>
-                    {item.name} × {item.quantity}
-                  </span>
-                  <span className="font-bold">{item.price}€</span>
-                </div>
-              ))}
+              {order.items.map((item) => {
+                const line = Number(item.price) * Number(item.quantity ?? 1)
+                return (
+                  <div key={`${order.id}-${item.id}`} className="flex justify-between gap-3">
+                    <span className="min-w-0">
+                      {item.name} × {item.quantity}
+                    </span>
+                    <span className="font-bold shrink-0">
+                      {line.toFixed(2).replace('.', ',')} €
+                    </span>
+                  </div>
+                )
+              })}
             </div>
+            {deliveryFeeLine != null && (
+              <div className="flex justify-between text-sm text-gray-700 pt-1 border-t border-dashed border-gray-100">
+                <span>Frais de livraison</span>
+                <span className="font-bold text-gray-900">
+                  {deliveryFeeLine.toFixed(2).replace('.', ',')} €
+                </span>
+              </div>
+            )}
             <div className="border-t border-gray-100 pt-4 flex justify-between text-lg font-black">
               <span>Total</span>
-              <span className="text-primary">{order.total}€</span>
+              <span className="text-primary">
+                {Number(order.total).toFixed(2).replace('.', ',')} €
+              </span>
             </div>
             <div className="border-t border-gray-100 pt-4 text-sm text-gray-text space-y-2">
               <p>👤 {order.client_name}</p>

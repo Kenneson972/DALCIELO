@@ -1,6 +1,10 @@
-// Pizzeria coordinates — 146 Bd de la Pointe des Nègres, Bellevue, Fort-de-France
-export const PIZZERIA_LAT = 14.6165
-export const PIZZERIA_LNG = -61.1152
+/**
+ * Point de référence livraison = coordonnées BAN de l’adresse officielle
+ * « 146 Boulevard de la Pointe des Nègres 97200 Fort-de-France » (search limit=1, 2026-03).
+ * Les anciennes valeurs (14.6165, -61.1152) étaient ~3,3 km à l’ouest → distances et tarifs faux.
+ */
+export const PIZZERIA_LAT = 14.608992
+export const PIZZERIA_LNG = -61.085886
 
 /**
  * Haversine distance between two coordinates (in km)
@@ -43,19 +47,15 @@ async function banGeocodeAddress(
 
     if (!features.length) return null
 
-    // Parmi les candidats, retenir celui le plus proche de la pizzeria
-    let best: { lat: number; lng: number; label: string } | null = null
-    let bestDist = Infinity
-    for (const f of features) {
-      const [lng, lat] = f.geometry.coordinates
-      if (!isFinite(lat) || !isFinite(lng)) continue
-      const d = haversineKm(PIZZERIA_LAT, PIZZERIA_LNG, lat, lng)
-      if (d < bestDist) {
-        bestDist = d
-        best = { lat, lng, label: f.properties.label }
-      }
-    }
-    return best
+    // Meilleur score BAN = adresse la plus pertinente pour la requête (évite de prendre un
+    // autre numéro / voisin « plus proche » d’une origine approximative).
+    const sorted = [...features].sort(
+      (a, b) => (b.properties?.score ?? 0) - (a.properties?.score ?? 0),
+    )
+    const f = sorted[0]
+    const [lng, lat] = f.geometry.coordinates
+    if (!isFinite(lat) || !isFinite(lng)) return null
+    return { lat, lng, label: f.properties.label }
   } catch {
     return null
   }
@@ -200,9 +200,15 @@ function communeFallback(address: string): { lat: number; lng: number } | null {
 
 type GeoSource = 'ban' | 'nominatim' | 'commune_fallback'
 
-export async function geocodeAddress(
-  address: string,
-): Promise<{ lat: number; lng: number; source: GeoSource } | null> {
+export type GeocodeResult = {
+  lat: number
+  lng: number
+  source: GeoSource
+  /** Libellé BAN si source ban */
+  normalizedLabel?: string
+}
+
+export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 9000)
 
@@ -216,7 +222,14 @@ export async function geocodeAddress(
   try {
     // ── Passe 1 : BAN (prioritaire) ──────────────────────────────────────────
     const banResult = await banGeocodeAddress(address, controller.signal)
-    if (banResult) return { lat: banResult.lat, lng: banResult.lng, source: 'ban' }
+    if (banResult) {
+      return {
+        lat: banResult.lat,
+        lng: banResult.lng,
+        source: 'ban',
+        normalizedLabel: banResult.label,
+      }
+    }
 
     // ── Passes 2-4 : Nominatim ───────────────────────────────────────────────
     for (const url of nominatimPasses) {
@@ -231,18 +244,18 @@ export async function geocodeAddress(
         const d = haversineKm(PIZZERIA_LAT, PIZZERIA_LNG, lat, lng)
         if (d < bestDist) { bestDist = d; best = { lat, lng } }
       }
-      if (best) return { ...best, source: 'nominatim' }
+      if (best) return { ...best, source: 'nominatim', normalizedLabel: undefined }
     }
 
     // ── Passe 5 : Fallback commune locale ────────────────────────────────────
     const fallback = communeFallback(address)
-    if (fallback) return { ...fallback, source: 'commune_fallback' }
+    if (fallback) return { ...fallback, source: 'commune_fallback', normalizedLabel: undefined }
 
     return null
   } catch {
     // Même en cas d'erreur (ex: timeout), tenter le fallback commune
     const fallback = communeFallback(address)
-    if (fallback) return { ...fallback, source: 'commune_fallback' }
+    if (fallback) return { ...fallback, source: 'commune_fallback', normalizedLabel: undefined }
     return null
   } finally {
     clearTimeout(timeout)
@@ -269,15 +282,47 @@ export type DeliveryFeeResult =
  * Le champ `approximated: true` indique que le résultat est une estimation
  * (fallback commune) et devra être confirmé par l'équipe.
  */
-export async function getDeliveryFeeForAddress(address: string): Promise<DeliveryFeeResult> {
-  const coords = await geocodeAddress(address)
-  if (!coords) return { fee: null, distanceKm: null, error: 'not_found' }
+function logDeliveryFeeDebug(payload: Record<string, unknown>) {
+  if (process.env.DELIVERY_FEE_DEBUG !== '1') return
+  console.log('[delivery-fee]', JSON.stringify(payload))
+}
 
-  const straightLine = haversineKm(PIZZERIA_LAT, PIZZERIA_LNG, coords.lat, coords.lng)
-  const distanceKm = Math.round(straightLine * 1.35 * 10) / 10 // × 1.35 facteur routier, 1 décimale
+export async function getDeliveryFeeForAddress(address: string): Promise<DeliveryFeeResult> {
+  const inputAddress = address.trim()
+  const coords = await geocodeAddress(inputAddress)
+  if (!coords) {
+    logDeliveryFeeDebug({
+      inputAddress,
+      normalizedLabel: null,
+      geocodedCoordinates: null,
+      originCoordinates: { lat: PIZZERIA_LAT, lng: PIZZERIA_LNG },
+      straightLineKm: null,
+      distanceKm: null,
+      fee: null,
+      error: 'not_found',
+      source: null,
+    })
+    return { fee: null, distanceKm: null, error: 'not_found' }
+  }
+
+  const straightLineKm = haversineKm(PIZZERIA_LAT, PIZZERIA_LNG, coords.lat, coords.lng)
+  const distanceKm = Math.round(straightLineKm * 1.35 * 10) / 10 // × 1.35 facteur routier, 1 décimale
 
   const fee = computeDeliveryFee(distanceKm)
   const approximated = coords.source === 'commune_fallback' ? true : undefined
+
+  logDeliveryFeeDebug({
+    inputAddress,
+    normalizedLabel: coords.normalizedLabel ?? null,
+    geocodedCoordinates: { lat: coords.lat, lng: coords.lng },
+    originCoordinates: { lat: PIZZERIA_LAT, lng: PIZZERIA_LNG },
+    straightLineKm: Math.round(straightLineKm * 10000) / 10000,
+    distanceKm,
+    fee: fee ?? null,
+    error: fee === null ? 'out_of_zone' : null,
+    source: coords.source,
+    approximated: approximated ?? false,
+  })
 
   if (fee === null) return { fee: null, distanceKm, error: 'out_of_zone', approximated }
   return { fee, distanceKm, approximated }

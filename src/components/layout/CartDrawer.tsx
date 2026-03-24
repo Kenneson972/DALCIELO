@@ -203,57 +203,86 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   }, [])
 
   /** GPS → coordonnées → API Adresse (reverse) → libellé BAN Martinique (972xx) */
-  const handleGeolocateFill = useCallback(() => {
+  const handleGeolocateFill = useCallback(async () => {
     if (geoLoading) return
     setGeoError(null)
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setGeoError('La géolocalisation n’est pas disponible sur cet appareil.')
       return
     }
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setGeoError('La géolocalisation nécessite une page en https (connexion sécurisée).')
+      return
+    }
+
     setGeoLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        const lat = pos.coords.latitude
-        const lon = pos.coords.longitude
+    try {
+      // Chromium / Opera : savoir si la permission est déjà refusée (aucune nouvelle boîte de dialogue)
+      if (navigator.permissions?.query) {
         try {
-          const res = await fetch(
-            `https://api-adresse.data.gouv.fr/reverse/?lon=${encodeURIComponent(String(lon))}&lat=${encodeURIComponent(String(lat))}&limit=8`
-          )
-          if (!res.ok) throw new Error('ban')
-          const data = await res.json()
-          const features = (data.features ?? []) as Array<{
-            properties: { label: string; citycode?: string }
-          }>
-          const mq = features.find(f => f.properties?.citycode?.startsWith('972'))
-          if (mq?.properties?.label) {
-            setDeliveryAddress(mq.properties.label)
-            setAddressConfirmed(true)
-            setBanSuggestionsVisible(false)
-            setBanSuggestions([])
-          } else {
-            setGeoError('Aucune adresse en Martinique trouvée à cet endroit. Saisissez la rue à la main.')
+          const status = await navigator.permissions.query({
+            name: 'geolocation' as PermissionName,
+          })
+          if (status.state === 'denied') {
+            setGeoError(
+              'La localisation est refusée pour ce site. Sous Opera : icône à gauche de la barre d’adresse (cadenas ou « i ») → Paramètres du site → Localisation → « Autoriser », puis recliquez sur le bouton rond.'
+            )
+            setGeoLoading(false)
+            return
           }
         } catch {
-          setGeoError('Impossible de récupérer l’adresse. Réessayez ou saisissez-la à la main.')
-        } finally {
-          setGeoLoading(false)
+          // API Permissions non supportée ou nom refusé : on tente quand même getCurrentPosition (déclenche la demande)
         }
-      },
-      err => {
-        setGeoLoading(false)
-        const code = err.code
-        if (code === 1) {
-          setGeoError('Activez la localisation dans les paramètres du navigateur pour remplir l’adresse.')
-        } else if (code === 2) {
-          setGeoError('Position indisponible. Saisissez l’adresse à la main.')
-        } else if (code === 3) {
-          setGeoError('Délai dépassé. Réessayez ou saisissez l’adresse.')
+      }
+
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 25000,
+          maximumAge: 0,
+        })
+      })
+
+      const lat = pos.coords.latitude
+      const lon = pos.coords.longitude
+      try {
+        const res = await fetch(
+          `https://api-adresse.data.gouv.fr/reverse/?lon=${encodeURIComponent(String(lon))}&lat=${encodeURIComponent(String(lat))}&limit=8`
+        )
+        if (!res.ok) throw new Error('ban')
+        const data = await res.json()
+        const features = (data.features ?? []) as Array<{
+          properties: { label: string; citycode?: string }
+        }>
+        const mq = features.find(f => f.properties?.citycode?.startsWith('972'))
+        if (mq?.properties?.label) {
+          setDeliveryAddress(mq.properties.label)
+          setAddressConfirmed(true)
+          setBanSuggestionsVisible(false)
+          setBanSuggestions([])
         } else {
-          setGeoError('Localisation impossible. Saisissez l’adresse à la main.')
+          setGeoError('Aucune adresse en Martinique trouvée à cet endroit. Saisissez la rue à la main.')
         }
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    )
+      } catch {
+        setGeoError('Impossible de récupérer l’adresse. Réessayez ou saisissez-la à la main.')
+      }
+    } catch (e: unknown) {
+      const err = e as Partial<GeolocationPositionError> | undefined
+      const code = err && typeof err === 'object' && 'code' in err ? Number((err as GeolocationPositionError).code) : NaN
+      if (code === 1) {
+        setGeoError(
+          'Accès à la position refusé. Sous Opera : icône cadenas / « i » à gauche de l’URL → Localisation → Autoriser, ou vérifiez que la localisation système (macOS / Windows) est activée.'
+        )
+      } else if (code === 2) {
+        setGeoError('Position indisponible. Saisissez l’adresse à la main.')
+      } else if (code === 3) {
+        setGeoError('Délai dépassé. Réessayez ou saisissez l’adresse.')
+      } else {
+        setGeoError('Localisation impossible. Saisissez l’adresse à la main.')
+      }
+    } finally {
+      setGeoLoading(false)
+    }
   }, [geoLoading])
 
   // Debounce: fetch delivery fee when address changes
@@ -718,10 +747,16 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       {/* ── Bloc adresse livraison ── */}
                       {form.type_service === 'delivery' && (
                         <div className="space-y-2">
-                          <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">
-                            <MapPin size={12} />
-                            Adresse de livraison *
-                          </label>
+                          <div className="ml-1 space-y-0.5">
+                            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-500">
+                              <MapPin size={12} />
+                              Adresse de livraison *
+                            </label>
+                            <p className="text-[11px] leading-snug text-gray-400 normal-case font-normal tracking-normal pl-0.5">
+                              Le bouton rond à droite demande votre position au navigateur (Opera affiche une fenêtre
+                              d’autorisation — acceptez pour remplir l’adresse).
+                            </p>
+                          </div>
 
                           {/* Input autocomplete BAN + bouton géolocalisation (rond) */}
                           <div>

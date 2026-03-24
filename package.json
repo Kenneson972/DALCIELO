@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "favicon": "node scripts/generate-favicon.mjs",
     "stripe:webhook": "stripe listen --forward-to localhost:3000/api/webhooks/stripe",
     "logs:start": "node scripts/start-session-log.mjs",
@@ -38,6 +40,7 @@
     "postcss": "^8.4.38",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "vitest": "^3.2.4"
   }
 }

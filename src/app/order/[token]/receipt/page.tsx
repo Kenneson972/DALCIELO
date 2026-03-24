@@ -56,6 +56,25 @@ export default function ReceiptPage() {
     return () => { cancelled = true }
   }, [token])
 
+  const itemsSubtotal = useMemo(() => {
+    const items = order?.items ?? []
+    return (
+      Math.round(
+        items.reduce(
+          (sum, item) => sum + Number(item.price) * Number(item.quantity ?? 1),
+          0
+        ) * 100
+      ) / 100
+    )
+  }, [order?.items])
+
+  const deliveryFeeLine = useMemo(() => {
+    if (!order || order.type_service !== 'delivery') return null
+    const diff = Math.round((Number(order.total) - itemsSubtotal) * 100) / 100
+    if (diff < 0.01) return null
+    return diff
+  }, [order, itemsSubtotal])
+
   if (loading && !order) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -218,6 +237,17 @@ export default function ReceiptPage() {
             </tbody>
           </table>
         </div>
+
+        {deliveryFeeLine != null && (
+          <div className="mx-10 mb-4 flex justify-end text-[11px]">
+            <div className="w-full max-w-xs border-t border-dashed border-gray-200 pt-3 flex justify-between text-gray-700">
+              <span>Frais de livraison</span>
+              <span className="font-bold text-gray-900">
+                {deliveryFeeLine.toFixed(2).replace('.', ',')} €
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Total */}
         <div className="mx-10 mb-6 flex justify-end">
