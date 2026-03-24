@@ -3,7 +3,24 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, Trash2, ShoppingBag, Send, AlertTriangle, Phone, MessageCircle, Clock, MapPin, Loader2, CheckCircle, AlertCircle, Navigation } from 'lucide-react'
+import {
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingBag,
+  Send,
+  AlertTriangle,
+  Phone,
+  MessageCircle,
+  Clock,
+  MapPin,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Navigation,
+  LocateFixed,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 import { useQueueEstimate } from '@/hooks/useQueueEstimate'
@@ -52,7 +69,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number | null>(null)
   const [deliveryApproximated, setDeliveryApproximated] = useState(false)
   const [deliveryFeeStatus, setDeliveryFeeStatus] = useState<
-    'idle' | 'loading' | 'ok' | 'not_found' | 'out_of_zone'
+    'idle' | 'loading' | 'ok' | 'not_found' | 'out_of_zone' | 'uncertain'
   >('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -64,6 +81,8 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const banDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const suggestionsBoxRef = useRef<HTMLDivElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
 
   const { estimate, loading: ovenLoading, isStale, realtimeStatus, refresh } = useQueueEstimate(
     isOpen && items.length > 0,
@@ -113,6 +132,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     setBanSuggestions([])
     setBanSuggestionsVisible(false)
     setAddressConfirmed(false)
+    setGeoError(null)
   }, [form.type_service])
 
   // ── BAN autocomplete ───────────────────────────────────────────────────────
@@ -182,6 +202,60 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     setBanSuggestions([])
   }, [])
 
+  /** GPS → coordonnées → API Adresse (reverse) → libellé BAN Martinique (972xx) */
+  const handleGeolocateFill = useCallback(() => {
+    if (geoLoading) return
+    setGeoError(null)
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeoError('La géolocalisation n’est pas disponible sur cet appareil.')
+      return
+    }
+    setGeoLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude
+        const lon = pos.coords.longitude
+        try {
+          const res = await fetch(
+            `https://api-adresse.data.gouv.fr/reverse/?lon=${encodeURIComponent(String(lon))}&lat=${encodeURIComponent(String(lat))}&limit=8`
+          )
+          if (!res.ok) throw new Error('ban')
+          const data = await res.json()
+          const features = (data.features ?? []) as Array<{
+            properties: { label: string; citycode?: string }
+          }>
+          const mq = features.find(f => f.properties?.citycode?.startsWith('972'))
+          if (mq?.properties?.label) {
+            setDeliveryAddress(mq.properties.label)
+            setAddressConfirmed(true)
+            setBanSuggestionsVisible(false)
+            setBanSuggestions([])
+          } else {
+            setGeoError('Aucune adresse en Martinique trouvée à cet endroit. Saisissez la rue à la main.')
+          }
+        } catch {
+          setGeoError('Impossible de récupérer l’adresse. Réessayez ou saisissez-la à la main.')
+        } finally {
+          setGeoLoading(false)
+        }
+      },
+      err => {
+        setGeoLoading(false)
+        const code = err.code
+        if (code === 1) {
+          setGeoError('Activez la localisation dans les paramètres du navigateur pour remplir l’adresse.')
+        } else if (code === 2) {
+          setGeoError('Position indisponible. Saisissez l’adresse à la main.')
+        } else if (code === 3) {
+          setGeoError('Délai dépassé. Réessayez ou saisissez l’adresse.')
+        } else {
+          setGeoError('Localisation impossible. Saisissez l’adresse à la main.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    )
+  }, [geoLoading])
+
   // Debounce: fetch delivery fee when address changes
   useEffect(() => {
     if (form.type_service !== 'delivery') return
@@ -210,11 +284,16 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           setDeliveryFee(null)
           setDeliveryDistanceKm(data.distanceKm ?? null)
           setDeliveryApproximated(data.approximated ?? false)
+        } else if (typeof data.fee === 'number' && data.approximated === true) {
+          setDeliveryFeeStatus('uncertain')
+          setDeliveryFee(data.fee)
+          setDeliveryDistanceKm(data.distanceKm ?? null)
+          setDeliveryApproximated(true)
         } else if (typeof data.fee === 'number') {
           setDeliveryFeeStatus('ok')
           setDeliveryFee(data.fee)
           setDeliveryDistanceKm(data.distanceKm ?? null)
-          setDeliveryApproximated(data.approximated ?? false)
+          setDeliveryApproximated(false)
         } else {
           setDeliveryFeeStatus('not_found')
           setDeliveryFee(null)
@@ -644,70 +723,91 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                             Adresse de livraison *
                           </label>
 
-                          {/* Input autocomplete BAN */}
-                          <div className="relative">
-                            <div className="relative">
-                              <input
-                                ref={addressInputRef}
-                                type="text"
-                                placeholder="Numéro, rue, quartier… (ex: 12 rue des Flamboyants, Dillon)"
-                                autoComplete="off"
-                                className={`w-full px-4 py-3 pr-10 min-h-[48px] rounded-2xl border focus:outline-none focus:border-primary/30 touch-manipulation transition-colors ${
-                                  addressConfirmed
-                                    ? 'border-green-300 bg-green-50/30'
-                                    : 'border-gray-200'
-                                }`}
-                                value={deliveryAddress}
-                                onChange={(e) => {
-                                  setDeliveryAddress(e.target.value)
-                                  setAddressConfirmed(false)
-                                  setBanSuggestionsVisible(false)
-                                }}
-                                onFocus={() => {
-                                  if (banSuggestions.length > 0) setBanSuggestionsVisible(true)
-                                }}
-                              />
-                              {/* Icône état */}
-                              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                {banLoading && <Loader2 size={15} className="animate-spin text-gray-400" />}
-                                {!banLoading && addressConfirmed && <CheckCircle size={15} className="text-green-500" />}
-                                {!banLoading && !addressConfirmed && deliveryAddress.length >= 4 && (
-                                  <Navigation size={14} className="text-gray-300" />
-                                )}
-                              </div>
-                            </div>
+                          {/* Input autocomplete BAN + bouton géolocalisation (rond) */}
+                          <div>
+                            <div className="flex gap-2 items-center">
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  ref={addressInputRef}
+                                  type="text"
+                                  placeholder="Numéro, rue, quartier… (ex: 12 rue des Flamboyants, Dillon)"
+                                  autoComplete="off"
+                                  className={`w-full px-4 py-3 pr-10 min-h-[48px] rounded-2xl border focus:outline-none focus:border-primary/30 touch-manipulation transition-colors ${
+                                    addressConfirmed
+                                      ? 'border-green-300 bg-green-50/30'
+                                      : 'border-gray-200'
+                                  }`}
+                                  value={deliveryAddress}
+                                  onChange={(e) => {
+                                    setDeliveryAddress(e.target.value)
+                                    setAddressConfirmed(false)
+                                    setBanSuggestionsVisible(false)
+                                    setGeoError(null)
+                                  }}
+                                  onFocus={() => {
+                                    if (banSuggestions.length > 0) setBanSuggestionsVisible(true)
+                                  }}
+                                />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                  {banLoading && <Loader2 size={15} className="animate-spin text-gray-400" />}
+                                  {!banLoading && addressConfirmed && <CheckCircle size={15} className="text-green-500" />}
+                                  {!banLoading && !addressConfirmed && deliveryAddress.length >= 4 && (
+                                    <Navigation size={14} className="text-gray-300" />
+                                  )}
+                                </div>
 
-                            {/* Dropdown suggestions BAN */}
-                            <AnimatePresence>
-                              {banSuggestionsVisible && banSuggestions.length > 0 && (
-                                <motion.div
-                                  ref={suggestionsBoxRef}
-                                  initial={{ opacity: 0, y: -6 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: -4 }}
-                                  transition={{ duration: 0.12 }}
-                                  className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
-                                >
-                                  {banSuggestions.map((s, i) => (
-                                    <button
-                                      key={i}
-                                      type="button"
-                                      onMouseDown={(e) => {
-                                        e.preventDefault()
-                                        handleSuggestionSelect(s)
-                                      }}
-                                      className="w-full flex items-start gap-2.5 px-4 py-3 hover:bg-cream/60 transition-colors text-left border-b border-gray-50 last:border-0"
+                                {/* Dropdown suggestions BAN (aligné sur le champ) */}
+                                <AnimatePresence>
+                                  {banSuggestionsVisible && banSuggestions.length > 0 && (
+                                    <motion.div
+                                      ref={suggestionsBoxRef}
+                                      initial={{ opacity: 0, y: -6 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -4 }}
+                                      transition={{ duration: 0.12 }}
+                                      className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
                                     >
-                                      <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-medium text-[#3D2418] leading-snug truncate">{s.label}</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">{s.city}</p>
-                                      </div>
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                                      {banSuggestions.map((s, i) => (
+                                        <button
+                                          key={i}
+                                          type="button"
+                                          onMouseDown={(e) => {
+                                            e.preventDefault()
+                                            handleSuggestionSelect(s)
+                                          }}
+                                          className="w-full flex items-start gap-2.5 px-4 py-3 hover:bg-cream/60 transition-colors text-left border-b border-gray-50 last:border-0"
+                                        >
+                                          <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
+                                          <div className="min-w-0">
+                                            <p className="text-sm font-medium text-[#3D2418] leading-snug truncate">{s.label}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5">{s.city}</p>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleGeolocateFill}
+                                disabled={geoLoading}
+                                title="Remplir avec ma position"
+                                aria-label="Remplir l’adresse avec ma position actuelle"
+                                className="shrink-0 flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-primary shadow-sm transition hover:border-primary/40 hover:bg-cream/50 disabled:opacity-60 touch-manipulation min-h-[48px] min-w-[48px]"
+                              >
+                                {geoLoading ? (
+                                  <Loader2 size={20} className="animate-spin text-primary" aria-hidden />
+                                ) : (
+                                  <LocateFixed size={20} strokeWidth={2} className="text-primary" aria-hidden />
+                                )}
+                              </button>
+                            </div>
+                            {geoError && (
+                              <p className="mt-1.5 text-xs text-red-600 px-0.5" role="alert">
+                                {geoError}
+                              </p>
+                            )}
                           </div>
 
                           {/* Champ point de repère */}
@@ -727,25 +827,27 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                               <span>Calcul des frais en cours…</span>
                             </div>
                           )}
+                          {deliveryFeeStatus === 'uncertain' && deliveryFee !== null && (
+                            <div className="flex items-start gap-2 text-sm rounded-xl px-3 py-2 text-amber-800 bg-amber-50 border border-amber-200/80">
+                              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                              <span>
+                                Adresse trop vague pour valider la livraison en ligne. Indiquez le{' '}
+                                <strong>numéro et la rue</strong> (ou choisissez une suggestion ci-dessus).
+                                <span className="block text-xs mt-1 opacity-90">
+                                  Estimation indicative : ~{deliveryFee.toFixed(2)} €
+                                  {deliveryDistanceKm !== null && ` (≈ ${deliveryDistanceKm} km)`} — non
+                                  appliquée tant que l&apos;adresse n&apos;est pas précise.
+                                </span>
+                              </span>
+                            </div>
+                          )}
                           {deliveryFeeStatus === 'ok' && deliveryFee !== null && (
-                            <div className={`flex items-start gap-2 text-sm rounded-xl px-3 py-2 ${
-                              deliveryApproximated
-                                ? 'text-amber-700 bg-amber-50'
-                                : 'text-green-700 bg-green-50'
-                            }`}>
-                              {deliveryApproximated
-                                ? <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                                : <CheckCircle size={15} className="shrink-0 mt-0.5" />
-                              }
+                            <div className="flex items-start gap-2 text-sm rounded-xl px-3 py-2 text-green-700 bg-green-50">
+                              <CheckCircle size={15} className="shrink-0 mt-0.5" />
                               <span>
                                 Frais de livraison : <strong>{deliveryFee.toFixed(2)} €</strong>
                                 {deliveryDistanceKm !== null && (
                                   <span className="ml-1 opacity-75">(≈ {deliveryDistanceKm} km)</span>
-                                )}
-                                {deliveryApproximated && (
-                                  <span className="block text-xs mt-0.5 opacity-80">
-                                    Estimation par commune — confirmé par l&apos;équipe à la validation
-                                  </span>
                                 )}
                               </span>
                             </div>

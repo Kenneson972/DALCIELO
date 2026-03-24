@@ -185,16 +185,29 @@ export async function POST(req: Request) {
         )
       }
       deliveryAddressForOrder = trimmedAddress
-      const { fee, error: feeError } = await getDeliveryFeeForAddress(trimmedAddress)
+      const { fee, error: feeError, approximated } = await getDeliveryFeeForAddress(trimmedAddress)
       if (feeError === 'not_found') {
         return NextResponse.json(
-          { error: 'Adresse introuvable. Vérifiez ou contactez-nous.' },
+          { error: 'Adresse introuvable. Vérifiez ou contactez-nous.', code: 'DELIVERY_ADDRESS_NOT_FOUND' },
           { status: 400 }
         )
       }
       if (feeError === 'out_of_zone' || fee === null) {
         return NextResponse.json(
-          { error: 'Zone hors périmètre. Contactez-nous ou commandez en click & collect.' },
+          {
+            error: 'Zone hors périmètre. Contactez-nous ou commandez en click & collect.',
+            code: 'DELIVERY_OUT_OF_ZONE',
+          },
+          { status: 400 }
+        )
+      }
+      if (approximated === true) {
+        return NextResponse.json(
+          {
+            error:
+              'Adresse trop imprécise pour valider la livraison automatiquement. Indiquez le numéro et la rue (ou une suggestion BAN), puis réessayez.',
+            code: 'DELIVERY_ADDRESS_UNCERTAIN',
+          },
           { status: 400 }
         )
       }
