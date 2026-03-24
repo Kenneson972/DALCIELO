@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, Trash2, ShoppingBag, Send, AlertTriangle, Phone, MessageCircle, Clock, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { X, Plus, Minus, Trash2, ShoppingBag, Send, AlertTriangle, Phone, MessageCircle, Clock, MapPin, Loader2, CheckCircle, AlertCircle, Navigation } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 import { useQueueEstimate } from '@/hooks/useQueueEstimate'
@@ -13,6 +13,14 @@ import { supabase, supabaseEnabled } from '@/lib/supabaseClient'
 import { createLocalOrderId, createOrderToken, createOrder } from '@/lib/localStore'
 import type { Order } from '@/types/order'
 import { getCsrfToken } from '@/lib/csrf'
+
+// ── Types BAN autocomplete ─────────────────────────────────────────────────
+interface BanSuggestion {
+  label: string
+  lat: number
+  lng: number
+  city: string
+}
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -39,12 +47,23 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
   // Delivery address & fee
   const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryLandmark, setDeliveryLandmark] = useState('')
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null)
   const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number | null>(null)
+  const [deliveryApproximated, setDeliveryApproximated] = useState(false)
   const [deliveryFeeStatus, setDeliveryFeeStatus] = useState<
     'idle' | 'loading' | 'ok' | 'not_found' | 'out_of_zone'
   >('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // BAN autocomplete
+  const [banSuggestions, setBanSuggestions] = useState<BanSuggestion[]>([])
+  const [banSuggestionsVisible, setBanSuggestionsVisible] = useState(false)
+  const [banLoading, setBanLoading] = useState(false)
+  const [addressConfirmed, setAddressConfirmed] = useState(false)
+  const banDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const suggestionsBoxRef = useRef<HTMLDivElement>(null)
+  const addressInputRef = useRef<HTMLInputElement>(null)
 
   const { estimate, loading: ovenLoading, isStale, realtimeStatus, refresh } = useQueueEstimate(
     isOpen && items.length > 0,
@@ -83,22 +102,95 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     }
   }, [isOpen])
 
-  // Reset fee state when switching service type
+  // Reset fee + autocomplete state when switching service type
   useEffect(() => {
     setDeliveryFeeStatus('idle')
     setDeliveryFee(null)
     setDeliveryDistanceKm(null)
+    setDeliveryApproximated(false)
     setDeliveryAddress('')
+    setDeliveryLandmark('')
+    setBanSuggestions([])
+    setBanSuggestionsVisible(false)
+    setAddressConfirmed(false)
   }, [form.type_service])
+
+  // ── BAN autocomplete ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (form.type_service !== 'delivery') return
+    if (addressConfirmed) return
+    if (banDebounceRef.current) clearTimeout(banDebounceRef.current)
+
+    if (deliveryAddress.trim().length < 4) {
+      setBanSuggestions([])
+      setBanSuggestionsVisible(false)
+      setBanLoading(false)
+      return
+    }
+
+    setBanLoading(true)
+    banDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(deliveryAddress)}&limit=6&autocomplete=1`
+        )
+        if (!res.ok) throw new Error('BAN API error')
+        const data = await res.json()
+        // Filtrer uniquement Martinique (codes INSEE 972xx)
+        const suggestions: BanSuggestion[] = (data.features ?? [])
+          .filter((f: { properties: { citycode?: string } }) => f.properties?.citycode?.startsWith('972'))
+          .map((f: { geometry: { coordinates: [number, number] }; properties: { label: string; city: string } }) => ({
+            label: f.properties.label,
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+            city: f.properties.city ?? '',
+          }))
+        setBanSuggestions(suggestions)
+        setBanSuggestionsVisible(suggestions.length > 0)
+      } catch {
+        setBanSuggestions([])
+        setBanSuggestionsVisible(false)
+      } finally {
+        setBanLoading(false)
+      }
+    }, 350)
+
+    return () => { if (banDebounceRef.current) clearTimeout(banDebounceRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryAddress, form.type_service, addressConfirmed])
+
+  // Fermer les suggestions au clic en dehors
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        suggestionsBoxRef.current &&
+        !suggestionsBoxRef.current.contains(e.target as Node) &&
+        addressInputRef.current &&
+        !addressInputRef.current.contains(e.target as Node)
+      ) {
+        setBanSuggestionsVisible(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSuggestionSelect = useCallback((suggestion: BanSuggestion) => {
+    setDeliveryAddress(suggestion.label)
+    setAddressConfirmed(true)
+    setBanSuggestionsVisible(false)
+    setBanSuggestions([])
+  }, [])
 
   // Debounce: fetch delivery fee when address changes
   useEffect(() => {
     if (form.type_service !== 'delivery') return
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (deliveryAddress.trim().length < 8) {
+    if (deliveryAddress.trim().length < 6) {
       setDeliveryFeeStatus('idle')
       setDeliveryFee(null)
       setDeliveryDistanceKm(null)
+      setDeliveryApproximated(false)
       return
     }
     setDeliveryFeeStatus('loading')
@@ -112,23 +204,28 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           setDeliveryFeeStatus('not_found')
           setDeliveryFee(null)
           setDeliveryDistanceKm(null)
+          setDeliveryApproximated(false)
         } else if (data.error === 'out_of_zone') {
           setDeliveryFeeStatus('out_of_zone')
           setDeliveryFee(null)
           setDeliveryDistanceKm(data.distanceKm ?? null)
+          setDeliveryApproximated(data.approximated ?? false)
         } else if (typeof data.fee === 'number') {
           setDeliveryFeeStatus('ok')
           setDeliveryFee(data.fee)
           setDeliveryDistanceKm(data.distanceKm ?? null)
+          setDeliveryApproximated(data.approximated ?? false)
         } else {
           setDeliveryFeeStatus('not_found')
           setDeliveryFee(null)
           setDeliveryDistanceKm(null)
+          setDeliveryApproximated(false)
         }
       } catch {
         setDeliveryFeeStatus('not_found')
         setDeliveryFee(null)
         setDeliveryDistanceKm(null)
+        setDeliveryApproximated(false)
       }
     }, 800)
     return () => {
@@ -171,13 +268,18 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     localStorage.setItem('pizza-client-lastname', form.client_lastname.trim())
     localStorage.setItem('pizza-client-phone', form.client_phone.trim())
 
+    // Construire l'adresse complète avec le point de repère éventuel
+    const fullAddress = form.type_service === 'delivery'
+      ? [deliveryAddress.trim(), deliveryLandmark.trim()].filter(Boolean).join(' — ')
+      : undefined
+
     const orderPayload = {
       client_name: clientName,
       client_phone: form.client_phone.trim(),
       type_service: form.type_service,
       heure_souhaitee: form.heure_souhaitee.trim(),
       notes: notes.trim() || undefined,
-      delivery_address: form.type_service === 'delivery' ? deliveryAddress.trim() : undefined,
+      delivery_address: fullAddress,
       items: items.map((item) => ({
         id: item.id,
         name: item.name,
@@ -541,14 +643,84 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                             <MapPin size={12} />
                             Adresse de livraison *
                           </label>
+
+                          {/* Input autocomplete BAN */}
+                          <div className="relative">
+                            <div className="relative">
+                              <input
+                                ref={addressInputRef}
+                                type="text"
+                                placeholder="Numéro, rue, quartier… (ex: 12 rue des Flamboyants, Dillon)"
+                                autoComplete="off"
+                                className={`w-full px-4 py-3 pr-10 min-h-[48px] rounded-2xl border focus:outline-none focus:border-primary/30 touch-manipulation transition-colors ${
+                                  addressConfirmed
+                                    ? 'border-green-300 bg-green-50/30'
+                                    : 'border-gray-200'
+                                }`}
+                                value={deliveryAddress}
+                                onChange={(e) => {
+                                  setDeliveryAddress(e.target.value)
+                                  setAddressConfirmed(false)
+                                  setBanSuggestionsVisible(false)
+                                }}
+                                onFocus={() => {
+                                  if (banSuggestions.length > 0) setBanSuggestionsVisible(true)
+                                }}
+                              />
+                              {/* Icône état */}
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                {banLoading && <Loader2 size={15} className="animate-spin text-gray-400" />}
+                                {!banLoading && addressConfirmed && <CheckCircle size={15} className="text-green-500" />}
+                                {!banLoading && !addressConfirmed && deliveryAddress.length >= 4 && (
+                                  <Navigation size={14} className="text-gray-300" />
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Dropdown suggestions BAN */}
+                            <AnimatePresence>
+                              {banSuggestionsVisible && banSuggestions.length > 0 && (
+                                <motion.div
+                                  ref={suggestionsBoxRef}
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -4 }}
+                                  transition={{ duration: 0.12 }}
+                                  className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+                                >
+                                  {banSuggestions.map((s, i) => (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault()
+                                        handleSuggestionSelect(s)
+                                      }}
+                                      className="w-full flex items-start gap-2.5 px-4 py-3 hover:bg-cream/60 transition-colors text-left border-b border-gray-50 last:border-0"
+                                    >
+                                      <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium text-[#3D2418] leading-snug truncate">{s.label}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{s.city}</p>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* Champ point de repère */}
                           <input
                             type="text"
-                            placeholder="Numéro, rue, quartier…"
-                            autoComplete="street-address"
-                            className="w-full px-4 py-3 min-h-[48px] rounded-2xl border border-gray-200 focus:outline-none focus:border-primary/30 touch-manipulation"
-                            value={deliveryAddress}
-                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                            placeholder="Point de repère (optionnel) — ex: en face du Carrefour, bât. B…"
+                            className="w-full px-4 py-2.5 min-h-[44px] rounded-2xl border border-gray-100 bg-gray-50/50 focus:outline-none focus:border-primary/30 text-sm text-gray-600 placeholder:text-gray-400 touch-manipulation"
+                            value={deliveryLandmark}
+                            onChange={(e) => setDeliveryLandmark(e.target.value)}
+                            maxLength={120}
                           />
+
+                          {/* Statuts de calcul des frais */}
                           {deliveryFeeStatus === 'loading' && (
                             <div className="flex items-center gap-2 text-sm text-gray-500 px-1">
                               <Loader2 size={14} className="animate-spin shrink-0" />
@@ -556,12 +728,24 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                             </div>
                           )}
                           {deliveryFeeStatus === 'ok' && deliveryFee !== null && (
-                            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-3 py-2">
-                              <CheckCircle size={15} className="shrink-0" />
+                            <div className={`flex items-start gap-2 text-sm rounded-xl px-3 py-2 ${
+                              deliveryApproximated
+                                ? 'text-amber-700 bg-amber-50'
+                                : 'text-green-700 bg-green-50'
+                            }`}>
+                              {deliveryApproximated
+                                ? <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                                : <CheckCircle size={15} className="shrink-0 mt-0.5" />
+                              }
                               <span>
                                 Frais de livraison : <strong>{deliveryFee.toFixed(2)} €</strong>
                                 {deliveryDistanceKm !== null && (
-                                  <span className="text-green-600 ml-1">(≈ {deliveryDistanceKm} km)</span>
+                                  <span className="ml-1 opacity-75">(≈ {deliveryDistanceKm} km)</span>
+                                )}
+                                {deliveryApproximated && (
+                                  <span className="block text-xs mt-0.5 opacity-80">
+                                    Estimation par commune — confirmé par l&apos;équipe à la validation
+                                  </span>
                                 )}
                               </span>
                             </div>
@@ -569,14 +753,14 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                           {deliveryFeeStatus === 'not_found' && (
                             <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
                               <AlertCircle size={15} className="shrink-0" />
-                              <span>Adresse introuvable — vérifiez ou précisez.</span>
+                              <span>Adresse introuvable — précisez la rue ou sélectionnez une suggestion.</span>
                             </div>
                           )}
                           {deliveryFeeStatus === 'out_of_zone' && (
                             <div className="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 space-y-3">
                               <p className="text-sm text-red-700 font-medium leading-snug">
-                                ⚠️ Malheureusement, vous vous situez hors de notre périmètre de livraison.
-                                Contactez-nous directement ou commandez en click &amp; collect !
+                                ⚠️ Vous êtes hors de notre zone de livraison (7 km max depuis Bellevue).
+                                Commandez en click &amp; collect ou appelez-nous !
                               </p>
                               <div className="flex gap-2">
                                 <a

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  RefreshCw, Search, Edit2, Check, X, Loader2, Upload,
+  RefreshCw, Search, Edit2, Check, X, Loader2,
   Eye, EyeOff, Star, Leaf, Droplets, ChevronDown, ChevronUp, Plus, Tag, Tags, Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,6 +11,7 @@ import type { Product, ProductUpdate, ProductCreate } from '@/lib/productsStore'
 import { ChefPizzaEditor } from './ChefPizzaEditor'
 import { getCsrfToken } from '@/lib/csrf'
 import { useAdminToast } from '@/components/admin/AdminToast'
+import { AdminImageDropzone } from '@/components/admin/ui/AdminImageDropzone'
 
 function getAdminPin(): string {
   if (typeof window === 'undefined') return ''
@@ -272,21 +273,25 @@ function ProductCreateModal({
   const isDrink  = form.type === 'drink'
   const images   = isPizza ? form.image_urls : (form.image_url ? [form.image_url] : [])
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) { setUploadError('Image invalide.'); return }
-    if (file.size > 5 * 1024 * 1024)     { setUploadError('Max 5 Mo.'); return }
+  const uploadProductImage = async (file: File) => {
     setUploadError(null)
     setUploading(true)
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res  = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: fd })
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+        body: fd,
+      })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) {
         if (isPizza) {
-          setForm(f => ({ ...f, image_urls: [...f.image_urls, data.url], image_url: f.image_urls.length === 0 ? data.url : f.image_url }))
+          setForm(f => ({
+            ...f,
+            image_urls: [...f.image_urls, data.url],
+            image_url: f.image_urls.length === 0 ? data.url : f.image_url,
+          }))
         } else {
           setForm(f => ({ ...f, image_url: data.url }))
         }
@@ -295,7 +300,6 @@ function ProductCreateModal({
       }
     } finally {
       setUploading(false)
-      e.target.value = ''
     }
   }
 
@@ -452,11 +456,20 @@ function ProductCreateModal({
               {isPizza ? 'Photos (la 1re = principale)' : 'Photo'}
             </label>
             <div className="flex flex-col gap-3">
-              <label className="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-coral/50 hover:bg-coral/5 transition-colors text-slate-600 font-semibold">
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={uploading} onChange={handleImageUpload} />
-                {uploading ? <Loader2 size={20} className="animate-spin text-coral" /> : <Upload size={20} className="text-coral" />}
-                {uploading ? 'Upload…' : isPizza ? 'Ajouter une image' : 'Choisir une image'}
-              </label>
+              <AdminImageDropzone
+                idleTitle={isPizza ? 'Ajouter une image à la galerie' : 'Choisir une image'}
+                hint={
+                  isPizza
+                    ? 'La 1re image = photo principale sur la carte. JPEG, PNG, WebP ou GIF — max 5 Mo.'
+                    : 'JPEG, PNG, WebP ou GIF — max 5 Mo.'
+                }
+                onFile={file => {
+                  void uploadProductImage(file)
+                }}
+                onValidationError={setUploadError}
+                uploading={uploading}
+                disabled={uploading}
+              />
               {images.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {images.map((url, index) => (
@@ -643,17 +656,7 @@ function ProductEditModal({
   const isPizza = product.type === 'pizza'
   const images = isPizza ? form.image_urls : (form.image_url ? [form.image_url] : [])
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Choisissez une image (JPEG, PNG, WebP, GIF).')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError('Image trop lourde (max 5 Mo).')
-      return
-    }
+  const uploadProductImage = async (file: File) => {
     setUploadError(null)
     setUploading(true)
     try {
@@ -671,14 +674,39 @@ function ProductEditModal({
       }
       if (data.url) {
         if (isPizza) {
-          setForm(f => ({ ...f, image_urls: [...f.image_urls, data.url], image_url: f.image_urls.length === 0 ? data.url : f.image_url }))
+          setForm(f => ({
+            ...f,
+            image_urls: [...f.image_urls, data.url],
+            image_url: f.image_urls.length === 0 ? data.url : f.image_url,
+          }))
         } else {
           setForm(f => ({ ...f, image_url: data.url }))
         }
       }
     } finally {
       setUploading(false)
-      e.target.value = ''
+    }
+  }
+
+  const uploadSliderImage = async (file: File) => {
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() },
+        body: formData,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.url) {
+        setForm(f => ({ ...f, slider_image_url: data.url }))
+      } else {
+        setUploadError(data.error || 'Erreur d’upload')
+      }
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -817,17 +845,20 @@ function ProductEditModal({
               {isPizza ? 'Photos (la 1re = principale)' : 'Photo'}
             </label>
             <div className="flex flex-col gap-3">
-              <label className="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-coral/50 hover:bg-coral/5 transition-colors text-slate-600 font-semibold">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="sr-only"
-                  disabled={uploading}
-                  onChange={handleImageUpload}
-                />
-                {uploading ? <Loader2 size={20} className="animate-spin text-coral" /> : <Upload size={20} className="text-coral" />}
-                {uploading ? 'Upload…' : isPizza ? 'Ajouter une image' : 'Choisir une image'}
-              </label>
+              <AdminImageDropzone
+                idleTitle={isPizza ? 'Ajouter une image à la galerie' : 'Choisir une image'}
+                hint={
+                  isPizza
+                    ? 'La 1re image = photo principale. JPEG, PNG, WebP ou GIF — max 5 Mo.'
+                    : 'JPEG, PNG, WebP ou GIF — max 5 Mo.'
+                }
+                onFile={file => {
+                  void uploadProductImage(file)
+                }}
+                onValidationError={setUploadError}
+                uploading={uploading}
+                disabled={uploading}
+              />
               <div className="flex flex-wrap gap-2">
                 {images.map((url, index) => (
                   <div key={`${url}-${index}`} className="relative group w-20 h-20 rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
@@ -871,31 +902,18 @@ function ProductEditModal({
               </label>
               <p className="text-xs text-slate-500 mb-2">Optionnel. Image réservée au bandeau d’accueil (ex. pizza détourée, fond transparent).</p>
               <div className="flex flex-col gap-2">
-                <label className="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-coral/50 hover:bg-coral/5 transition-colors text-slate-600 font-semibold">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="sr-only"
-                    disabled={uploading}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0]
-                      if (!file || !file.type.startsWith('image/')) return
-                      if (file.size > 5 * 1024 * 1024) { setUploadError('Image trop lourde (max 5 Mo).'); return }
-                      setUploadError(null)
-                      setUploading(true)
-                      try {
-                        const formData = new FormData()
-                        formData.append('file', file)
-                        const res = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-pin': getAdminPin(), 'x-csrf-token': getCsrfToken() }, body: formData })
-                        const data = await res.json().catch(() => ({}))
-                        if (res.ok && data.url) setForm(f => ({ ...f, slider_image_url: data.url }))
-                        else setUploadError(data.error || 'Erreur d’upload')
-                      } finally { setUploading(false); e.target.value = '' }
-                    }}
-                  />
-                  {uploading ? <Loader2 size={20} className="animate-spin text-coral" /> : <Upload size={20} className="text-coral" />}
-                  {form.slider_image_url ? 'Remplacer l’image slider' : 'Ajouter une image pour le slider'}
-                </label>
+                <AdminImageDropzone
+                  compact
+                  idleTitle={form.slider_image_url ? 'Remplacer l’image slider' : 'Ajouter une image pour le slider'}
+                  hint="Bandeau d’accueil — format paysage conseillé, fond transparent possible. Max 5 Mo."
+                  onFile={file => {
+                    void uploadSliderImage(file)
+                  }}
+                  onValidationError={setUploadError}
+                  uploading={uploading}
+                  disabled={uploading}
+                  browseLabel="Parcourir les fichiers"
+                />
                 {form.slider_image_url && (
                   <div className="relative group w-32 h-24 rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
                     <img src={form.slider_image_url} alt="Slider" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
