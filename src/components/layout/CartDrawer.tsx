@@ -294,13 +294,22 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         }
       }
 
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 60_000,
-        })
-      })
+      // 1re tentative : position en cache (instantanée si le device en a une récente)
+      const getPos = (highAccuracy: boolean, timeout: number, maxAge: number) =>
+        new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: highAccuracy,
+            timeout,
+            maximumAge: maxAge,
+          })
+        )
+
+      let pos: GeolocationPosition
+      try {
+        pos = await getPos(false, 5000, 300_000) // cache 5 min → réponse immédiate si disponible
+      } catch {
+        pos = await getPos(false, 20000, 0) // acquisition fraîche, 20s max
+      }
 
       await fillAddressFromCoords(pos.coords.latitude, pos.coords.longitude)
     } catch (e: unknown) {
@@ -311,7 +320,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
       } else if (code === 2) {
         setGeoError("Position indisponible. Saisissez l'adresse à la main.")
       } else if (code === 3) {
-        setGeoError("Délai dépassé. Réessayez ou saisissez l'adresse.")
+        setGeoError("Impossible d'obtenir votre position. Vérifiez que le GPS / la localisation est activé sur votre téléphone, puis réessayez.")
       } else {
         setGeoError("Localisation impossible. Saisissez l'adresse à la main.")
       }
