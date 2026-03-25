@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, Download, Edit2, Trash2, X, Loader2, Users, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Search, Download, Upload, Edit2, Trash2, X, Loader2, Users, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminCard, adminFocusRing } from '@/components/admin/adminUi'
 import { getCsrfToken } from '@/lib/csrf'
@@ -36,6 +36,9 @@ export function ClientsManager() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: { line: number; reason: string }[] } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadClients = useCallback(async () => {
     const pin = getAdminPin()
@@ -126,6 +129,38 @@ export function ClientsManager() {
     }
   }
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset input pour permettre de re-sélectionner le même fichier
+    e.target.value = ''
+
+    const pin = getAdminPin()
+    setImporting(true)
+    setImportResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/clients/import', {
+        method: 'POST',
+        headers: { 'x-admin-pin': pin, 'x-csrf-token': getCsrfToken() },
+        body: formData,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setImportResult(data)
+        await loadClients()
+        if (data.skipped === 0) {
+          showToast('success', `${data.imported} clients importés`)
+        }
+      } else {
+        setError(data.error || 'Erreur lors de l\'import')
+      }
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const handleExport = async () => {
     const pin = getAdminPin()
     setExporting(true)
@@ -176,6 +211,24 @@ export function ClientsManager() {
               className={cn('w-full min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-4 text-base text-slate-900 placeholder:text-slate-400', adminFocusRing, 'focus:border-coral')}
             />
           </div>
+          {/* Import CSV — input caché */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleImport}
+            aria-label="Importer un CSV"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className={cn('inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-100 px-4 font-semibold text-slate-800 transition-colors hover:bg-slate-200 disabled:opacity-50', adminFocusRing)}
+          >
+            <Upload size={18} aria-hidden />
+            {importing ? 'Import…' : 'Importer CSV'}
+          </button>
           <button
             type="button"
             onClick={handleExport}
@@ -199,6 +252,43 @@ export function ClientsManager() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 flex items-center gap-3">
           <AlertTriangle size={20} aria-hidden />
           {error}
+        </div>
+      )}
+
+      {/* Résultat import CSV */}
+      {importResult && (
+        <div className={`rounded-xl border p-4 ${importResult.skipped > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              {importResult.skipped > 0
+                ? <AlertTriangle size={20} className="text-amber-600 mt-0.5 shrink-0" aria-hidden />
+                : <CheckCircle2 size={20} className="text-green-600 mt-0.5 shrink-0" aria-hidden />
+              }
+              <div>
+                <p className={`font-semibold ${importResult.skipped > 0 ? 'text-amber-800' : 'text-green-800'}`}>
+                  {importResult.imported} client{importResult.imported !== 1 ? 's' : ''} importé{importResult.imported !== 1 ? 's' : ''}
+                  {importResult.skipped > 0 && ` — ${importResult.skipped} ligne${importResult.skipped !== 1 ? 's' : ''} ignorée${importResult.skipped !== 1 ? 's' : ''}`}
+                </p>
+                {importResult.errors.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {importResult.errors.map((e, i) => (
+                      <li key={i} className="text-sm text-amber-700">
+                        Ligne {e.line} : {e.reason}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setImportResult(null)}
+              className="text-slate-400 hover:text-slate-600 shrink-0"
+              aria-label="Fermer"
+            >
+              <X size={18} aria-hidden />
+            </button>
+          </div>
         </div>
       )}
 
