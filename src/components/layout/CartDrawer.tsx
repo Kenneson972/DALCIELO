@@ -205,34 +205,63 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     setBanSuggestions([])
   }, [])
 
-  /** API Adresse (reverse) → libellé BAN Martinique (972xx) */
+  /** GPS coords -> adresse lisible. BAN d'abord, Nominatim en fallback */
   const fillAddressFromCoords = useCallback(async (lat: number, lon: number) => {
+    // 1. BAN reverse geocoding (meilleure couverture Martinique)
     try {
+      const ctrl1 = new AbortController()
+      const t1 = setTimeout(() => ctrl1.abort(), 8000)
       const res = await fetch(
-        `https://api-adresse.data.gouv.fr/reverse/?lon=${encodeURIComponent(String(lon))}&lat=${encodeURIComponent(String(lat))}&limit=8`
-      )
-      if (!res.ok) throw new Error('ban')
-      const data = await res.json()
-      const features = (data.features ?? []) as Array<{
-        properties: { label: string; citycode?: string }
-      }>
-      const mq = features.find(f => f.properties?.citycode?.startsWith('972'))
-      if (mq?.properties?.label) {
-        setDeliveryAddress(mq.properties.label)
-        setAddressConfirmed(true)
-        setBanSuggestionsVisible(false)
-        setBanSuggestions([])
-      } else {
-        setGeoError('Aucune adresse en Martinique trouvée à cet endroit. Saisissez la rue à la main.')
+        `https://api-adresse.data.gouv.fr/reverse/?lon=${lon}&lat=${lat}&limit=5`,
+        { signal: ctrl1.signal }
+      ).finally(() => clearTimeout(t1))
+      if (res.ok) {
+        const data = await res.json()
+        const features = (data.features ?? []) as { properties: { label: string; citycode: string } }[]
+        const hit = features.find(f => f.properties?.citycode?.startsWith('972')) ?? features[0]
+        if (hit?.properties?.label) {
+          setDeliveryAddress(hit.properties.label)
+          setAddressConfirmed(true)
+          setBanSuggestionsVisible(false)
+          setBanSuggestions([])
+          return
+        }
       }
-    } catch {
-      setGeoError('Impossible de récupérer l’adresse. Réessayez ou saisissez-la à la main.')
-    }
+    } catch (e) { void e }
+
+    // 2. Fallback Nominatim (OpenStreetMap)
+    try {
+      const ctrl2 = new AbortController()
+      const t2 = setTimeout(() => ctrl2.abort(), 10000)
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&accept-language=fr`,
+        { headers: { 'User-Agent': 'PizzaDalCielo/1.0' }, signal: ctrl2.signal }
+      ).finally(() => clearTimeout(t2))
+      if (res.ok) {
+        const data = await res.json()
+        const cc = String(data?.address?.country_code ?? '')
+        if (cc === 'mq' || cc === 'fr') {
+          const a = data.address ?? {}
+          const street = [a.house_number, a.road].filter(Boolean).join(' ')
+          const locality = String(a.city ?? a.town ?? a.village ?? a.suburb ?? '')
+          const label = [street, a.postcode, locality].filter(Boolean).join(', ')
+          if (label.trim()) {
+            setDeliveryAddress(label.trim())
+            setAddressConfirmed(true)
+            setBanSuggestionsVisible(false)
+            setBanSuggestions([])
+            return
+          }
+        }
+      }
+    } catch (e) { void e }
+
+    setGeoError("Aucune adresse trouvée pour votre position. Saisissez-la manuellement.")
   }, [])
 
   /**
    * Comme DIAMANTNOIR (page catalogue villas / VillasMapView) : au premier affichage du mode livraison,
-   * on appelle getCurrentPosition sans attendre le clic — le navigateur peut afficher la demande d’autorisation tout de suite.
+   * on appelle getCurrentPosition sans attendre le clic — le navigateur peut afficher la demande d'autorisation tout de suite.
    */
   useEffect(() => {
     if (!isOpen || form.type_service !== 'delivery') return
@@ -265,7 +294,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     if (geoLoading) return
     setGeoError(null)
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setGeoError('La géolocalisation n’est pas disponible sur cet appareil.')
+      setGeoError("La géolocalisation n'est pas disponible sur cet appareil.")
       return
     }
     if (typeof window !== 'undefined' && !window.isSecureContext) {
@@ -283,7 +312,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           })
           if (status.state === 'denied') {
             setGeoError(
-              'La localisation est refusée pour ce site. Débloquez-la via l’icône à gauche de la barre d’adresse → Paramètres du site → Localisation → Autoriser, puis recliquez sur le bouton cible.'
+              "La localisation est refusée. Débloquez-la : icône à gauche de la barre d'adresse → Paramètres du site → Localisation → Autoriser, puis recliquez."
             )
             setGeoLoading(false)
             return
@@ -306,15 +335,13 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
       const err = e as Partial<GeolocationPositionError> | undefined
       const code = err && typeof err === 'object' && 'code' in err ? Number((err as GeolocationPositionError).code) : NaN
       if (code === 1) {
-        setGeoError(
-          'Accès à la position refusé. Débloquez la localisation pour ce site (icône à gauche de l’URL → Paramètres du site → Localisation → Autoriser). Sur téléphone : vérifiez aussi GPS activé et autorisations pour le navigateur dans Réglages.'
-        )
+        setGeoError("Accès refusé. Débloquez la localisation : icône à gauche de l'URL → Paramètres → Localisation → Autoriser. Sur mobile : vérifiez aussi que le GPS est activé.")
       } else if (code === 2) {
-        setGeoError('Position indisponible. Saisissez l’adresse à la main.')
+        setGeoError("Position indisponible. Saisissez l'adresse à la main.")
       } else if (code === 3) {
-        setGeoError('Délai dépassé. Réessayez ou saisissez l’adresse.')
+        setGeoError("Délai dépassé. Réessayez ou saisissez l'adresse.")
       } else {
-        setGeoError('Localisation impossible. Saisissez l’adresse à la main.')
+        setGeoError("Localisation impossible. Saisissez l'adresse à la main.")
       }
     } finally {
       setGeoLoading(false)
@@ -858,7 +885,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                 onClick={handleGeolocateFill}
                                 disabled={geoLoading}
                                 title="Remplir avec ma position"
-                                aria-label="Remplir l’adresse avec ma position actuelle"
+                                aria-label="Remplir l'adresse avec ma position actuelle"
                                 className="shrink-0 flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-primary shadow-sm transition hover:border-primary/40 hover:bg-cream/50 disabled:opacity-60 touch-manipulation min-h-[48px] min-w-[48px]"
                               >
                                 {geoLoading ? (
