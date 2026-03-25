@@ -1,7 +1,19 @@
 import { supabase, supabaseEnabled } from '@/lib/supabaseClient'
 
+export type AuditAction =
+  | 'order.validate'
+  | 'order.update'
+  | 'order.delete'
+  | 'product.create'
+  | 'product.update'
+  | 'product.delete'
+  | 'stock.update'
+  | 'client.create'
+  | 'client.update'
+  | 'client.delete'
+
 interface AuditEntry {
-  action: string
+  action: AuditAction | string
   entity_type: string
   entity_id?: string
   details?: Record<string, unknown>

@@ -14,11 +14,12 @@ import {
   ChevronRight,
   FileText,
   Pizza,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminFocusRingDark } from '@/components/admin/adminUi'
 
-type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews'
+type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews' | 'clients'
 
 interface AdminSidebarProps {
   currentView: ViewMode
@@ -45,6 +46,7 @@ export function AdminSidebar({
     { id: 'menu', label: 'Menu & Produits', icon: UtensilsCrossed },
     { id: 'announcement', label: 'Annonce', icon: Megaphone },
     { id: 'reviews', label: 'Avis clients', icon: Star },
+    { id: 'clients', label: 'Clients & Fidélité', icon: Users },
     { id: 'stocks', label: 'Stocks', icon: Package },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ]

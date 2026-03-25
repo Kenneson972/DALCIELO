@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PizzaCard } from '@/components/menu/PizzaCard'
+import { PizzaCardSkeleton } from '@/components/menu/PizzaCardSkeleton'
 import { CategoryFilter } from '@/components/menu/CategoryFilter'
 import { Button } from '@/components/ui/Button'
 import { Pizza, Search, Sparkles, ShoppingBag } from 'lucide-react'
@@ -129,7 +130,7 @@ function ChefPizzaBigCard({ item }: { item: MenuPageItem }) {
   )
 }
 
-export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
+export function MenuPageClient({ items, isLoading }: { items: MenuPageItem[]; isLoading?: boolean }) {
   const [activeCategory, setActiveCategory] = useState('Tous')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -163,6 +164,20 @@ export function MenuPageClient({ items }: { items: MenuPageItem[] }) {
 
   const chefItems = useMemo(() => filteredItems.filter(i => i.category === 'Du Chef'), [filteredItems])
   const restItems = useMemo(() => filteredItems.filter(i => i.category !== 'Du Chef'), [filteredItems])
+
+  if (isLoading) {
+    return (
+      <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PizzaCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">

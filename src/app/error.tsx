@@ -1,15 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { RefreshCw, Home } from 'lucide-react'
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
   return (
     <div className="pt-32 pb-24 px-4 sm:px-6 min-h-screen">
       <div className="max-w-2xl mx-auto text-center">

@@ -168,7 +168,14 @@ export function OrdersList({ orders, onRefresh, onStatusChange }: OrdersListProp
   )
 }
 
-function FilterButton({ active, onClick, label, count }: any) {
+interface FilterButtonProps {
+  active: boolean
+  onClick: () => void
+  label: string
+  count?: number
+}
+
+function FilterButton({ active, onClick, label, count }: FilterButtonProps) {
   return (
     <button
       type="button"

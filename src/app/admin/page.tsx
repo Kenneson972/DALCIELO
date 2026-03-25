@@ -59,6 +59,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { MenuManager } from '@/components/admin/MenuManager'
 import { AnnouncementEditor } from '@/components/admin/AnnouncementEditor'
 import { ReviewsManager } from '@/components/admin/ReviewsManager'
+import { ClientsManager } from '@/components/admin/ClientsManager'
 import { ReceiptsManager } from '@/components/admin/ReceiptsManager'
 import { getCsrfToken } from '@/lib/csrf'
 import { cn } from '@/lib/utils'
@@ -74,7 +75,7 @@ import { AdminSectionHeader } from '@/components/admin/ui/AdminSectionHeader'
 import { AdminToastProvider } from '@/components/admin/AdminToast'
 import type { Order, DashboardStats } from '@/types/order'
 
-type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews'
+type ViewMode = 'dashboard' | 'orders' | 'receipts' | 'stocks' | 'analytics' | 'kitchen' | 'menu' | 'announcement' | 'reviews' | 'clients'
 
 function computeDashboardStats(orders: Order[]): DashboardStats {
   const today = new Date().toDateString()
@@ -518,6 +519,7 @@ export default function AdminPage() {
     menu: 'Menu & Produits',
     announcement: 'Annonce',
     reviews: 'Avis clients',
+    clients: 'Clients & Fidélité',
   }
 
   return (
@@ -726,6 +728,9 @@ export default function AdminPage() {
             )}
             {mountedViews.has('stocks') && (
               <div className={view !== 'stocks' ? 'hidden' : ''}><StocksManager /></div>
+            )}
+            {mountedViews.has('clients') && (
+              <div className={view !== 'clients' ? 'hidden' : ''}><ClientsManager /></div>
             )}
 
             {/* Sections dépendant des données parent — remontées sur chaque visite */}
