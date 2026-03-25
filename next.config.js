@@ -31,7 +31,7 @@ const nextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https: blob:",
           "font-src 'self' data:",
-          "connect-src 'self' https://*.supabase.co https://api.stripe.com https://*.google.com https://*.googleapis.com wss:",
+          "connect-src 'self' https://*.supabase.co https://api.stripe.com https://*.google.com https://*.googleapis.com https://api-adresse.data.gouv.fr https://nominatim.openstreetmap.org wss:",
           "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.google.com https://maps.google.com https://maps.googleapis.com",
           "frame-ancestors 'self'",
         ].join('; '),

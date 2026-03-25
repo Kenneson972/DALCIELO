@@ -259,35 +259,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     setGeoError("Aucune adresse trouvée pour votre position. Saisissez-la manuellement.")
   }, [])
 
-  /**
-   * Comme DIAMANTNOIR (page catalogue villas / VillasMapView) : au premier affichage du mode livraison,
-   * on appelle getCurrentPosition sans attendre le clic — le navigateur peut afficher la demande d'autorisation tout de suite.
-   */
-  useEffect(() => {
-    if (!isOpen || form.type_service !== 'delivery') return
-    if (deliveryAutoGeoAttemptedRef.current) return
-    if (typeof navigator === 'undefined' || !navigator.geolocation) return
-    if (typeof window !== 'undefined' && !window.isSecureContext) return
-
-    deliveryAutoGeoAttemptedRef.current = true
-    setGeoError(null)
-    setGeoLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        void (async () => {
-          try {
-            await fillAddressFromCoords(pos.coords.latitude, pos.coords.longitude)
-          } finally {
-            setGeoLoading(false)
-          }
-        })()
-      },
-      () => {
-        setGeoLoading(false)
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60_000 },
-    )
-  }, [isOpen, form.type_service, fillAddressFromCoords])
+  // Pas d'auto-trigger géoloc : on attend le clic utilisateur pour éviter boucle et délai indéfini
 
   /** GPS → coordonnées → API Adresse (reverse) → libellé BAN Martinique (972xx) */
   const handleGeolocateFill = useCallback(async () => {
@@ -324,9 +296,9 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
       const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 25000,
-          maximumAge: 0,
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 60_000,
         })
       })
 
