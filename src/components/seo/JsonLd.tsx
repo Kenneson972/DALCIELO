@@ -108,19 +108,19 @@ export function JsonLd() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/<\/script>/gi, '<\\/script>') }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema).replace(/<\/script>/gi, '<\\/script>') }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema).replace(/<\/script>/gi, '<\\/script>') }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/<\/script>/gi, '<\\/script>') }}
       />
     </>
   )

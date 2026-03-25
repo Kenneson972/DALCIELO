@@ -21,8 +21,15 @@ export function getExpectedAdminPin(): string | null {
 export function isAdminAuthorized(req: NextRequest): boolean {
   const expectedPin = getExpectedAdminPin()
   if (!expectedPin) return false
-  const providedPin = req.headers.get('x-admin-pin')
-  return Boolean(providedPin && providedPin === expectedPin)
+  const providedPin = req.headers.get('x-admin-pin') ?? ''
+  if (!providedPin || providedPin.length !== expectedPin.length) return false
+  // Comparaison constant-time pour éviter les timing attacks
+  try {
+    const { timingSafeEqual } = require('crypto') as typeof import('crypto')
+    return timingSafeEqual(Buffer.from(providedPin), Buffer.from(expectedPin))
+  } catch {
+    return providedPin === expectedPin
+  }
 }
 
 /** Réponse 401 standard pour les routes admin */

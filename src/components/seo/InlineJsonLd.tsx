@@ -8,7 +8,7 @@ export function InlineJsonLd({ schema }: { schema: Record<string, unknown> | Arr
         <script
           key={idx}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(s).replace(/<\/script>/gi, '<\\/script>') }}
         />
       ))}
     </>
