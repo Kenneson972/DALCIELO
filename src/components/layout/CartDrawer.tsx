@@ -20,13 +20,15 @@ import {
   AlertCircle,
   Navigation,
   LocateFixed,
+  RefreshCw,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 import { useQueueEstimate } from '@/hooks/useQueueEstimate'
 import { Button } from '@/components/ui/Button'
+import { TimeSlotPicker } from '@/components/ui/TimeSlotPicker'
+import { isPreferredTimeSlotObsolete } from '@/lib/preferredTimeSlots'
 import { contactInfo, menuData } from '@/data/menuData'
-import { supabase, supabaseEnabled } from '@/lib/supabaseClient'
 import { createLocalOrderId, createOrderToken, createOrder } from '@/lib/localStore'
 import type { Order } from '@/types/order'
 import { getCsrfToken } from '@/lib/csrf'
@@ -42,6 +44,15 @@ interface BanSuggestion {
 interface CartDrawerProps {
   isOpen: boolean
   onClose: () => void
+}
+
+type SubmitErrorState = {
+  title: string
+  description: string
+  code?: string
+  retryable: boolean
+  suggestReload?: boolean
+  degradedNetwork?: boolean
 }
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -60,6 +71,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const [sent, setSent] = useState(false)
   const [offlineWarning, setOfflineWarning] = useState(false)
   const [ovenUnavailableWarning, setOvenUnavailableWarning] = useState(false)
+  const [submitError, setSubmitError] = useState<SubmitErrorState | null>(null)
   const router = useRouter()
 
   // Delivery address & fee
@@ -99,6 +111,8 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     type_service: 'click_collect' as 'click_collect' | 'delivery',
     heure_souhaitee: '',
   })
+  /** Rafraîchit les créneaux « passés » si le panier reste ouvert (toutes les 30 s) */
+  const [timeSlotTick, setTimeSlotTick] = useState(0)
 
   const clientName = `${form.client_firstname} ${form.client_lastname}`.trim()
   const canSubmit = useMemo(() => {
@@ -114,12 +128,29 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     return true
   }, [clientName, form.client_phone, items.length, deliveryFeeStatus, estimate.ovenAvailable, ovenLoading, rgpdConsent])
 
+  useEffect(() => {
+    if (!isOpen) return
+    const id = window.setInterval(() => setTimeSlotTick(t => t + 1), 30_000)
+    return () => window.clearInterval(id)
+  }, [isOpen])
+
+  /** Si l’heure choisie vient de passer, on la retire pour éviter une commande sur un créneau obsolète */
+  useEffect(() => {
+    if (!isOpen) return
+    setForm(f => {
+      if (!f.heure_souhaitee || !isPreferredTimeSlotObsolete(f.heure_souhaitee)) return f
+      return { ...f, heure_souhaitee: '' }
+    })
+  }, [isOpen, timeSlotTick])
+
   // Réinitialiser l'état "sent" à l'ouverture du tiroir pour afficher le panier à jour (vide après envoi)
   useEffect(() => {
     if (isOpen) {
       setSent(false)
       setOfflineWarning(false)
       setOvenUnavailableWarning(false)
+      setSubmitError(null)
+      setTimeSlotTick(t => t + 1)
     }
   }, [isOpen])
 
@@ -411,28 +442,19 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     }
   }, [isOpen])
 
-  const handleSubmit = async () => {
-    if (!canSubmit || sending) return
-    setSending(true)
-
-    // Sauvegarder les infos pour la prochaine fois (remplissage automatique)
-    localStorage.setItem('pizza-client-firstname', form.client_firstname.trim())
-    localStorage.setItem('pizza-client-lastname', form.client_lastname.trim())
-    localStorage.setItem('pizza-client-phone', form.client_phone.trim())
-
-    // Construire l'adresse complète avec le point de repère éventuel
-    const fullAddress = form.type_service === 'delivery'
-      ? [deliveryAddress.trim(), deliveryLandmark.trim()].filter(Boolean).join(' — ')
-      : undefined
-
-    const orderPayload = {
+  const buildOrderPayloadBase = () => {
+    const fullAddress =
+      form.type_service === 'delivery'
+        ? [deliveryAddress.trim(), deliveryLandmark.trim()].filter(Boolean).join(' — ')
+        : undefined
+    return {
       client_name: clientName,
       client_phone: form.client_phone.trim(),
       type_service: form.type_service,
       heure_souhaitee: form.heure_souhaitee.trim(),
       notes: notes.trim() || undefined,
       delivery_address: fullAddress,
-      items: items.map((item) => ({
+      items: items.map(item => ({
         id: item.id,
         name: item.name,
         price: item.price,
@@ -444,6 +466,38 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
       total: getTotal(),
       status: 'pending_validation' as const,
     }
+  }
+
+  /** Secours uniquement si l’API est injoignable : enregistre dans le navigateur (pas le serveur). */
+  const handleSaveOrderLocally = () => {
+    if (items.length === 0) return
+    localStorage.setItem('pizza-client-firstname', form.client_firstname.trim())
+    localStorage.setItem('pizza-client-lastname', form.client_lastname.trim())
+    localStorage.setItem('pizza-client-phone', form.client_phone.trim())
+    const base = buildOrderPayloadBase()
+    const order: Order = {
+      id: createLocalOrderId(),
+      token: createOrderToken(),
+      created_at: new Date().toISOString(),
+      ...base,
+    }
+    createOrder(order)
+    clearCart()
+    setSubmitError(null)
+    setSent(true)
+    setOfflineWarning(true)
+  }
+
+  const handleSubmit = async () => {
+    if (!canSubmit || sending) return
+    setSending(true)
+    setSubmitError(null)
+
+    localStorage.setItem('pizza-client-firstname', form.client_firstname.trim())
+    localStorage.setItem('pizza-client-lastname', form.client_lastname.trim())
+    localStorage.setItem('pizza-client-phone', form.client_phone.trim())
+
+    const orderPayload = buildOrderPayloadBase()
 
     try {
       const res = await fetch('/api/orders', {
@@ -451,7 +505,17 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify(orderPayload),
       })
-      const data = await res.json().catch(() => ({}))
+
+      const text = await res.text()
+      let data: { order?: { token?: string }; error?: string; code?: string } = {}
+      if (text) {
+        try {
+          data = JSON.parse(text) as typeof data
+        } catch {
+          data = {}
+        }
+      }
+
       if (res.ok && data?.order?.token) {
         clearCart()
         setSent(true)
@@ -465,30 +529,83 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         return
       }
 
-      throw new Error(data?.error || `Erreur ${res.status}`)
-    } catch (apiError) {
-      const order: Order = {
-        id: createLocalOrderId(),
-        token: createOrderToken(),
-        created_at: new Date().toISOString(),
-        ...orderPayload,
+      const errMsg =
+        typeof data.error === 'string' && data.error.length > 0
+          ? data.error
+          : `Réponse du serveur (${res.status}).`
+      const code = typeof data.code === 'string' ? data.code : undefined
+
+      if (res.status === 403) {
+        setSubmitError({
+          title: 'Sécurité : session expirée',
+          description: errMsg,
+          code,
+          retryable: false,
+          suggestReload: true,
+        })
+        return
       }
-      if (supabaseEnabled && supabase) {
-        try {
-          const { error } = await supabase.from('orders').insert([order])
-          if (!error) {
-            clearCart()
-            setSent(true)
-            onClose()
-            router.push(`/order/${order.token}`)
-            return
-          }
-        } catch (_) {}
+
+      if (res.status === 429) {
+        setSubmitError({
+          title: 'Trop de tentatives',
+          description: errMsg,
+          code: code ?? 'RATE_LIMIT',
+          retryable: true,
+        })
+        return
       }
-      createOrder(order)
-      clearCart()
-      setSent(true)
-      setOfflineWarning(true)
+
+      if (res.status === 400) {
+        setSubmitError({
+          title: 'Données refusées',
+          description: errMsg,
+          code,
+          retryable: false,
+        })
+        return
+      }
+
+      if (res.status === 503) {
+        setSubmitError({
+          title: 'Service indisponible',
+          description: errMsg,
+          code: code ?? 'DB_UNAVAILABLE',
+          retryable: true,
+        })
+        return
+      }
+
+      if (res.status >= 500) {
+        setSubmitError({
+          title: 'Erreur serveur',
+          description: errMsg,
+          code,
+          retryable: true,
+        })
+        return
+      }
+
+      setSubmitError({
+        title: 'Envoi impossible',
+        description: errMsg,
+        code,
+        retryable: false,
+      })
+    } catch (e: unknown) {
+      const isNetwork =
+        e instanceof TypeError ||
+        (e instanceof Error && (e.name === 'AbortError' || e.message.toLowerCase().includes('fetch')))
+      setSubmitError({
+        title: 'Problème de connexion',
+        description: isNetwork
+          ? 'Impossible de joindre le serveur. Vérifiez votre connexion internet (Wi‑Fi ou données mobiles) puis réessayez.'
+          : e instanceof Error
+            ? e.message
+            : 'Une erreur inattendue s’est produite.',
+        retryable: true,
+        degradedNetwork: isNetwork,
+      })
     } finally {
       setSending(false)
     }
@@ -957,27 +1074,10 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         </div>
                       )}
 
-                      {/* Sélecteur d'horaire */}
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">
-                          Heure souhaitée
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"].map((time) => (
-                            <button
-                              key={time}
-                              onClick={() => setForm({ ...form, heure_souhaitee: time })}
-                              className={`px-2 py-3 rounded-xl text-sm font-bold border transition-all ${
-                                form.heure_souhaitee === time
-                                  ? 'bg-primary text-white border-primary shadow-lg shadow-primary/25 scale-[1.02]'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-primary/50 hover:bg-cream/30'
-                              }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      <TimeSlotPicker
+                        value={form.heure_souhaitee}
+                        onChange={time => setForm(f => ({ ...f, heure_souhaitee: time }))}
+                      />
 
                       {/* ── Notes ── */}
                       <div className="space-y-2">
@@ -1084,6 +1184,59 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
             {/* ── Bouton submit sticky ── */}
             {!sent && items.length > 0 && (
               <div className="p-6 border-t border-gray-100 bg-white flex-shrink-0 space-y-2">
+                {submitError && (
+                  <div
+                    className="rounded-2xl border border-amber-200/90 bg-amber-50 px-3.5 py-3 space-y-2.5 mb-1"
+                    role="alert"
+                  >
+                    <div className="flex gap-2 items-start">
+                      <AlertCircle className="shrink-0 text-amber-700 mt-0.5" size={18} aria-hidden />
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-bold text-amber-950 leading-snug">{submitError.title}</p>
+                        <p className="text-xs text-amber-900/90 leading-relaxed">{submitError.description}</p>
+                        {submitError.code && process.env.NODE_ENV === 'development' && (
+                          <p className="text-[10px] font-mono text-amber-800/70">code: {submitError.code}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 pt-0.5">
+                      {submitError.suggestReload && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full border-amber-300 text-amber-900 hover:bg-amber-100"
+                          onClick={() => {
+                            window.location.reload()
+                          }}
+                        >
+                          <RefreshCw size={16} className="mr-2 shrink-0" aria-hidden />
+                          Recharger la page
+                        </Button>
+                      )}
+                      {submitError.retryable && (
+                        <Button
+                          type="button"
+                          className="w-full"
+                          disabled={!canSubmit || sending}
+                          onClick={() => void handleSubmit()}
+                        >
+                          <RefreshCw size={16} className="mr-2 shrink-0" aria-hidden />
+                          Réessayer
+                        </Button>
+                      )}
+                      {submitError.degradedNetwork && (
+                        <button
+                          type="button"
+                          onClick={handleSaveOrderLocally}
+                          disabled={items.length === 0}
+                          className="w-full text-center text-xs font-semibold text-amber-900/80 underline-offset-2 hover:underline py-1"
+                        >
+                          Enregistrer sur cet appareil uniquement (secours)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <label className="flex items-start gap-3 cursor-pointer mb-2">
                   <input
                     type="checkbox"

@@ -25,7 +25,10 @@ export function middleware(request: NextRequest) {
   if (MUTATING_METHODS.has(method) && nextUrl.pathname.startsWith('/api/')) {
     const headerToken = request.headers.get(CSRF_HEADER)
     if (!existingToken || !headerToken || existingToken !== headerToken) {
-      return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Jeton de sécurité invalide ou expiré. Rechargez la page.', code: 'CSRF_INVALID' },
+        { status: 403 }
+      )
     }
   }
 

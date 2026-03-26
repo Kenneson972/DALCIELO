@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const ip = getIp(req)
   if (!checkRateLimit(ip, 10, 60_000)) {
     return NextResponse.json(
-      { error: 'Trop de commandes. Veuillez patienter une minute.' },
+      { error: 'Trop de demandes. Patientez environ une minute puis réessayez.', code: 'RATE_LIMIT' },
       { status: 429 }
     )
   }
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     const trimmedPhone = typeof client_phone === 'string' ? client_phone.trim() : ''
     if (!trimmedName || trimmedName.length < 2) {
       return NextResponse.json(
-        { error: 'client_name required (min 2 characters)' },
+        { error: 'Indiquez votre nom (au moins 2 caractères).', code: 'VALIDATION_NAME' },
         { status: 400 }
       )
     }
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     }
     if (!trimmedPhone || trimmedPhone.length < 6) {
       return NextResponse.json(
-        { error: 'client_phone required (min 6 characters)' },
+        { error: 'Indiquez un numéro de téléphone valide.', code: 'VALIDATION_PHONE' },
         { status: 400 }
       )
     }
@@ -104,13 +104,13 @@ export async function POST(req: Request) {
     }
     if (!type_service || !['click_collect', 'delivery'].includes(type_service)) {
       return NextResponse.json(
-        { error: 'type_service must be click_collect or delivery' },
+        { error: 'Choix de service invalide (livraison ou retrait).', code: 'VALIDATION_SERVICE' },
         { status: 400 }
       )
     }
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { error: 'items must be a non-empty array' },
+        { error: 'Votre panier est vide.', code: 'VALIDATION_ITEMS' },
         { status: 400 }
       )
     }
@@ -133,12 +133,15 @@ export async function POST(req: Request) {
     for (const orderItem of items) {
       const itemId = Number(orderItem.id)
       if (!Number.isFinite(itemId)) {
-        return NextResponse.json({ error: 'Invalid item id' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Article du panier invalide. Videz le panier et recommencez.', code: 'VALIDATION_ITEM_ID' },
+          { status: 400 }
+        )
       }
       const catalogPrice = priceMap.get(itemId)
       if (catalogPrice === undefined) {
         return NextResponse.json(
-          { error: `Unknown product id: ${itemId}` },
+          { error: `Produit inconnu (réf. ${itemId}). Retirez cet article ou rechargez la page.`, code: 'UNKNOWN_PRODUCT' },
           { status: 400 }
         )
       }
@@ -148,14 +151,19 @@ export async function POST(req: Request) {
       if (!Number.isFinite(itemPrice) || itemPrice < minPrice || itemPrice > maxPrice) {
         console.error(`[orders] price mismatch — id:${itemId} name:"${orderItem.name}" sent:${itemPrice} catalog:${catalogPrice} min:${minPrice} max:${maxPrice}`)
         return NextResponse.json(
-          { error: `Item price mismatch: id=${itemId} sent=${itemPrice} expected=${minPrice}–${maxPrice}` },
+          {
+            error:
+              "Le prix d'un article ne correspond plus au menu (personnalisation ou catalogue périmé). Rechargez la page ou retirez l'article.",
+            code: 'PRICE_MISMATCH',
+            details: process.env.NODE_ENV === 'development' ? { itemId, sent: itemPrice, min: minPrice, max: maxPrice } : undefined,
+          },
           { status: 400 }
         )
       }
       const qty = Number(orderItem.quantity)
       if (!Number.isInteger(qty) || qty < 1) {
         return NextResponse.json(
-          { error: 'Item quantity must be a positive integer' },
+          { error: 'Quantité invalide pour un article du panier.', code: 'VALIDATION_QTY' },
           { status: 400 }
         )
       }
@@ -240,7 +248,9 @@ export async function POST(req: Request) {
       message.includes('fetch failed')
     return NextResponse.json(
       {
-        error: isDbUnavailable ? 'Database unavailable' : 'Failed to create order',
+        error: isDbUnavailable
+          ? 'Le service est momentanément indisponible (base de données). Réessayez dans quelques instants.'
+          : "L'enregistrement de la commande a échoué. Réessayez ou contactez la pizzeria.",
         code: isDbUnavailable ? 'DB_UNAVAILABLE' : 'SERVER_ERROR',
         details: process.env.NODE_ENV === 'development' ? message : undefined,
       },
